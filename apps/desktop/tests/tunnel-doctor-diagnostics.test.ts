@@ -123,4 +123,22 @@ describe('persistent tunnel doctor diagnostics', () => {
     expect(messages).toContain('LOCAL_BINDING_STALE');
     expect(checks.some((check) => check.required && check.status === 'fail')).toBe(true);
   });
+
+  it('treats an unconfigured tunnel as optional on a fresh installation', () => {
+    const fresh = tunnel({
+      profileExists: false,
+      persistent: null,
+      state: 'stopped',
+    });
+    const checks = buildPersistentTunnelDoctorChecks({
+      tunnel: fresh,
+      mcp,
+      tunnelHealth: { state: 'unavailable', message: 'No tunnel profile configured' },
+      persistentEnabled: false,
+    });
+
+    expect(checks.every((check) => check.required === false)).toBe(true);
+    expect(checks.find((check) => check.id === 'persistent_tunnel_identity')?.status).toBe('warn');
+    expect(checks.find((check) => check.id === 'local_mcp_binding')?.status).toBe('warn');
+  });
 });

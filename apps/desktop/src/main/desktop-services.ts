@@ -805,7 +805,14 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
     recordPersistentTunnelStatus(tunnel);
     const mcp = mcpLifecycle.status();
     const tunnelHealth = await tunnelController.incidentHealth();
-    const checks = [...base.checks, ...buildPersistentTunnelDoctorChecks({ tunnel, mcp, tunnelHealth, persistentEnabled: readSettings().tunnelAutoReconnect })];
+    const checks = [...base.checks, ...buildPersistentTunnelDoctorChecks({
+      tunnel,
+      mcp,
+      tunnelHealth,
+      // A fresh installation has no tunnel profile yet. Keep that optional
+      // setup from blocking the local MCP app or showing as a hard failure.
+      persistentEnabled: readSettings().tunnelAutoReconnect && tunnel.profileExists,
+    })];
     return { checks, exitCode: checks.some((check) => check.required && (check.status === 'fail' || check.status === 'unknown')) ? 1 : 0 };
   };
   const recheckCatalogAndDoctor = async (request: RecheckToolCatalogRequest): Promise<{ readonly catalog: ToolCatalogSnapshot; readonly doctor: DoctorReport }> => {

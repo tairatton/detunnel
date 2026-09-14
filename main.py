@@ -19,6 +19,29 @@ ENV_FILE = REPOSITORY_ROOT / ".env"
 ENV_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
+def build_input_paths() -> tuple[Path, ...]:
+    """Return source/config paths whose changes require a fresh desktop build."""
+
+    roots = (
+        DESKTOP_ROOT / "src",
+        REPOSITORY_ROOT / "packages",
+    )
+    files = (
+        REPOSITORY_ROOT / "package.json",
+        REPOSITORY_ROOT / "pnpm-lock.yaml",
+        REPOSITORY_ROOT / "pnpm-workspace.yaml",
+        DESKTOP_ROOT / "package.json",
+        DESKTOP_ROOT / "tsconfig.main.json",
+        DESKTOP_ROOT / "tsconfig.json",
+        DESKTOP_ROOT / "vite.config.ts",
+    )
+    inputs = [path for path in files if path.is_file()]
+    for root in roots:
+        if root.is_dir():
+            inputs.extend(path for path in root.rglob("*") if path.is_file())
+    return tuple(inputs)
+
+
 def read_env_file(path: Path) -> dict[str, str]:
     """Read a small dotenv-compatible file without adding a runtime dependency."""
 
@@ -100,7 +123,11 @@ def build_desktop(environment: dict[str, str]) -> int:
 def needs_build() -> bool:
     """Return whether the desktop output required by Electron is missing."""
 
-    return not MAIN_BUNDLE.is_file() or not RENDERER_ENTRY.is_file()
+    if not MAIN_BUNDLE.is_file() or not RENDERER_ENTRY.is_file():
+        return True
+
+    output_mtime = min(MAIN_BUNDLE.stat().st_mtime, RENDERER_ENTRY.stat().st_mtime)
+    return any(path.stat().st_mtime > output_mtime for path in build_input_paths())
 
 
 def launch_desktop(electron: Path, electron_args: list[str], environment: dict[str, str]) -> int:
