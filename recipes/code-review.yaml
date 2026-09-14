@@ -1,0 +1,8 @@
+name: code-review
+description: Review code context, symbols, dependencies, and affected tests.
+parallel:
+  - review_context
+  - symbol_context
+  - discover_tests
+permissions:
+  - filesystem.read

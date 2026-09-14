@@ -1,0 +1,51 @@
+{
+  "name": "@lnwjud/desktop",
+  "version": "4.55.0",
+  "private": true,
+  "description": "Windows-first local AI-agent runtime and MCP gateway with 217 total tool definitions.",
+  "author": "Adisorn",
+  "type": "module",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build": "node scripts/write-capability-integrity.mjs && tsc -p tsconfig.main.json && esbuild src/main/main.ts --bundle --platform=node --format=esm --external:electron --banner:js=\"import { createRequire as __lnwjudCreateRequire } from 'node:module'; const require = __lnwjudCreateRequire(import.meta.url);\" --outfile=dist/main/main.js && esbuild src/preload/index.ts --bundle --platform=browser --format=cjs --conditions=development --external:electron --outfile=dist/preload/index.cjs && vite build --config vite.config.ts && esbuild ../cli/src/bin/mcp-stdio.ts --bundle --platform=node --format=cjs --outfile=build/lnwjud-mcp-stdio.cjs && node scripts/write-stdio-launcher.mjs",
+    "build:main": "node scripts/write-capability-integrity.mjs && tsc -p tsconfig.main.json && esbuild src/main/main.ts --bundle --platform=node --format=esm --external:electron --banner:js=\"import { createRequire as __lnwjudCreateRequire } from 'node:module'; const require = __lnwjudCreateRequire(import.meta.url);\" --outfile=dist/main/main.js",
+    "build:renderer": "vite build --config vite.config.ts",
+    "package:windows": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/prepare-tunnel-client.ps1 && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/prepare-ripgrep.ps1 && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ../../scripts/prepare-windows-ocr.ps1 && corepack pnpm@10.15.0 build && electron-builder --config electron-builder.yml --win nsis portable --x64 --publish never && node scripts/write-portable-update-manifest.mjs && node scripts/write-release-evidence.mjs && node scripts/verify-release-evidence.mjs",
+    "test": "vitest run --config vitest.config.ts --passWithNoTests",
+    "typecheck": "tsc -b",
+    "test:e2e": "node node_modules/electron/install.js && tsc -p tsconfig.main.json && esbuild src/main/main.ts --bundle --platform=node --format=esm --external:electron --banner:js=\"import { createRequire as __lnwjudCreateRequire } from 'node:module'; const require = __lnwjudCreateRequire(import.meta.url);\" --outfile=dist/main/main.js && esbuild src/preload/index.ts --bundle --platform=browser --format=cjs --conditions=development --external:electron --outfile=dist/preload/index.cjs && vite build --config vite.config.ts && playwright test --config playwright.config.ts",
+    "electron:install": "node node_modules/electron/install.js"
+  },
+  "dependencies": {
+    "@lnwjud/application": "workspace:*",
+    "@lnwjud/audit": "workspace:*",
+    "@lnwjud/capabilities": "workspace:*",
+    "@lnwjud/codex": "workspace:*",
+    "@lnwjud/domain": "workspace:*",
+    "@lnwjud/extensions": "workspace:*",
+    "@lnwjud/ipc-contracts": "workspace:*",
+    "@lnwjud/mcp-server": "workspace:*",
+    "@lnwjud/permissions": "workspace:*",
+    "@lnwjud/process": "workspace:*",
+    "@lnwjud/search": "workspace:*",
+    "@lnwjud/shared": "workspace:*",
+    "@lnwjud/storage": "workspace:*",
+    "@lnwjud/workspace": "workspace:*",
+    "electron-updater": "^6.8.9",
+    "extract-zip": "2.0.1",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
+    "@playwright/test": "1.55.0",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "@vitejs/plugin-react": "5.0.2",
+    "electron": "43.4.1",
+    "electron-builder": "26.0.12",
+    "esbuild": "0.25.12",
+    "vite": "7.3.6"
+  },
+  "license": "MIT"
+}

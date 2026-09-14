@@ -1,0 +1,7 @@
+name: release-check
+description: Run the regression and benchmark gate.
+sequential:
+  - regression_report
+  - benchmark_run
+permissions:
+  - process.read

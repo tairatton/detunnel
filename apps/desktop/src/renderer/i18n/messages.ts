@@ -1,0 +1,702 @@
+export type MessageKey =
+  | 'brand'
+  | 'nav.home'
+  | 'nav.projects'
+  | 'nav.tools'
+  | 'nav.workLog'
+  | 'nav.live'
+  | 'nav.settings'
+  | 'nav.doctor'
+  | 'tools.filter.actionRequired'
+  | 'tools.filter.blocked'
+  | 'tools.filter.disabled'
+  | 'tools.filter.unsupported'
+  | 'tools.filter.unknown'
+  | 'tools.readiness.ready'
+  | 'tools.readiness.setupRequired'
+  | 'tools.readiness.startRequired'
+  | 'tools.readiness.probeFailed'
+  | 'tools.readiness.permissionDenied'
+  | 'tools.readiness.unsupportedPlatform'
+  | 'tools.readiness.featureDisabled'
+  | 'tools.readiness.planned'
+  | 'tools.readiness.externalUnknown'
+  | 'footer.connected'
+  | 'footer.disconnected'
+  | 'home.title'
+  | 'home.subtitle'
+  | 'agent.ready'
+  | 'agent.busy'
+  | 'agent.stopped'
+  | 'agent.mode'
+  | 'action.refresh'
+  | 'action.stop'
+  | 'action.restart'
+  | 'action.retry'
+  | 'mcp.localUrl'
+  | 'mcp.stdioCommand'
+  | 'mcp.copy'
+  | 'mcp.copied'
+  | 'tunnel.title'
+  | 'tunnel.start'
+  | 'tunnel.stop'
+  | 'tunnel.needKey'
+  | 'tunnel.needProfile'
+  | 'tunnel.running'
+  | 'tunnel.runningExternal'
+  | 'tunnel.incompleteExternal'
+  | 'tunnel.stopped'
+  | 'tunnel.starting'
+  | 'tunnel.error'
+  | 'tunnel.oauthTitle'
+  | 'tunnel.oauthStart'
+  | 'tunnel.oauthStop'
+  | 'tunnel.oauthNeedLogin'
+  | 'tunnel.oauthRunning'
+  | 'tunnel.oauthRunningExternal'
+  | 'tunnel.oauthIncompleteExternal'
+  | 'tunnel.oauthStopped'
+  | 'tunnel.oauthStarting'
+  | 'tunnel.oauthError'
+  | 'tunnel.oauthTransportHint'
+  | 'project.active'
+  | 'project.setMain'
+  | 'project.add'
+  | 'project.addHint'
+  | 'project.activeList'
+  | 'project.archivedList'
+  | 'project.systemList'
+  | 'project.archive'
+  | 'project.restore'
+  | 'project.delete'
+  | 'project.confirmDelete'
+  | 'project.cancel'
+  | 'project.archivedBadge'
+  | 'project.systemBadge'
+  | 'project.systemHint'
+  | 'project.emptyActive'
+  | 'project.emptyArchived'
+  | 'project.deleteHint'
+  | 'info.workspace'
+  | 'info.activeProject'
+  | 'info.mode'
+  | 'workLog.title'
+  | 'workLog.filterAll'
+  | 'workLog.filterError'
+  | 'workLog.clear'
+  | 'workLog.empty'
+  | 'logDetail.showMore'
+  | 'logDetail.showLess'
+  | 'logDetail.heading'
+  | 'logDetail.loading'
+  | 'logDetail.error'
+  | 'logDetail.empty'
+  | 'logDetail.legacyIncomplete'
+  | 'scope.all'
+  | 'scope.workspace'
+  | 'scope.session'
+  | 'scope.clearSession'
+  | 'scope.clearWorkspace'
+  | 'scope.clearAll'
+  | 'settings.title'
+  | 'settings.subtitle'
+  | 'settings.generalTitle'
+  | 'settings.securityTitle'
+  | 'settings.tunnelTitle'
+  | 'settings.locale'
+  | 'settings.tunnelKey'
+  | 'settings.saveKey'
+  | 'settings.clientPath'
+  | 'settings.savePath'
+  | 'settings.permissions'
+  | 'settings.unrestricted'
+  | 'settings.unrestrictedHint'
+  | 'settings.restartRequired'
+  | 'settings.saved'
+  | 'badge.unrestricted'
+  | 'security.title'
+  | 'security.summaryBroad'
+  | 'security.summaryRestricted'
+  | 'security.desktopProfile'
+  | 'security.stdioProfile'
+  | 'security.strictRoots'
+  | 'security.aiDelete'
+  | 'security.unrestricted'
+  | 'security.workspaceScope'
+  | 'security.tunnelAccess'
+  | 'security.enabled'
+  | 'security.disabled'
+  | 'security.registeredWorkspaces'
+  | 'security.allowedRoots'
+  | 'security.machineRoots'
+  | 'security.warningBroad'
+  | 'security.strictHint'
+  | 'live.title'
+  | 'live.subtitle'
+  | 'live.tabTunnel'
+  | 'live.tabOAuth'
+  | 'live.subtitleOAuth'
+  | 'live.waitingOAuth'
+  | 'live.tabMcp'
+  | 'live.tabProcess'
+  | 'live.pause'
+  | 'live.follow'
+  | 'live.filter'
+  | 'live.export'
+  | 'live.clearTab'
+  | 'live.captureIncident'
+  | 'live.incident.localToolFailed'
+  | 'live.incident.tunnelDisconnected'
+  | 'live.incident.remoteTurnStopped'
+  | 'live.incident.healthyOrInconclusive'
+  | 'live.incident.cancelled'
+  | 'live.incident.capturing'
+  | 'live.waiting'
+  | 'live.waitingProcess'
+  | 'live.processHint'
+  | 'live.waitingTunnel'
+  | 'live.popOut'
+  | 'doctor.title'
+  | 'doctor.run'
+  | 'doctor.noReport'
+  | 'capabilities.title'
+  | 'permission.safe'
+  | 'permission.balanced'
+  | 'permission.full'
+  | 'permission.custom'
+  | 'app.loading'
+  | 'error.logBufferClear'
+  | 'error.logExport'
+  | 'error.logViewerOpen'
+  | 'error.desktopService'
+  | 'error.workspaceAdd'
+  | 'error.workspaceSelect'
+  | 'error.workspaceArchive'
+  | 'error.workspaceDelete'
+  | 'error.permissionProfileChange'
+  | 'error.unrestrictedModeChange'
+  | 'error.mcpStop'
+  | 'error.mcpRestart'
+  | 'error.workLogClear'
+  | 'error.tunnelStart'
+  | 'error.tunnelStop'
+  | 'error.doctorRun'
+  | 'guidedTunnel.tipTitle'
+  | 'guidedTunnel.tipBody'
+  | 'guidedTunnel.privacy'
+  | 'guidedTunnel.startSetup'
+  | 'guidedTunnel.later'
+  | 'guidedTunnel.openGuide'
+  | 'guidedTunnel.progress'
+  | 'guidedTunnel.stepTunnelTitle'
+  | 'guidedTunnel.stepTunnelBody'
+  | 'guidedTunnel.openTunnelSettings'
+  | 'guidedTunnel.tunnelIdLabel'
+  | 'guidedTunnel.tunnelIdHint'
+  | 'guidedTunnel.tunnelIdInvalid'
+  | 'guidedTunnel.next'
+  | 'guidedTunnel.back'
+  | 'guidedTunnel.stepKeyTitle'
+  | 'guidedTunnel.stepKeyBody'
+  | 'guidedTunnel.openApiKeys'
+  | 'guidedTunnel.apiKeyLabel'
+  | 'guidedTunnel.apiKeyHint'
+  | 'guidedTunnel.apiKeyRequired'
+  | 'guidedTunnel.saveKey'
+  | 'guidedTunnel.keyStored'
+  | 'guidedTunnel.stepConfigureTitle'
+  | 'guidedTunnel.stepConfigureBody'
+  | 'guidedTunnel.configure'
+  | 'guidedTunnel.configuring'
+  | 'guidedTunnel.configured'
+  | 'guidedTunnel.stepStartTitle'
+  | 'guidedTunnel.stepStartBody'
+  | 'guidedTunnel.persistentRestartNotice'
+  | 'guidedTunnel.startTunnel'
+  | 'guidedTunnel.starting'
+  | 'guidedTunnel.running'
+  | 'guidedTunnel.stepChatGptTitle'
+  | 'guidedTunnel.stepChatGptBody'
+  | 'guidedTunnel.openChatGptPlugins'
+  | 'guidedTunnel.localComplete'
+  | 'guidedTunnel.done'
+  | 'guidedTunnel.dismissedHint'
+  | 'guidedTunnel.linkError'
+  | 'guidedTunnel.copyLink'
+  | 'guidedTunnel.retry'
+  | 'guidedTunnel.externalRuntime'
+  | 'guidedTunnel.showApiKey'
+  | 'guidedTunnel.hideApiKey'
+  | 'guidedTunnel.advanced'
+  | 'language.th'
+  | 'language.en';
+
+export type Messages = Record<MessageKey, string>;
+
+export const th: Messages = {
+  brand: 'detunnel',
+  'nav.home': 'หน้าหลัก',
+  'nav.projects': 'โปรเจกต์',
+  'nav.tools': 'เครื่องมือ',
+  'nav.workLog': 'บันทึกการทำงาน',
+  'nav.live': 'Live Logs',
+  'nav.settings': 'ตั้งค่า',
+  'nav.doctor': 'Doctor',
+  'tools.filter.actionRequired': 'ต้องดำเนินการ',
+  'tools.filter.blocked': 'ถูกบล็อก',
+  'tools.filter.disabled': 'ปิดใช้งาน',
+  'tools.filter.unsupported': 'ไม่รองรับ',
+  'tools.filter.unknown': 'ไม่ทราบ',
+  'tools.readiness.ready': 'พร้อม',
+  'tools.readiness.setupRequired': 'ต้องตั้งค่า',
+  'tools.readiness.startRequired': 'ต้องเปิดใช้งาน',
+  'tools.readiness.probeFailed': 'ตรวจสอบไม่สำเร็จ',
+  'tools.readiness.permissionDenied': 'ไม่ได้รับอนุญาต',
+  'tools.readiness.unsupportedPlatform': 'แพลตฟอร์มไม่รองรับ',
+  'tools.readiness.featureDisabled': 'ยังไม่มีส่วนทำงาน',
+  'tools.readiness.planned': 'อยู่ในแผน',
+  'tools.readiness.externalUnknown': 'สถานะ External ยังไม่ยืนยัน',
+  'footer.connected': 'เชื่อมต่อแล้ว',
+  'footer.disconnected': 'ยังไม่เชื่อมต่อ',
+  'home.title': 'ศูนย์ควบคุม Agent',
+  'home.subtitle': 'เชื่อม ChatGPT กับคอมเครื่องนี้ และเลือกโปรเจกต์ที่ให้ AI ใช้งาน',
+  'agent.ready': 'Agent พร้อมทำงาน',
+  'agent.busy': 'Agent กำลังทำงาน',
+  'agent.stopped': 'Agent หยุดทำงาน',
+  'agent.mode': 'Windows Desktop Agent • WORK mode',
+  'action.refresh': 'รีเฟรช',
+  'action.stop': 'หยุด',
+  'action.restart': 'รีสตาร์ท',
+  'action.retry': 'ลองใหม่',
+  'mcp.localUrl': 'MCP URL (local)',
+  'mcp.stdioCommand': 'คำสั่ง MCP แบบ Local STDIO',
+  'mcp.copy': 'คัดลอก',
+  'mcp.copied': 'คัดลอกแล้ว',
+  'tunnel.title': 'Secure MCP Tunnel สำหรับ ChatGPT',
+  'tunnel.start': 'เริ่ม Tunnel',
+  'tunnel.stop': 'หยุด Tunnel',
+  'tunnel.needKey': 'บันทึก Runtime API key ครั้งแรกในการตั้งค่า',
+  'tunnel.needProfile': 'ยังไม่มีโปรไฟล์ lnwjud.yaml',
+  'tunnel.running': 'Tunnel เชื่อมต่อแล้ว (จากแอพนี้)',
+  'tunnel.runningExternal': 'Tunnel เชื่อมต่อแล้ว (จากสคริปต์) — ปุ่ม Start ถูกปิดไว้แล้ว',
+  'tunnel.incompleteExternal': 'พบ Tunnel process ที่ยังทำงานอยู่ แต่การตั้งค่า detunnel ยังไม่ครบ — กดหยุด Tunnel ก่อนเริ่มตั้งค่าใหม่',
+  'tunnel.stopped': 'Tunnel หยุดอยู่',
+  'tunnel.starting': 'กำลังเริ่ม Tunnel',
+  'tunnel.error': 'Tunnel มีข้อผิดพลาด',
+  'tunnel.oauthTitle': 'การเชื่อมต่อ ChatGPT — OAuth',
+  'tunnel.oauthStart': 'เริ่มการเชื่อมต่อ OAuth',
+  'tunnel.oauthStop': 'หยุดการเชื่อมต่อ OAuth',
+  'tunnel.oauthNeedLogin': 'ต้องลงชื่อเข้าใช้ OAuth หรือแก้ไข OAuth session ก่อนเริ่มการเชื่อมต่อ',
+  'tunnel.oauthRunning': 'OAuth เชื่อมต่อแล้ว (จากแอพนี้)',
+  'tunnel.oauthRunningExternal': 'OAuth เชื่อมต่อแล้วผ่าน Tunnel runtime ภายนอก — ปุ่ม Start ถูกปิดไว้แล้ว',
+  'tunnel.oauthIncompleteExternal': 'พบ Tunnel runtime ที่ยังทำงานอยู่ แต่ OAuth/detunnel setup ยังไม่ครบ — หยุดการเชื่อมต่อเดิมก่อนตั้งค่าใหม่',
+  'tunnel.oauthStopped': 'การเชื่อมต่อ OAuth หยุดอยู่',
+  'tunnel.oauthStarting': 'กำลังเริ่มการเชื่อมต่อ OAuth',
+  'tunnel.oauthError': 'การเชื่อมต่อ OAuth มีข้อผิดพลาด',
+  'tunnel.oauthTransportHint': 'ยืนยันตัวตนด้วย OAuth • รับส่งข้อมูลผ่าน Secure MCP Tunnel',
+  'guidedTunnel.tipTitle': 'ตั้งค่า ChatGPT ให้ใช้ detunnel',
+  'guidedTunnel.tipBody': 'ทำขั้นตอนนี้เพียงครั้งเดียว detunnel จะพาไปสร้าง Tunnel ID และ Runtime API key แล้วตั้งค่าให้โดยอัตโนมัติ',
+  'guidedTunnel.privacy': 'คีย์จะถูกเข้ารหัสด้วย Windows DPAPI และเก็บในเครื่องนี้เท่านั้น detunnel ไม่มีเซิร์ฟเวอร์กลางรับคีย์ของคุณ',
+  'guidedTunnel.startSetup': 'เริ่มตั้งค่า',
+  'guidedTunnel.later': 'ไว้ทีหลัง',
+  'guidedTunnel.openGuide': 'เปิดคู่มือตั้งค่า',
+  'guidedTunnel.progress': 'ขั้นตอนการเชื่อมต่อ',
+  'guidedTunnel.stepTunnelTitle': '1. สร้าง OpenAI Tunnel',
+  'guidedTunnel.stepTunnelBody': 'เปิดหน้า Tunnel Settings เลือกองค์กรที่ใช้กับ ChatGPT สร้าง tunnel และคัดลอกค่าที่ขึ้นต้นด้วย tunnel_ หากสร้างไม่ได้ ให้ตรวจว่าบัญชีมี Tunnels Read + Manage',
+  'guidedTunnel.openTunnelSettings': 'เปิดหน้า Tunnel Settings',
+  'guidedTunnel.tunnelIdLabel': 'Tunnel ID',
+  'guidedTunnel.tunnelIdHint': 'วาง Tunnel ID ที่คัดลอกจาก OpenAI Platform',
+  'guidedTunnel.tunnelIdInvalid': 'Tunnel ID ต้องขึ้นต้นด้วย tunnel_ และมีรูปแบบถูกต้อง',
+  'guidedTunnel.next': 'ขั้นตอนถัดไป',
+  'guidedTunnel.back': 'ย้อนกลับ',
+  'guidedTunnel.stepKeyTitle': '2. สร้าง Runtime API key',
+  'guidedTunnel.stepKeyBody': 'เปิดหน้า API Keys สร้าง secret key ใหม่ กำหนดสิทธิ์ Tunnels Read + Use แล้วคัดลอกทันที',
+  'guidedTunnel.openApiKeys': 'เปิดหน้าสร้าง API key',
+  'guidedTunnel.apiKeyLabel': 'Runtime API key',
+  'guidedTunnel.apiKeyHint': 'คีย์จะแสดงเต็มเพียงครั้งเดียว วางแล้วกดบันทึก',
+  'guidedTunnel.apiKeyRequired': 'กรุณาวาง Runtime API key',
+  'guidedTunnel.saveKey': 'บันทึกคีย์อย่างปลอดภัย',
+  'guidedTunnel.keyStored': 'บันทึกคีย์ใน Windows DPAPI แล้ว',
+  'guidedTunnel.stepConfigureTitle': '3. ให้ detunnel ตั้งค่าอัตโนมัติ',
+  'guidedTunnel.stepConfigureBody': 'detunnel จะใช้ tunnel-client ที่มากับโปรแกรม สร้างโปรไฟล์ local และตรวจสอบการเชื่อมต่อให้',
+  'guidedTunnel.configure': 'ตั้งค่าและตรวจสอบ',
+  'guidedTunnel.configuring': 'กำลังสร้างโปรไฟล์และตรวจสอบ…',
+  'guidedTunnel.configured': 'โปรไฟล์ Tunnel พร้อมใช้งาน',
+  'guidedTunnel.stepStartTitle': '4. เริ่ม Tunnel',
+  'guidedTunnel.stepStartBody': 'ตรวจสอบข้อมูลด้านล่างแล้วกด Start Tunnel หาก Runtime API key หรือ Tunnel ID เปลี่ยน detunnel จะหยุด Persistent Tunnel Runtime เดิมอย่างปลอดภัยก่อน แล้วเชื่อมต่อใหม่ด้วยค่าที่บันทึกไว้',
+  'guidedTunnel.persistentRestartNotice': 'ค่าที่บันทึกไว้ต่างจาก Persistent Tunnel Runtime ที่กำลังใช้งาน กด Start Tunnel เพื่อให้ detunnel หยุด Runtime เดิมอย่างปลอดภัย แล้วเชื่อมต่อใหม่ด้วย Tunnel ID และคีย์ล่าสุด',
+  'guidedTunnel.startTunnel': 'Start Tunnel',
+  'guidedTunnel.starting': 'กำลังเริ่ม Tunnel…',
+  'guidedTunnel.running': 'Tunnel กำลังทำงาน',
+  'guidedTunnel.stepChatGptTitle': '5. เชื่อมต่อใน ChatGPT',
+  'guidedTunnel.stepChatGptBody': 'เปิด ChatGPT Plugins หากยังไม่เปิด Developer mode ให้ไปที่ Settings > Security and login > Developer mode จากนั้นกดเพิ่ม connection เลือก Tunnel แล้วเลือกหรือวาง Tunnel ID นี้',
+  'guidedTunnel.openChatGptPlugins': 'เปิด ChatGPT Plugins',
+  'guidedTunnel.localComplete': 'การตั้งค่าฝั่งเครื่องเสร็จแล้ว',
+  'guidedTunnel.done': 'เสร็จสิ้น',
+  'guidedTunnel.dismissedHint': 'ยังไม่ได้ตั้งค่า Tunnel คุณเปิดคู่มือได้ทุกเมื่อ',
+  'guidedTunnel.linkError': 'เปิดลิงก์ไม่ได้ กรุณาคัดลอกลิงก์ด้านล่างไปเปิดในเบราว์เซอร์',
+  'guidedTunnel.copyLink': 'คัดลอกลิงก์',
+  'guidedTunnel.retry': 'ลองอีกครั้ง',
+  'guidedTunnel.externalRuntime': 'พบ Tunnel ที่กำลังรันจากภายนอก แต่ยังไม่ใช่ Tunnel ที่ detunnel Desktop เป็นเจ้าของ ให้หยุด Tunnel เดิมก่อน แล้วกด Start Tunnel อีกครั้ง',
+  'guidedTunnel.showApiKey': 'แสดง',
+  'guidedTunnel.hideApiKey': 'ซ่อน',
+  'guidedTunnel.advanced': 'การตั้งค่าขั้นสูงและแก้ปัญหา',
+  'project.active': 'โปรเจกต์ที่ใช้งาน',
+  'project.setMain': 'ตั้งเป็นโปรเจกต์หลัก',
+  'project.add': 'เพิ่มโปรเจกต์',
+  'project.addHint': 'ใส่ path ของโฟลเดอร์โปรเจกต์บนเครื่องนี้',
+  'project.activeList': 'โปรเจกต์ที่ใช้งานอยู่',
+  'project.archivedList': 'โปรเจกต์ที่เก็บถาวร',
+  'project.systemList': 'System Workspaces',
+  'project.archive': 'เก็บถาวร',
+  'project.restore': 'นำกลับมาใช้งาน',
+  'project.delete': 'ลบรายการ',
+  'project.confirmDelete': 'ยืนยันลบรายการ',
+  'project.cancel': 'ยกเลิก',
+  'project.archivedBadge': 'เก็บถาวร',
+  'project.systemBadge': 'ระบบ',
+  'project.systemHint': 'Workspace นี้ detunnel จัดการอัตโนมัติ จึงไม่สามารถเก็บถาวรหรือลบได้',
+  'project.emptyActive': 'ยังไม่มีโปรเจกต์ที่ใช้งานอยู่',
+  'project.emptyArchived': 'ยังไม่มีโปรเจกต์ที่เก็บถาวร',
+  'project.deleteHint': 'ลบเฉพาะรายการออกจาก detunnel เท่านั้น — โฟลเดอร์และไฟล์ของโปรเจกต์จะไม่ถูกลบ',
+  'info.workspace': 'Workspace',
+  'info.activeProject': 'Active Project',
+  'info.mode': 'Mode',
+  'workLog.title': 'บันทึกการทำงาน',
+  'workLog.filterAll': 'ทั้งหมด',
+  'workLog.filterError': 'เฉพาะ error',
+  'workLog.clear': 'ล้างประวัติ',
+  'workLog.empty': 'ยังไม่มีกิจกรรม',
+  'logDetail.showMore': 'ดูเพิ่ม',
+  'logDetail.showLess': 'แสดงน้อยลง',
+  'logDetail.heading': 'รายละเอียดทั้งหมด',
+  'logDetail.loading': 'กำลังโหลดรายละเอียดทั้งหมด…',
+  'logDetail.error': 'ไม่พบรายละเอียดทั้งหมด อาจถูกลบตามระยะเวลาเก็บบันทึกแล้ว ย่อและเปิดอีกครั้งเพื่อลองใหม่',
+  'logDetail.empty': 'ไม่มีรายการเป้าหมาย',
+  'logDetail.legacyIncomplete': 'บันทึกรุ่นเก่าเก็บไว้ไม่ครบ จึงไม่สามารถแสดงรายการที่ถูกย่อทั้งหมดได้',
+  'scope.all': 'ทั้งหมด',
+  'scope.workspace': 'Workspace',
+  'scope.session': 'Session',
+  'scope.clearSession': 'ล้าง Session นี้',
+  'scope.clearWorkspace': 'ล้าง Workspace นี้',
+  'scope.clearAll': 'ล้างทั้งหมด',
+  'settings.title': 'ตั้งค่า',
+  'settings.subtitle': 'ปรับแต่งภาษา สิทธิ์ความปลอดภัย และการเชื่อมต่อ Remote Tunnel สำหรับ AI Agent',
+  'settings.generalTitle': 'ภาษาและการตั้งค่าทั่วไป',
+  'settings.securityTitle': 'โปรไฟล์สิทธิ์ความปลอดภัย',
+  'settings.tunnelTitle': 'OpenAI Secure MCP Tunnel สำหรับ ChatGPT',
+  'settings.locale': 'ภาษา',
+  'settings.tunnelKey': 'Runtime API key (บันทึกครั้งเดียว)',
+  'settings.saveKey': 'บันทึกคีย์',
+  'settings.clientPath': 'path ของ tunnel-client.exe',
+  'settings.savePath': 'บันทึก path',
+  'settings.permissions': 'โปรไฟล์สิทธิ์',
+  'settings.unrestricted': 'โหมดเต็มสิทธิ์ (Unrestricted)',
+  'settings.unrestrictedHint': 'อนุญาต absolute path ที่ระบุชัดเจน แต่ไม่สแกนหรือลงทะเบียน drive letter อัตโนมัติ; กฎยืนยันและ Full Bypass ยังแยกจากกัน',
+  'settings.restartRequired': 'ต้องรีสตาร์ทแอพเพื่อให้มีผล',
+  'settings.saved': 'บันทึกเรียบร้อย',
+  'badge.unrestricted': 'Unrestricted',
+  'security.title': 'ภาพรวมความปลอดภัย',
+  'security.summaryBroad': 'การเข้าถึงกว้าง',
+  'security.summaryRestricted': 'จำกัดขอบเขตแล้ว',
+  'security.desktopProfile': 'Desktop Profile',
+  'security.stdioProfile': 'Standalone STDIO Profile',
+  'security.strictRoots': 'Strict Roots',
+  'security.aiDelete': 'AI File Delete',
+  'security.unrestricted': 'Unrestricted',
+  'security.workspaceScope': 'ขอบเขต Workspace',
+  'security.tunnelAccess': 'Tunnel',
+  'security.enabled': 'เปิด',
+  'security.disabled': 'ปิด',
+  'security.registeredWorkspaces': 'workspace ที่ลงทะเบียน',
+  'security.allowedRoots': 'Allowed Roots',
+  'security.machineRoots': 'Project / root ที่ระบุไว้',
+  'security.warningBroad': 'Standalone/headless STDIO ใช้ Full โดยปิด Strict Roots อยู่ จึงเข้าถึง absolute path ที่ระบุได้ แม้ระบบจะไม่สแกน drive อัตโนมัติ ควรเปิด Strict Roots เมื่อต้องการจำกัดเฉพาะโฟลเดอร์ที่เลือก',
+  'security.strictHint': 'Strict Roots จำกัด standalone/headless STDIO และไม่ใช่ OS sandbox; Secure Tunnel ใช้ Active Project ของ Desktop',
+  'live.title': 'Live Logs',
+  'live.subtitle': 'ดู log ของ tunnel, กิจกรรม MCP และ process แบบ realtime',
+  'live.tabTunnel': 'Tunnel',
+  'live.tabOAuth': 'OAuth / Tunnel',
+  'live.subtitleOAuth': 'ดูเหตุการณ์ OAuth session, Secure Tunnel transport, กิจกรรม MCP และ process แบบ realtime',
+  'live.waitingOAuth': 'ยังไม่มีเหตุการณ์ OAuth/Tunnel — ลงชื่อเข้าใช้ OAuth และเริ่มการเชื่อมต่อจากหน้าตั้งค่า',
+  'live.tabMcp': 'MCP activity',
+  'live.tabProcess': 'Processes',
+  'live.pause': 'หยุดชั่วคราว',
+  'live.follow': 'ตามต่อ (follow)',
+  'live.filter': 'กรองข้อความ...',
+  'live.export': 'ส่งออกไฟล์',
+  'live.clearTab': 'ล้าง Tab นี้',
+  'live.captureIncident': 'บันทึกหลักฐานปัญหา',
+  'live.incident.localToolFailed': 'เครื่องมือในเครื่องล้มเหลว',
+  'live.incident.tunnelDisconnected': 'Tunnel หลุดการเชื่อมต่อ',
+  'live.incident.remoteTurnStopped': 'Remote turn หยุดทำงาน',
+  'live.incident.healthyOrInconclusive': 'ปกติหรือหลักฐานยังไม่ชัดเจน',
+  'live.incident.cancelled': 'ยกเลิกการบันทึกหลักฐานแล้ว',
+  'live.incident.capturing': 'กำลังบันทึกหลักฐานปัญหา…',
+  'live.waiting': 'ยังไม่มีข้อมูล',
+  'live.waitingProcess': 'ยังไม่มีกิจกรรม process — เมื่อ Agent เรียก shell, process_*, task_* หรือคำสั่ง build/test รายการจะขึ้นที่นี่',
+  'live.processHint': 'แสดงงานที่ Agent รันเป็น process จริง เช่น shell, process_*, task_*, WSL และคำสั่ง build/test พร้อมสถานะ ผลลัพธ์ และ output ที่เกี่ยวข้อง',
+  'live.waitingTunnel': 'ยังไม่มีไฟล์ tunnel log — รัน tunnel ด้วยสคริปต์ start-lnwjud-tunnel.ps1 หรือกด Start Tunnel',
+  'live.popOut': 'เปิดหน้าต่างแยก',
+  'doctor.title': 'Doctor',
+  'doctor.run': 'รัน Doctor',
+  'doctor.noReport': 'ยังไม่มีผลการตรวจสอบ',
+  'capabilities.title': 'Capabilities',
+  'permission.safe': 'Safe (ปลอดภัย)',
+  'permission.balanced': 'Balanced (สมดุล)',
+  'permission.full': 'Full (เต็มสิทธิ์)',
+  'permission.custom': 'Custom (กำหนดเอง)',
+  'app.loading': 'กำลังโหลด…',
+  'error.logBufferClear': 'ไม่สามารถล้าง log buffer ได้',
+  'error.logExport': 'การส่งออก log ล้มเหลว',
+  'error.logViewerOpen': 'ไม่สามารถเปิดหน้าต่างดู log ได้',
+  'error.desktopService': 'การเชื่อมต่อเซอร์วิส Desktop ล้มเหลว',
+  'error.workspaceAdd': 'ไม่สามารถเพิ่ม workspace ได้',
+  'error.workspaceSelect': 'ไม่สามารถเลือก workspace ได้',
+  'error.workspaceArchive': 'ไม่สามารถเปลี่ยนสถานะเก็บถาวรของ workspace ได้',
+  'error.workspaceDelete': 'ไม่สามารถลบรายการ workspace ได้',
+  'error.permissionProfileChange': 'ไม่สามารถเปลี่ยนโปรไฟล์สิทธิ์ได้',
+  'error.unrestrictedModeChange': 'ไม่สามารถเปลี่ยนโหมดเต็มสิทธิ์ได้',
+  'error.mcpStop': 'ไม่สามารถหยุด MCP ได้',
+  'error.mcpRestart': 'ไม่สามารถรีสตาร์ท MCP ได้',
+  'error.workLogClear': 'ไม่สามารถล้างประวัติการทำงานได้',
+  'error.tunnelStart': 'ไม่สามารถเริ่ม Tunnel ได้',
+  'error.tunnelStop': 'ไม่สามารถหยุด Tunnel ได้',
+  'error.doctorRun': 'ไม่สามารถรัน Doctor ได้',
+  'language.th': 'ไทย',
+  'language.en': 'English',
+};
+
+export const en: Messages = {
+  brand: 'detunnel',
+  'nav.home': 'Home',
+  'nav.projects': 'Projects',
+  'nav.tools': 'Tools',
+  'nav.workLog': 'Work Log',
+  'nav.live': 'Live Logs',
+  'nav.settings': 'Settings',
+  'nav.doctor': 'Doctor',
+  'tools.filter.actionRequired': 'Action required',
+  'tools.filter.blocked': 'Blocked',
+  'tools.filter.disabled': 'Disabled',
+  'tools.filter.unsupported': 'Unsupported',
+  'tools.filter.unknown': 'Unknown',
+  'tools.readiness.ready': 'Ready',
+  'tools.readiness.setupRequired': 'Needs setup',
+  'tools.readiness.startRequired': 'Start required',
+  'tools.readiness.probeFailed': 'Check failed',
+  'tools.readiness.permissionDenied': 'Permission denied',
+  'tools.readiness.unsupportedPlatform': 'Unsupported platform',
+  'tools.readiness.featureDisabled': 'Runtime not included',
+  'tools.readiness.planned': 'Planned',
+  'tools.readiness.externalUnknown': 'External status unverified',
+  'footer.connected': 'Connected',
+  'footer.disconnected': 'Disconnected',
+  'home.title': 'Agent Control Center',
+  'home.subtitle': 'Connect ChatGPT to this computer and choose which projects it can use',
+  'agent.ready': 'Agent ready',
+  'agent.busy': 'Agent busy',
+  'agent.stopped': 'Agent stopped',
+  'agent.mode': 'Windows Desktop Agent • WORK mode',
+  'action.refresh': 'Refresh',
+  'action.stop': 'Stop',
+  'action.restart': 'Restart',
+  'action.retry': 'Retry',
+  'mcp.localUrl': 'MCP URL (local)',
+  'mcp.stdioCommand': 'Local STDIO MCP command',
+  'mcp.copy': 'Copy',
+  'mcp.copied': 'Copied',
+  'tunnel.title': 'Secure MCP Tunnel for ChatGPT',
+  'tunnel.start': 'Start Tunnel',
+  'tunnel.stop': 'Stop Tunnel',
+  'tunnel.needKey': 'Save a Runtime API key once in Settings',
+  'tunnel.needProfile': 'Missing lnwjud.yaml tunnel profile',
+  'tunnel.running': 'Tunnel connected (from this app)',
+  'tunnel.runningExternal': 'Tunnel connected (from script) — Start is disabled',
+  'tunnel.incompleteExternal': 'A tunnel process is still running, but detunnel setup is incomplete. Stop the tunnel before starting setup again.',
+  'tunnel.stopped': 'Tunnel stopped',
+  'tunnel.starting': 'Starting tunnel',
+  'tunnel.error': 'Tunnel error',
+  'tunnel.oauthTitle': 'ChatGPT Connection — OAuth',
+  'tunnel.oauthStart': 'Start OAuth connection',
+  'tunnel.oauthStop': 'Stop OAuth connection',
+  'tunnel.oauthNeedLogin': 'Sign in with OAuth or repair the OAuth session before starting the connection.',
+  'tunnel.oauthRunning': 'OAuth connection active (from this app)',
+  'tunnel.oauthRunningExternal': 'OAuth connection active through an external Tunnel runtime — Start is disabled',
+  'tunnel.oauthIncompleteExternal': 'A Tunnel runtime is still running, but OAuth/detunnel setup is incomplete. Stop the existing connection before setting it up again.',
+  'tunnel.oauthStopped': 'OAuth connection stopped',
+  'tunnel.oauthStarting': 'Starting OAuth connection',
+  'tunnel.oauthError': 'OAuth connection error',
+  'tunnel.oauthTransportHint': 'OAuth authentication • Secure MCP Tunnel transport',
+  'guidedTunnel.tipTitle': 'Connect ChatGPT to detunnel',
+  'guidedTunnel.tipBody': 'Complete this once. detunnel will guide you through creating a Tunnel ID and Runtime API key, then configure the connection automatically.',
+  'guidedTunnel.privacy': 'Your key is encrypted with Windows DPAPI and stored only on this PC. detunnel has no central server that receives your key.',
+  'guidedTunnel.startSetup': 'Start setup',
+  'guidedTunnel.later': 'Set up later',
+  'guidedTunnel.openGuide': 'Open setup guide',
+  'guidedTunnel.progress': 'Connection setup',
+  'guidedTunnel.stepTunnelTitle': '1. Create an OpenAI Tunnel',
+  'guidedTunnel.stepTunnelBody': 'Open Tunnel Settings, select the organization used with ChatGPT, create a tunnel, and copy the value beginning with tunnel_. If creation is unavailable, verify that the account has Tunnels Read + Manage.',
+  'guidedTunnel.openTunnelSettings': 'Open Tunnel Settings',
+  'guidedTunnel.tunnelIdLabel': 'Tunnel ID',
+  'guidedTunnel.tunnelIdHint': 'Paste the Tunnel ID copied from OpenAI Platform.',
+  'guidedTunnel.tunnelIdInvalid': 'The Tunnel ID must begin with tunnel_ and use a valid format.',
+  'guidedTunnel.next': 'Continue',
+  'guidedTunnel.back': 'Back',
+  'guidedTunnel.stepKeyTitle': '2. Create a Runtime API key',
+  'guidedTunnel.stepKeyBody': 'Open API Keys, create a new secret key, grant it Tunnels Read + Use, and copy it immediately.',
+  'guidedTunnel.openApiKeys': 'Open API Keys',
+  'guidedTunnel.apiKeyLabel': 'Runtime API key',
+  'guidedTunnel.apiKeyHint': 'The full key is shown once. Paste it here, then save it.',
+  'guidedTunnel.apiKeyRequired': 'Paste a Runtime API key.',
+  'guidedTunnel.saveKey': 'Save key securely',
+  'guidedTunnel.keyStored': 'Key saved with Windows DPAPI.',
+  'guidedTunnel.stepConfigureTitle': '3. Let detunnel configure the connection',
+  'guidedTunnel.stepConfigureBody': 'detunnel will use the bundled tunnel-client, create the local profile, and check the connection.',
+  'guidedTunnel.configure': 'Configure and check',
+  'guidedTunnel.configuring': 'Creating the profile and checking it…',
+  'guidedTunnel.configured': 'Tunnel profile is ready.',
+  'guidedTunnel.stepStartTitle': '4. Start the Tunnel',
+  'guidedTunnel.stepStartBody': 'Review the details below, then select Start Tunnel. If the Runtime API key or Tunnel ID changed, detunnel safely stops the previous Persistent Tunnel Runtime before reconnecting with the saved configuration.',
+  'guidedTunnel.persistentRestartNotice': 'The saved configuration differs from the active Persistent Tunnel Runtime. Select Start Tunnel to safely stop the previous runtime and reconnect with the latest Tunnel ID and key.',
+  'guidedTunnel.startTunnel': 'Start Tunnel',
+  'guidedTunnel.starting': 'Starting Tunnel…',
+  'guidedTunnel.running': 'Tunnel is running',
+  'guidedTunnel.stepChatGptTitle': '5. Connect in ChatGPT',
+  'guidedTunnel.stepChatGptBody': 'Open ChatGPT Plugins. If Developer mode is off, go to Settings > Security and login > Developer mode. Add a connection, choose Tunnel, then select or paste this Tunnel ID.',
+  'guidedTunnel.openChatGptPlugins': 'Open ChatGPT Plugins',
+  'guidedTunnel.localComplete': 'Local setup is complete.',
+  'guidedTunnel.done': 'Done',
+  'guidedTunnel.dismissedHint': 'Tunnel is not configured yet. You can reopen the guide at any time.',
+  'guidedTunnel.linkError': 'Could not open the link. Copy the address below into your browser.',
+  'guidedTunnel.copyLink': 'Copy link',
+  'guidedTunnel.retry': 'Try again',
+  'guidedTunnel.externalRuntime': 'A tunnel is running externally, but detunnel Desktop does not own it yet. Stop the existing tunnel, then select Start Tunnel again.',
+  'guidedTunnel.showApiKey': 'Show',
+  'guidedTunnel.hideApiKey': 'Hide',
+  'guidedTunnel.advanced': 'Advanced settings and troubleshooting',
+  'project.active': 'Active project',
+  'project.setMain': 'Set as main project',
+  'project.add': 'Add project',
+  'project.addHint': 'Enter a local project folder path',
+  'project.activeList': 'Active projects',
+  'project.archivedList': 'Archived projects',
+  'project.systemList': 'System workspaces',
+  'project.archive': 'Archive',
+  'project.restore': 'Restore',
+  'project.delete': 'Remove',
+  'project.confirmDelete': 'Confirm remove',
+  'project.cancel': 'Cancel',
+  'project.archivedBadge': 'Archived',
+  'project.systemBadge': 'System',
+  'project.systemHint': 'This workspace is managed automatically by detunnel and cannot be archived or removed.',
+  'project.emptyActive': 'No active projects yet.',
+  'project.emptyArchived': 'No archived projects.',
+  'project.deleteHint': 'Removes only the detunnel registration — the project folder and files are not deleted.',
+  'info.workspace': 'Workspace',
+  'info.activeProject': 'Active Project',
+  'info.mode': 'Mode',
+  'workLog.title': 'Work Log',
+  'workLog.filterAll': 'All',
+  'workLog.filterError': 'Errors only',
+  'workLog.clear': 'Clear history',
+  'workLog.empty': 'No activity yet',
+  'logDetail.showMore': 'Show more',
+  'logDetail.showLess': 'Show less',
+  'logDetail.heading': 'Complete details',
+  'logDetail.loading': 'Loading complete details…',
+  'logDetail.error': 'Complete details are unavailable and may have expired from retained history. Collapse and expand to retry.',
+  'logDetail.empty': 'No target items.',
+  'logDetail.legacyIncomplete': 'This older log retained only the summary, so omitted items cannot be shown.',
+  'scope.all': 'All',
+  'scope.workspace': 'Workspace',
+  'scope.session': 'Session',
+  'scope.clearSession': 'Clear this session',
+  'scope.clearWorkspace': 'Clear this workspace',
+  'scope.clearAll': 'Clear all',
+  'settings.title': 'Settings',
+  'settings.subtitle': 'Configure system preferences, security profiles, and remote tunnel connections',
+  'settings.generalTitle': 'Language & General Preferences',
+  'settings.securityTitle': 'Security & Permission Profiles',
+  'settings.tunnelTitle': 'OpenAI Secure MCP Tunnel for ChatGPT',
+  'settings.locale': 'Language',
+  'settings.tunnelKey': 'Runtime API key (save once)',
+  'settings.saveKey': 'Save key',
+  'settings.clientPath': 'tunnel-client.exe path',
+  'settings.savePath': 'Save path',
+  'settings.permissions': 'Permission profile',
+  'settings.unrestricted': 'Unrestricted mode',
+  'settings.unrestrictedHint': 'Allows explicitly requested absolute paths without scanning or registering drive letters; approval rules and Full Bypass remain separate.',
+  'settings.restartRequired': 'Restart the app to apply',
+  'settings.saved': 'Saved successfully',
+  'badge.unrestricted': 'Unrestricted',
+  'security.title': 'Security Overview',
+  'security.summaryBroad': 'Broad access',
+  'security.summaryRestricted': 'Restricted scope',
+  'security.desktopProfile': 'Desktop Profile',
+  'security.stdioProfile': 'Standalone STDIO Profile',
+  'security.strictRoots': 'Strict Roots',
+  'security.aiDelete': 'AI File Delete',
+  'security.unrestricted': 'Unrestricted',
+  'security.workspaceScope': 'Workspace Scope',
+  'security.tunnelAccess': 'Tunnel',
+  'security.enabled': 'On',
+  'security.disabled': 'Off',
+  'security.registeredWorkspaces': 'registered workspaces',
+  'security.allowedRoots': 'Allowed Roots',
+  'security.machineRoots': 'Explicit projects / roots',
+  'security.warningBroad': 'Standalone/headless STDIO is using Full with Strict Roots off, so explicitly requested absolute paths are accessible even though drives are not scanned. Enable Strict Roots to limit access to selected folders.',
+  'security.strictHint': 'Strict Roots scopes standalone/headless STDIO and is not an OS sandbox; Secure Tunnel uses the Desktop Active Project.',
+  'live.title': 'Live Logs',
+  'live.subtitle': 'Real-time tunnel, MCP activity, and process logs',
+  'live.tabTunnel': 'Tunnel',
+  'live.tabOAuth': 'OAuth / Tunnel',
+  'live.subtitleOAuth': 'Real-time OAuth session, Secure Tunnel transport, MCP activity, and process logs',
+  'live.waitingOAuth': 'No OAuth/Tunnel events yet — sign in with OAuth and start the connection from Settings.',
+  'live.tabMcp': 'MCP activity',
+  'live.tabProcess': 'Processes',
+  'live.pause': 'Pause',
+  'live.follow': 'Follow',
+  'live.filter': 'Filter text...',
+  'live.export': 'Export file',
+  'live.clearTab': 'Clear tab',
+  'live.captureIncident': 'Capture incident evidence',
+  'live.incident.localToolFailed': 'Local tool failed',
+  'live.incident.tunnelDisconnected': 'Tunnel disconnected',
+  'live.incident.remoteTurnStopped': 'Remote turn stopped',
+  'live.incident.healthyOrInconclusive': 'Healthy or inconclusive',
+  'live.incident.cancelled': 'Incident capture cancelled',
+  'live.incident.capturing': 'Capturing incident evidence…',
+  'live.waiting': 'No data yet',
+  'live.waitingProcess': 'No process activity yet — shell, process_*, task_*, and build/test commands run by the Agent will appear here.',
+  'live.processHint': 'Shows real process work run by the Agent, including shell, process_*, task_*, WSL, and build/test commands with status, results, and related output.',
+  'live.waitingTunnel': 'No tunnel log file yet — run start-lnwjud-tunnel.ps1 or press Start Tunnel',
+  'live.popOut': 'Pop out viewer',
+  'doctor.title': 'Doctor',
+  'doctor.run': 'Run doctor',
+  'doctor.noReport': 'No report yet.',
+  'capabilities.title': 'Capabilities',
+  'permission.safe': 'Safe',
+  'permission.balanced': 'Balanced',
+  'permission.full': 'Full',
+  'permission.custom': 'Custom',
+  'app.loading': 'Loading…',
+  'error.logBufferClear': 'Log buffer could not be cleared',
+  'error.logExport': 'Log export failed',
+  'error.logViewerOpen': 'Log viewer could not be opened',
+  'error.desktopService': 'Desktop service request failed',
+  'error.workspaceAdd': 'Workspace could not be added',
+  'error.workspaceSelect': 'Workspace could not be selected',
+  'error.workspaceArchive': 'Workspace archive state could not be changed',
+  'error.workspaceDelete': 'Workspace registration could not be removed',
+  'error.permissionProfileChange': 'Permission profile could not be changed',
+  'error.unrestrictedModeChange': 'Unrestricted mode could not be changed',
+  'error.mcpStop': 'MCP could not be stopped',
+  'error.mcpRestart': 'MCP could not be restarted',
+  'error.workLogClear': 'Work log could not be cleared',
+  'error.tunnelStart': 'Tunnel could not be started',
+  'error.tunnelStop': 'Tunnel could not be stopped',
+  'error.doctorRun': 'Doctor could not run',
+  'language.th': 'ไทย',
+  'language.en': 'English',
+};

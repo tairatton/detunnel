@@ -1,0 +1,11 @@
+# Generated dependencies and compiler output are rebuilt inside the image.
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+
+# Local-only artifacts and editor state are never part of the image context.
+.local-artifacts
+.vscode
+.env
+.env.*
+.git

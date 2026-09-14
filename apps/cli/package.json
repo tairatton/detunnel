@@ -1,0 +1,29 @@
+{
+  "name": "@lnwjud/cli",
+  "version": "4.55.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "detunnel": "./dist/bin/mcp-http.js",
+    "detunnel-stdio": "./dist/bin/mcp-stdio.js"
+  },
+  "dependencies": {
+    "@lnwjud/application": "workspace:*",
+    "@lnwjud/audit": "workspace:*",
+    "@lnwjud/capabilities": "workspace:*",
+    "@lnwjud/codex": "workspace:*",
+    "@lnwjud/domain": "workspace:*",
+    "@lnwjud/extensions": "workspace:*",
+    "@lnwjud/mcp-server": "workspace:*",
+    "@lnwjud/permissions": "workspace:*",
+    "@lnwjud/shared": "workspace:*",
+    "@lnwjud/storage": "workspace:*",
+    "@lnwjud/workspace": "workspace:*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --outDir dist"
+  },
+  "license": "MIT"
+}

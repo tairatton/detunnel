@@ -1,0 +1,8 @@
+name: bugfix
+description: Deterministic debugging context with inspectable read-only steps.
+parallel:
+  - workspace_context
+  - test_context
+  - live_logs_query
+permissions:
+  - filesystem.read

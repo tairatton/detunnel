@@ -1,0 +1,915 @@
+import { useEffect, useRef, useState, type ReactElement } from 'react';
+import type { DashboardSnapshot, DestructiveDeletePolicy, ExternalSetupTarget, PdfProviderInstallResult, PermissionProfileName, TunnelOAuthLoginStatus, TunnelStatus, UiLocale, UserSettings } from '@lnwjud/ipc-contracts';
+import { formatDateTime } from '../../date-time.js';
+import { createTranslator } from '../../i18n/index.js';
+import { tunnelRuntimeCredentialAvailable } from '../../tunnel-auth-readiness.js';
+import { tunnelAuthPresentation } from '../../tunnel-auth-presentation.js';
+import { GuidedTunnelSetup } from '../onboarding/GuidedTunnelSetup.js';
+import { isTunnelRunning } from '../onboarding/guided-tunnel-setup-state.js';
+import { MessageIcon, UiIcon, type UiIconName } from '../shell/UiIcon.js';
+import { SettingSwitch } from './SettingSwitch.js';
+import { UserConfigPanel, type UserConfigSection } from './UserConfigPanel.js';
+
+interface SettingsPageProps {
+  readonly locale: UiLocale;
+  readonly dashboard: DashboardSnapshot;
+  readonly onLocaleChange: (locale: UiLocale) => Promise<void>;
+  readonly onPermissionProfileChange: (profile: PermissionProfileName) => Promise<void>;
+  readonly onUnrestrictedChange: (enabled: boolean) => Promise<boolean>;
+  readonly onDestructiveDeletePolicyChange: (policy: DestructiveDeletePolicy) => Promise<void>;
+  readonly onStdioPolicyChange: (profile: PermissionProfileName, strictRoots: boolean, allowedRoots: readonly string[]) => Promise<boolean>;
+  readonly onCreateBackup: () => Promise<void>;
+  readonly onScheduleRestoreBackup: (backupId: string) => Promise<boolean>;
+  readonly onRestoreRecoveryItem: (workspaceId: string, recoveryId: string) => Promise<void>;
+  readonly onRestoreCheckpoint: (workspaceId: string, checkpointId: string) => Promise<void>;
+  readonly onSaveTunnelApiKey: (apiKey: string) => Promise<void>;
+  readonly onSetTunnelClientPath: (clientPath: string) => Promise<void>;
+  readonly onUserSettingsChange: (settings: UserSettings) => Promise<boolean>;
+  readonly onInstallPdfProvider: () => Promise<PdfProviderInstallResult>;
+  readonly onChooseTunnelClientPath: () => Promise<string | null>;
+  readonly onConfigureTunnelProfile: (tunnelId: string) => Promise<string>;
+  readonly onStartTunnel: () => Promise<TunnelStatus>;
+  readonly onStopTunnel: () => Promise<void>;
+  readonly onBeginTunnelOAuthLogin: () => Promise<TunnelOAuthLoginStatus>;
+  readonly onGetTunnelOAuthLoginStatus: () => Promise<TunnelOAuthLoginStatus>;
+  readonly onCancelTunnelOAuthLogin: () => Promise<TunnelOAuthLoginStatus>;
+  readonly onSwitchTunnelAuthToLegacy: () => Promise<TunnelStatus>;
+  readonly onLogoutTunnelOAuth: () => Promise<TunnelStatus>;
+  readonly onOpenExternalSetupPage: (target: ExternalSetupTarget) => Promise<void>;
+  readonly onRefresh: () => Promise<void>;
+  readonly guidedTunnelSetupOpen: boolean;
+  readonly onGuidedTunnelSetupOpenChange: (open: boolean) => void;
+  readonly onGuidedTunnelLocalComplete: () => void;
+  readonly initialSection?: SettingsSection;
+  readonly requestedSection?: { readonly section: SettingsSection; readonly focus?: SettingsFocusTarget; readonly requestId: number } | undefined;
+}
+
+export type SettingsSection = 'general' | 'security' | 'tools' | 'mcp' | 'tunnel' | 'backup';
+export type SettingsFocusTarget = 'security-profile' | 'tools-codex' | 'tools-local-providers' | 'mcp-servers';
+type DestructiveApprovalKey = keyof DestructiveDeletePolicy['approvals'];
+const PAIRING_CODE_HIDDEN_STORAGE_KEY = 'detunnel.pairing-code-hidden';
+const PAIRING_CODE_VISIBILITY_EVENT = 'detunnel:pairing-code-visibility-change';
+
+export function SettingsPage(props: SettingsPageProps): ReactElement {
+  const t = createTranslator(props.locale);
+  const guidedTunnelRunning = isTunnelRunning(props.dashboard.tunnel);
+  const guidedTunnelConfigured = tunnelRuntimeCredentialAvailable(props.dashboard.tunnel) && props.dashboard.tunnel.profileExists;
+  const tunnelPresentation = tunnelAuthPresentation(props.dashboard.tunnel);
+  const remoteMcp = props.dashboard.remoteMcp ?? {
+    state: 'stopped' as const, provider: 'cloudflared' as const, installed: false, hasAuthtoken: false, providerPath: null,
+    localMcpUrl: props.dashboard.mcp.url, localGatewayUrl: null, publicMcpUrl: null, pairingCode: null, pairingCodeExpiresAt: null,
+    oauthProtected: true, oauthConnected: false, pairingRequired: false, autoStartEnabled: false, message: null,
+  };
+  const cloudflaredReady = remoteMcp.installed && remoteMcp.providerPath !== null;
+  const remoteMcpOnline = remoteMcp.state === 'running';
+  const secureTunnelOnline = props.dashboard.tunnel.state === 'running';
+  const activeRemoteConnections = Number(remoteMcpOnline) + Number(secureTunnelOnline);
+  const [remoteMethodOpen, setRemoteMethodOpen] = useState(remoteMcpOnline || !guidedTunnelConfigured);
+  // The legacy Secure MCP Tunnel remains available for existing installations,
+  // but it must not compete with the ChatGPT connection flow for new users.
+  const [secureMethodOpen, setSecureMethodOpen] = useState(secureTunnelOnline);
+  const [activeSection, setActiveSection] = useState<SettingsSection>(props.initialSection ?? 'general');
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [clientPath, setClientPath] = useState(props.dashboard.tunnel.clientPath ?? '');
+  const [tunnelId, setTunnelId] = useState('');
+  const [tunnelBusy, setTunnelBusy] = useState(false);
+  const [tunnelMessage, setTunnelMessage] = useState<string | null>(null);
+  const [remoteMcpBusy, setRemoteMcpBusy] = useState(false);
+  const [remoteMcpMessage, setRemoteMcpMessage] = useState<string | null>(null);
+  const [oauthLogin, setOauthLogin] = useState<TunnelOAuthLoginStatus | null>(null);
+  const [oauthBusy, setOauthBusy] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [stdioProfile, setStdioProfile] = useState<PermissionProfileName>(props.dashboard.stdioPermissionProfile);
+  const [strictRoots, setStrictRoots] = useState(props.dashboard.stdioStrictRoots);
+  const [allowedRootsText, setAllowedRootsText] = useState(props.dashboard.stdioAllowedRoots.join('\n'));
+  const [stdioDirty, setStdioDirty] = useState(false);
+  const [stdioMessage, setStdioMessage] = useState<string | null>(null);
+  const [policyError, setPolicyError] = useState<string | null>(null);
+  const [backupMessage, setBackupMessage] = useState<string | null>(null);
+  const [backupError, setBackupError] = useState<string | null>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [recoveryBusyId, setRecoveryBusyId] = useState<string | null>(null);
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const [retentionBusy, setRetentionBusy] = useState(false);
+  const [pairingCodeHidden, setPairingCodeHidden] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const syncPairingCodeVisibility = (): void => {
+      try {
+        setPairingCodeHidden(window.localStorage.getItem(PAIRING_CODE_HIDDEN_STORAGE_KEY) === '1');
+      } catch {
+        // Keep the current visibility when local storage is unavailable.
+      }
+    };
+    try {
+      syncPairingCodeVisibility();
+    } catch {
+      // The pairing code remains visible when local storage is unavailable.
+    }
+    window.addEventListener(PAIRING_CODE_VISIBILITY_EVENT, syncPairingCodeVisibility);
+    return (): void => window.removeEventListener(PAIRING_CODE_VISIBILITY_EVENT, syncPairingCodeVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0;
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (props.requestedSection === undefined) return;
+    setActiveSection(props.requestedSection.section);
+  }, [props.requestedSection]);
+
+  useEffect(() => {
+    if (remoteMcpOnline) {
+      setRemoteMethodOpen(true);
+      setSecureMethodOpen(false);
+      return;
+    }
+    if (secureTunnelOnline) setSecureMethodOpen(true);
+  }, [remoteMcpOnline, secureTunnelOnline]);
+
+  useEffect(() => {
+    const request = props.requestedSection;
+    if (request?.focus === undefined || activeSection !== request.section) return;
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(`[data-settings-focus="${request.focus}"]`);
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target?.focus({ preventScroll: true });
+    });
+    return (): void => { window.cancelAnimationFrame(frame); };
+  }, [activeSection, props.requestedSection]);
+
+  const persistedRootsText = props.dashboard.stdioAllowedRoots.join('\n');
+  useEffect(() => {
+    if (stdioDirty) return;
+    setStdioProfile(props.dashboard.stdioPermissionProfile);
+    setStrictRoots(props.dashboard.stdioStrictRoots);
+    setAllowedRootsText(persistedRootsText);
+  }, [props.dashboard.stdioPermissionProfile, props.dashboard.stdioStrictRoots, persistedRootsText, stdioDirty]);
+
+  useEffect(() => {
+    setClientPath(props.dashboard.tunnel.clientPath ?? '');
+  }, [props.dashboard.tunnel.clientPath]);
+
+  useEffect(() => {
+    if (oauthLogin?.state !== 'waiting_for_browser' && oauthLogin?.state !== 'exchanging') return;
+    let cancelled = false;
+    const poll = window.setInterval(() => {
+      void props.onGetTunnelOAuthLoginStatus().then(async (status) => {
+        if (cancelled) return;
+        setOauthLogin(status);
+        if (status.state === 'completed') await props.onRefresh();
+      }).catch(() => undefined);
+    }, 1_000);
+    return (): void => { cancelled = true; window.clearInterval(poll); };
+  }, [oauthLogin?.state, props.onGetTunnelOAuthLoginStatus, props.onRefresh]);
+
+  function updateDestructivePolicy(next: DestructiveDeletePolicy): void {
+    void props.onDestructiveDeletePolicyChange(next);
+  }
+
+  function setDestructiveApproval(key: DestructiveApprovalKey, enabled: boolean): void {
+    const current = props.dashboard.destructiveDeletePolicy;
+    updateDestructivePolicy({
+      ...current,
+      protectCriticalFiles: true,
+      recoverableDelete: true,
+      approvals: { ...current.approvals, [key]: enabled },
+    });
+  }
+
+  async function restoreTrashItem(workspaceId: string, recoveryId: string, relativePath: string, kind: 'deleted' | 'replacement_backup'): Promise<void> {
+    const isReplacementBackup = kind === 'replacement_backup';
+    const confirmed = window.confirm(props.locale === 'th'
+      ? isReplacementBackup
+        ? `ย้อน ${relativePath} กลับเป็นรุ่นก่อนเขียนทับ? ระบบจะเก็บรุ่นปัจจุบันเข้า Recovery Trash ไว้ให้ Undo ก่อน`
+        : `กู้คืน ${relativePath} กลับตำแหน่งเดิม? ระบบจะไม่เขียนทับไฟล์ที่มีอยู่`
+      : isReplacementBackup
+        ? `Restore the pre-replacement version of ${relativePath}? The current version will first be kept in Recovery Trash for undo.`
+        : `Restore ${relativePath} to its original location? Existing files will not be overwritten.`);
+    if (!confirmed) return;
+    setRecoveryBusyId(recoveryId);
+    setRecoveryError(null);
+    try {
+      await props.onRestoreRecoveryItem(workspaceId, recoveryId);
+      setRecoveryMessage(props.locale === 'th' ? `กู้คืน ${relativePath} แล้ว` : `Restored ${relativePath}.`);
+    } catch (cause: unknown) {
+      setRecoveryError(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'กู้คืนไม่สำเร็จ' : 'Restore failed.'));
+    } finally {
+      setRecoveryBusyId(null);
+    }
+  }
+
+  async function restoreCheckpoint(workspaceId: string, checkpointId: string, paths: readonly string[]): Promise<void> {
+    const confirmed = window.confirm(props.locale === 'th'
+      ? `ย้อนกลับ ${paths.length} ไฟล์ตาม checkpoint นี้? ระบบจะสร้าง checkpoint ใหม่ของสถานะปัจจุบันไว้ให้ Undo ก่อน`
+      : `Restore ${paths.length} file(s) from this checkpoint? A new rollback checkpoint will be created first.`);
+    if (!confirmed) return;
+    setRecoveryBusyId(checkpointId);
+    setRecoveryError(null);
+    try {
+      await props.onRestoreCheckpoint(workspaceId, checkpointId);
+      setRecoveryMessage(props.locale === 'th' ? 'กู้ checkpoint แล้ว และสร้างจุด Undo ใหม่ไว้แล้ว' : 'Checkpoint restored and a new undo point was created.');
+    } catch (cause: unknown) {
+      setRecoveryError(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'กู้ checkpoint ไม่สำเร็จ' : 'Checkpoint restore failed.'));
+    } finally {
+      setRecoveryBusyId(null);
+    }
+  }
+
+  async function saveStdioPolicy(): Promise<void> {
+    const roots = splitList(allowedRootsText);
+    if (strictRoots && roots.length === 0) {
+      setPolicyError(props.locale === 'th' ? 'Strict Roots ต้องกำหนด Allowed Root อย่างน้อย 1 path' : 'Strict Roots requires at least one Allowed Root path.');
+      return;
+    }
+    setPolicyError(null);
+    try {
+      const restartRequired = await props.onStdioPolicyChange(stdioProfile, strictRoots, roots);
+      setStdioDirty(false);
+      setStdioMessage(restartRequired
+        ? (props.locale === 'th' ? 'บันทึกแล้ว — ค่าใหม่จะใช้กับ standalone/headless STDIO connection ครั้งถัดไป' : 'Saved — the new policy applies to the next standalone/headless STDIO connection.')
+        : t('settings.saved'));
+    } catch (cause: unknown) {
+      setPolicyError(cause instanceof Error ? cause.message : 'Could not save STDIO policy');
+    }
+  }
+
+  async function browseTunnelClient(): Promise<void> {
+    try {
+      const selected = await props.onChooseTunnelClientPath();
+      if (selected === null) return;
+      setClientPath(selected);
+      await props.onSetTunnelClientPath(selected);
+      setSavedMessage(props.locale === 'th' ? 'บันทึก tunnel-client.exe แล้ว' : 'tunnel-client.exe saved.');
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : 'Could not select tunnel-client.exe');
+    }
+  }
+
+  async function configureTunnel(): Promise<void> {
+    if (tunnelId.trim().length === 0) {
+      setTunnelMessage(props.locale === 'th' ? 'กรุณาใส่ Tunnel ID' : 'Enter a Tunnel ID.');
+      return;
+    }
+    setTunnelBusy(true);
+    setTunnelMessage(null);
+    try {
+      const profilePath = await props.onConfigureTunnelProfile(tunnelId.trim());
+      setTunnelMessage(props.locale === 'th' ? `ตั้งค่า Tunnel สำเร็จ: ${profilePath}` : `Tunnel configured: ${profilePath}`);
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'ตั้งค่า Tunnel ไม่สำเร็จ' : 'Tunnel setup failed.'));
+    } finally {
+      setTunnelBusy(false);
+    }
+  }
+
+  async function reconnectSameTunnel(): Promise<void> {
+    setTunnelBusy(true);
+    setTunnelMessage(null);
+    try {
+      await props.onStartTunnel();
+      setTunnelMessage(props.locale === 'th' ? 'สั่ง Reconnect Tunnel ID เดิมแล้ว' : 'Reconnect of the same tunnel identity requested.');
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'Reconnect ไม่สำเร็จ' : 'Reconnect failed.'));
+    } finally { setTunnelBusy(false); }
+  }
+
+  async function stopPersistentTunnel(): Promise<void> {
+    setTunnelBusy(true);
+    setTunnelMessage(null);
+    try {
+      await props.onStopTunnel();
+      setTunnelMessage(props.locale === 'th' ? 'หยุด Persistent Tunnel แล้ว' : 'Persistent tunnel stopped.');
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'หยุด Tunnel ไม่สำเร็จ' : 'Could not stop tunnel.'));
+    } finally { setTunnelBusy(false); }
+  }
+
+  async function beginOAuthLogin(): Promise<void> {
+    setOauthBusy(true);
+    setTunnelMessage(null);
+    try {
+      const status = await props.onBeginTunnelOAuthLogin();
+      setOauthLogin(status);
+      if (!status.available && status.message !== null) setTunnelMessage(status.message);
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : 'OAuth login could not be started');
+    } finally { setOauthBusy(false); }
+  }
+
+  async function rollbackToLegacyAuth(): Promise<void> {
+    setOauthBusy(true);
+    try {
+      await props.onSwitchTunnelAuthToLegacy();
+      await props.onRefresh();
+      setOauthLogin(null);
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : 'Could not switch back to Runtime API key authentication');
+    } finally { setOauthBusy(false); }
+  }
+
+  async function logoutOAuth(): Promise<void> {
+    setOauthBusy(true);
+    try {
+      await props.onLogoutTunnelOAuth();
+      await props.onRefresh();
+      setOauthLogin(null);
+    } catch (cause: unknown) {
+      setTunnelMessage(cause instanceof Error ? cause.message : 'OAuth logout failed');
+    } finally { setOauthBusy(false); }
+  }
+
+  async function setRecoveryRetentionDays(days: number): Promise<void> {
+    const previousDays = props.dashboard.settings.recoveryRetentionDays;
+    if (days > 0 && (previousDays === 0 || days < previousDays)) {
+      const confirmed = window.confirm(props.locale === 'th'
+        ? `เปิดลบข้อมูลกู้คืนอัตโนมัติที่เก่ากว่า ${days} วัน? ข้อมูลที่เก่ากว่านี้อาจถูกลบทันทีและกู้คืนไม่ได้`
+        : `Enable automatic cleanup for recovery data older than ${days} days? Older recovery data may be removed immediately and cannot be restored.`);
+      if (!confirmed) return;
+    }
+    setRetentionBusy(true);
+    setRecoveryError(null);
+    try {
+      await props.onUserSettingsChange({ ...props.dashboard.settings, recoveryRetentionDays: days });
+      setRecoveryMessage(days === 0
+        ? (props.locale === 'th' ? 'ตั้งค่าให้เก็บข้อมูลกู้คืนไว้จนกว่าจะลบเอง' : 'Recovery data will be kept until you remove it manually.')
+        : (props.locale === 'th' ? `ตั้งค่าลบข้อมูลกู้คืนที่เก่ากว่า ${days} วันอัตโนมัติแล้ว` : `Recovery data older than ${days} days will be removed automatically.`));
+    } catch (cause: unknown) {
+      setRecoveryError(cause instanceof Error ? cause.message : (props.locale === 'th' ? 'บันทึกอายุข้อมูลกู้คืนไม่สำเร็จ' : 'Could not save recovery retention.'));
+    } finally {
+      setRetentionBusy(false);
+    }
+  }
+
+  async function createBackupNow(): Promise<void> {
+    setBackupBusy(true);
+    setBackupError(null);
+    try {
+      await props.onCreateBackup();
+      setBackupMessage(props.locale === 'th' ? 'สำรองข้อมูลเรียบร้อยแล้ว' : 'Backup completed.');
+    } catch (cause: unknown) {
+      setBackupError(cause instanceof Error ? cause.message : 'Backup failed');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function scheduleRestore(backupId: string): Promise<void> {
+    const confirmed = window.confirm(props.locale === 'th'
+      ? 'กู้ฐานข้อมูลโปรแกรมจาก Backup ชุดนี้เมื่อเปิด detunnel ครั้งถัดไป? ระบบจะสร้าง Backup ฉุกเฉินของฐานข้อมูลปัจจุบันก่อนแทนที่'
+      : 'Restore the application database from this backup on the next detunnel start? An emergency backup of the current database will be created before replacement.');
+    if (!confirmed) return;
+    setBackupBusy(true);
+    setBackupError(null);
+    try {
+      const restartRequired = await props.onScheduleRestoreBackup(backupId);
+      setBackupMessage(restartRequired
+        ? (props.locale === 'th' ? 'เตรียม Restore แล้ว — ปิดและเปิด detunnel ใหม่เพื่อใช้ข้อมูลชุดนี้' : 'Restore scheduled — restart detunnel to apply it.')
+        : (props.locale === 'th' ? 'เตรียม Restore แล้ว' : 'Restore scheduled.'));
+    } catch (cause: unknown) {
+      setBackupError(cause instanceof Error ? cause.message : 'Could not schedule restore');
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function runRemoteMcpAction(action: 'install' | 'start' | 'stop' | 'regenerate'): Promise<void> {
+    if (action === 'regenerate') {
+      const confirmed = window.confirm(props.locale === 'th'
+        ? remoteMcp.oauthConnected
+          ? 'เชื่อม ChatGPT ใหม่? การเชื่อมต่อ OAuth ที่จำไว้และ Refresh Token เดิมจะถูกยกเลิก แล้วต้อง Pairing อีกครั้งหนึ่ง'
+          : 'สร้าง Pairing Code ใหม่? รหัสเดิมจะถูกยกเลิก แล้วใช้รหัสใหม่อนุญาต ChatGPT'
+        : remoteMcp.oauthConnected
+          ? 'Reconnect ChatGPT? The remembered OAuth trust and existing refresh tokens will be revoked, and one new pairing will be required.'
+          : 'Generate a new pairing code? The previous code will be invalidated, and the new code will authorize ChatGPT.');
+      if (!confirmed) return;
+    }
+    setRemoteMcpBusy(true);
+    setRemoteMcpMessage(null);
+    try {
+      if (action === 'install') await window.lnwjud.installRemoteMcpProvider();
+      if (action === 'start') await window.lnwjud.startRemoteMcp();
+      if (action === 'stop') await window.lnwjud.stopRemoteMcp();
+      if (action === 'regenerate') await window.lnwjud.regenerateRemoteMcpPairingCode();
+      await props.onRefresh();
+      setRemoteMcpMessage(props.locale === 'th' ? 'อัปเดต Remote MCP เรียบร้อยแล้ว' : 'Remote MCP updated.');
+    } catch (cause: unknown) {
+      setRemoteMcpMessage(cause instanceof Error ? cause.message : 'Remote MCP action failed');
+    } finally {
+      setRemoteMcpBusy(false);
+    }
+  }
+
+  function setPairingCodeVisibility(hidden: boolean): void {
+    setPairingCodeHidden(hidden);
+    try {
+      if (hidden) window.localStorage.setItem(PAIRING_CODE_HIDDEN_STORAGE_KEY, '1');
+      else window.localStorage.removeItem(PAIRING_CODE_HIDDEN_STORAGE_KEY);
+    } catch {
+      // Visibility is still applied for the current session.
+    }
+    window.dispatchEvent(new Event(PAIRING_CODE_VISIBILITY_EVENT));
+  }
+
+  async function copyRemoteMcpUrl(): Promise<void> {
+    const value = remoteMcp.publicMcpUrl;
+    if (value === null) return;
+    await navigator.clipboard.writeText(value);
+    setRemoteMcpMessage(props.locale === 'th' ? 'คัดลอก Public MCP URL แล้ว' : 'Public MCP URL copied.');
+  }
+
+  const allNavItems: readonly { id: SettingsSection; title: string; description: string; icon: UiIconName }[] = [
+    { id: 'general', title: props.locale === 'th' ? 'ทั่วไป' : 'General', description: props.locale === 'th' ? 'ภาษา, Startup, Update' : 'Language, startup, updates', icon: 'sliders' },
+    { id: 'security', title: props.locale === 'th' ? 'ความปลอดภัย' : 'Security', description: props.locale === 'th' ? 'สิทธิ์และ Workspace policy' : 'Permissions and workspace policy', icon: 'shield' },
+    { id: 'tools', title: props.locale === 'th' ? 'Tools' : 'Tools', description: props.locale === 'th' ? 'Codex, Timeout, Roots' : 'Codex, timeouts, roots', icon: 'tool' },
+    { id: 'mcp', title: 'MCP & Extensions', description: props.locale === 'th' ? 'Servers, Skills, Allowlist' : 'Servers, skills, allowlist', icon: 'network' },
+    { id: 'tunnel', title: props.locale === 'th' ? 'Remote MCP & Tunnel' : 'Remote MCP & Tunnel', description: props.locale === 'th' ? 'OAuth, Cloudflare Tunnel, Client' : 'OAuth, Cloudflare Tunnel, client', icon: 'link' },
+    { id: 'backup', title: props.locale === 'th' ? 'กู้คืนข้อมูล' : 'Recovery', description: props.locale === 'th' ? 'Recovery Trash, Checkpoint, Backup' : 'Recovery Trash, checkpoints, backups', icon: 'archive' },
+  ];
+
+  const navItems = allNavItems.filter((item) => item.id === 'general' || item.id === 'security' || item.id === 'tunnel');
+
+  const userConfigSection: UserConfigSection | null = activeSection === 'backup' ? null : activeSection;
+  const currentNav = allNavItems.find((item) => item.id === activeSection) ?? allNavItems[0]!;
+
+  return (
+    <div className="page-content settings-page-v2">
+      <div className="page-heading settings-page-heading">
+        <div>
+          <span className="settings-eyebrow">CONTROL CENTER</span>
+          <h1>{t('settings.title')}</h1>
+          <p className="page-subtitle">{props.locale === 'th' ? 'ตั้งค่าระบบจากหน้าเดียว โดยไม่ต้องแก้ไฟล์ config เอง' : 'Configure the system without editing configuration files manually.'}</p>
+        </div>
+        <div className="settings-health-chip"><span className="icon-tile status-icon-tile"><UiIcon name="check" /></span>{props.locale === 'th' ? 'Local settings' : 'Local settings'}</div>
+      </div>
+
+      <div className="settings-shell-v2">
+        <aside className="settings-subnav" aria-label="Settings sections">
+          {navItems.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              className={`settings-nav-item ${activeSection === item.id ? 'is-active' : ''}`}
+              aria-current={activeSection === item.id ? 'page' : undefined}
+              onClick={() => setActiveSection(item.id)}
+            >
+              <span className="icon-tile settings-nav-icon"><UiIcon name={item.icon} /></span>
+              <span className="settings-nav-copy"><strong>{item.title}</strong><small>{item.description}</small></span>
+              <UiIcon name="chevron-right" className="settings-nav-chevron" />
+            </button>
+          ))}
+        </aside>
+
+        <div className="settings-content-v2" ref={contentRef}>
+          <header className="settings-section-header">
+            <span className="settings-section-kicker">SETTINGS / {currentNav.title.toUpperCase()}</span>
+            <h2>{currentNav.title}</h2>
+            <p>{currentNav.description}</p>
+          </header>
+
+          {activeSection === 'general' ? (
+            <section className="panel settings-card settings-card-polished" aria-label={t('settings.generalTitle')}>
+              <SettingsCardHeading title={t('settings.generalTitle')} subtitle={props.locale === 'th' ? 'ภาษา UI, Tray และข้อความระบบ' : 'UI, tray, and system-message language'} badge={props.locale.toUpperCase()} />
+              <div className="setting-field max-field-width">
+                <label className="field-label" htmlFor="locale-select">{t('settings.locale')}</label>
+                <select id="locale-select" className="settings-select" value={props.locale} onChange={(event) => { void props.onLocaleChange(event.target.value as UiLocale); }}>
+                  <option value="th">🇹🇭 {t('language.th')}</option>
+                  <option value="en">🇺🇸 {t('language.en')}</option>
+                </select>
+              </div>
+              <p className="hint">{props.locale === 'th' ? 'เปลี่ยนภาษาหน้าจอ Tray และข้อความระบบทันที' : 'Changes screen, tray, and system-message language immediately.'}</p>
+            </section>
+          ) : null}
+
+          {activeSection === 'security' ? (
+            <>
+              <section className="panel settings-card settings-card-polished" aria-label={t('settings.securityTitle')} data-settings-focus="security-profile" tabIndex={-1}>
+                <SettingsCardHeading title={t('settings.securityTitle')} subtitle={profileHint(props.locale, props.dashboard.permissionProfile)} badge={props.dashboard.permissionProfile.toUpperCase()} />
+                <div className="setting-field max-field-width">
+                  <label className="field-label" htmlFor="permission-profile">{t('settings.permissions')}</label>
+                  <select id="permission-profile" aria-label="Permission profile" className="settings-select" value={props.dashboard.permissionProfile} onChange={(event) => { void props.onPermissionProfileChange(event.target.value as PermissionProfileName); }}>
+                    <option value="safe">{t('permission.safe')}</option>
+                    <option value="balanced">{t('permission.balanced')}</option>
+                    <option value="full">{t('permission.full')}</option>
+                    <option value="custom">{t('permission.custom')}</option>
+                  </select>
+                </div>
+              </section>
+
+              <UserConfigPanel
+                locale={props.locale}
+                permissionProfile={props.dashboard.permissionProfile}
+                stdioPermissionProfile={props.dashboard.stdioPermissionProfile}
+                settings={props.dashboard.settings}
+                section="security"
+                unrestricted={props.dashboard.unrestricted}
+                onUnrestrictedChange={props.onUnrestrictedChange}
+                onSave={props.onUserSettingsChange}
+                onInstallPdfProvider={props.onInstallPdfProvider}
+              />
+
+              <section className="panel settings-card settings-card-polished" aria-label="AI destructive action policy">
+                <SettingsCardHeading
+                  title={props.locale === 'th' ? 'ความปลอดภัยการลบ / ทำข้อมูลหาย' : 'Delete & Data-Loss Safety'}
+                  subtitle={props.locale === 'th' ? 'Full จะถามเฉพาะ destructive family ที่ยังไม่ได้อนุญาต หรือพิสูจน์ขอบเขตไม่ได้' : 'Full prompts only for destructive families that are not safely auto-approved by these settings'}
+                  badge={`${Object.values(props.dashboard.destructiveDeletePolicy.approvals).filter(Boolean).length}/6`}
+                />
+                <div className="alert-box-warning" role="note">
+                  <MessageIcon kind="warning" /><span>{props.locale === 'th'
+                    ? 'เมื่อ Full Bypass ปิด Full Access จะไม่ถามงานปกติ และ auto-approval ด้านล่างมีผลเฉพาะงานลบ/ทำข้อมูลหายที่พิสูจน์ target ได้ชัดใน Active Project; เมื่อเปิด Full Bypass จะข้ามการอนุมัติและขอบเขตระดับแอปทั้งหมด'
+                    : 'With Full Bypass OFF, Full Access does not prompt for ordinary work and the auto-approval controls below remain narrowly scoped to exact targets in the Active Project. With Full Bypass ON, all detunnel application approvals and scope checks are skipped.'}</span>
+                </div>
+                <div className="setting-grid two-col align-center">
+                  <SettingSwitch checked disabled label={props.locale === 'th' ? 'Protected Critical Files — บังคับเปิด' : 'Protected Critical Files — always on'} description={props.locale === 'th' ? 'critical path และ workspace root ไม่ถูก auto-approve แม้เปิด destructive family นั้นไว้' : 'Critical paths and workspace roots are never auto-approved even when a destructive family is enabled'} onChange={() => undefined} />
+                  <SettingSwitch checked disabled label={props.locale === 'th' ? 'Recovery Trash — บังคับเปิดสำหรับ delete_file' : 'Recovery Trash — always on for delete_file'} description={props.locale === 'th' ? 'delete_file แบบมีโครงสร้างย้าย target เข้า Recovery Trash ก่อนเสมอ' : 'Structured delete_file moves its target into Recovery Trash before deletion'} onChange={() => undefined} />
+                </div>
+
+                <div className="settings-mini-heading"><strong>{props.locale === 'th' ? 'Structured delete — กู้คืนได้' : 'Structured delete — recoverable'}</strong><span>Host Active Project</span></div>
+                <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.delete_file} label="delete_file" description={props.locale === 'th' ? 'Auto-approve ได้เฉพาะ path เดียวใน Active Project, ไม่ใช่ root/critical/wildcard และมี Recovery Trash' : 'Auto-approves one exact Active Project path only; roots, critical paths, and wildcards remain guarded and Recovery Trash is required'} onChange={(enabled) => setDestructiveApproval('delete_file', enabled)} />
+
+                <div className="settings-mini-heading"><strong>{props.locale === 'th' ? 'Shell / Process destructive families' : 'Shell / Process destructive families'}</strong><span>{props.locale === 'th' ? 'ไม่อยู่ใน Recovery Trash' : 'not Recovery Trash-backed'}</span></div>
+                <div className="setting-grid two-col align-center">
+                  <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.shell_rm_unlink} label="shell_rm_unlink" description={props.locale === 'th' ? 'Auto-approve rm/unlink target เดียว; -r/-R/recursive, wildcard และ path นอกโปรเจกต์ยังถาม' : 'Auto-approves one rm/unlink target; recursive flags, wildcards, and paths outside the project still ask'} onChange={(enabled) => setDestructiveApproval('shell_rm_unlink', enabled)} />
+                  <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.shell_rmdir} label="shell_rmdir" description={props.locale === 'th' ? 'Auto-approve rmdir แบบ target เดียว; recursive/parents และ broad forms ยังถาม' : 'Auto-approves one rmdir target; recursive/parents and broad forms still ask'} onChange={(enabled) => setDestructiveApproval('shell_rmdir', enabled)} />
+                  <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.shell_del_erase} label="shell_del_erase" description={props.locale === 'th' ? 'Auto-approve del/erase แบบ exact target เมื่อ parser พิสูจน์รูปแบบได้; /s และ broad forms ยังถาม' : 'Auto-approves exact del/erase targets when the parser can prove the form; /s and broad forms still ask'} onChange={(enabled) => setDestructiveApproval('shell_del_erase', enabled)} />
+                </div>
+
+                <div className="settings-mini-heading"><strong>WSL destructive families</strong><span>{props.locale === 'th' ? 'exact scoped forms เท่านั้น' : 'exact scoped forms only'}</span></div>
+                <div className="setting-grid two-col align-center">
+                  <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.wsl_rm_unlink} label="wsl_rm_unlink" description={props.locale === 'th' ? 'Auto-approve WSL rm/unlink target เดียวใน Active Project; recursive/absolute Linux path/broad forms ยังถาม' : 'Auto-approves one WSL rm/unlink target in the Active Project; recursive, absolute Linux paths, and broad forms still ask'} onChange={(enabled) => setDestructiveApproval('wsl_rm_unlink', enabled)} />
+                  <SettingSwitch checked={props.dashboard.destructiveDeletePolicy.approvals.wsl_rmdir} label="wsl_rmdir" description={props.locale === 'th' ? 'Auto-approve WSL rmdir target เดียว; parents/broad/outside forms ยังถาม' : 'Auto-approves one WSL rmdir target; parents, broad, and outside forms still ask'} onChange={(enabled) => setDestructiveApproval('wsl_rmdir', enabled)} />
+                </div>
+
+                <p className="hint">{props.locale === 'th' ? 'Full: READ / WRITE / EXECUTE และ mutation ปกติไม่ถาม ส่วน destructive family ที่ปิดไว้หรือพิสูจน์ exact scope ไม่ได้จะถามตามปกติ การ auto-approve command family ไม่ได้ทำให้ผลคำสั่งเข้า Recovery Trash' : 'Full: ordinary READ / WRITE / EXECUTE and normal mutations do not prompt. A destructive family still asks when disabled or when exact scope cannot be proven. Auto-approved command-family effects are not covered by Recovery Trash.'}</p>
+              </section>
+
+              <section className="panel settings-card settings-card-polished" aria-label="STDIO security policy">
+                <SettingsCardHeading title="STDIO Security Policy" subtitle={props.locale === 'th' ? 'Policy สำหรับ standalone/headless stdio; Secure Tunnel ใช้ Desktop MCP และ native approval' : 'Policy for standalone/headless stdio; Secure Tunnel uses Desktop MCP and native approval'} badge={props.dashboard.stdioPermissionProfile.toUpperCase()} />
+                <div className="setting-grid two-col align-center">
+                  <div className="setting-field">
+                    <label className="field-label" htmlFor="stdio-profile">STDIO Permission Profile</label>
+                    <select id="stdio-profile" className="settings-select" value={stdioProfile} onChange={(event) => { setStdioProfile(event.target.value as PermissionProfileName); setStdioDirty(true); }}>
+                      <option value="safe">Safe</option><option value="balanced">Balanced</option><option value="full">Full</option><option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  <SettingSwitch checked={strictRoots} label="Strict Workspace Roots" description={props.locale === 'th' ? 'บล็อก absolute path นอก Allowed Roots แบบ fail-closed' : 'Reject absolute paths outside Allowed Roots fail-closed'} onChange={(enabled) => { setStrictRoots(enabled); setStdioDirty(true); }} />
+                </div>
+                <div className="setting-field">
+                  <label className="field-label" htmlFor="stdio-roots">{props.locale === 'th' ? 'Allowed Roots — หนึ่ง path ต่อบรรทัด' : 'Allowed Roots — one path per line'}</label>
+                  <textarea id="stdio-roots" className="settings-textarea" rows={5} value={allowedRootsText} placeholder={'E:\\Projects\\MyApp\nD:\\Shared\\Source'} onChange={(event) => { setAllowedRootsText(event.target.value); setStdioDirty(true); }} />
+                </div>
+                <div className="inline-actions"><button type="button" className="btn-save-gold" disabled={!stdioDirty} onClick={() => { void saveStdioPolicy(); }}>{props.locale === 'th' ? 'บันทึก STDIO Policy' : 'Save STDIO Policy'}</button></div>
+                {policyError === null ? null : <div className="alert-box-warning" role="alert"><MessageIcon kind="warning" /><span>{policyError}</span></div>}
+                {stdioMessage === null ? null : <div className="toast-success-banner" role="status"><MessageIcon kind="success" /><span>{stdioMessage}</span></div>}
+              </section>
+            </>
+          ) : null}
+
+          {userConfigSection === 'security' ? null : (
+            <UserConfigPanel
+              locale={props.locale}
+              permissionProfile={props.dashboard.permissionProfile}
+              stdioPermissionProfile={props.dashboard.stdioPermissionProfile}
+              settings={props.dashboard.settings}
+              section={userConfigSection}
+              unrestricted={props.dashboard.unrestricted}
+              onUnrestrictedChange={props.onUnrestrictedChange}
+              onSave={props.onUserSettingsChange}
+              onInstallPdfProvider={props.onInstallPdfProvider}
+            />
+          )}
+
+          {activeSection === 'tunnel' ? (
+            <>
+              <details className="panel local-runtime-details">
+                <summary><span><strong>{props.locale === 'th' ? 'รายละเอียดขั้นสูง: Local runtime' : 'Advanced: Local runtime'}</strong><small>{props.locale === 'th' ? 'การเชื่อมต่อบนเครื่องเดียวกัน' : 'Same-computer connections'}</small></span><UiIcon name="chevron-down" /></summary>
+                <h2>{t('mcp.localUrl')}</h2>
+                <code className="endpoint">{props.dashboard.connectionModes.httpUrl ?? '—'}</code>
+                <div className="inline-actions"><button type="button" disabled={!props.dashboard.connectionModes.httpUrl} onClick={() => {
+                  const url = props.dashboard.connectionModes.httpUrl;
+                  if (url) void navigator.clipboard.writeText(url).then(() => setRemoteMcpMessage(t('mcp.copied'))).catch(() => setRemoteMcpMessage(props.locale === 'th' ? 'คัดลอกไม่สำเร็จ' : 'Copy failed'));
+                }}>{t('mcp.copy')}</button></div>
+                <p className="hint">{t('mcp.stdioCommand')}</p>
+                <code className="endpoint">{props.dashboard.connectionModes.stdioCommand}</code>
+              </details>
+              <div className="connection-choice-intro" role="note">
+                <div>
+                  <strong>{props.locale === 'th' ? 'เส้นทางหลัก: เชื่อม ChatGPT กับคอมเครื่องนี้' : 'Primary path: connect ChatGPT to this computer'}</strong>
+                  <p>{props.locale === 'th'
+                    ? 'detunnel ไม่เรียก OpenAI API และไม่ใช้ OpenAI API key สำหรับตัวโมเดล การใช้งาน AI จะเกิดในบัญชี ChatGPT ของคุณ ส่วน Cloudflare Quick Tunnel ไม่ต้องใช้ API key หรือ authtoken'
+                    : 'detunnel does not call the OpenAI API or use an OpenAI API key for the model. AI usage stays in your ChatGPT account; Cloudflare Quick Tunnel does not require an API key or authtoken.'}</p>
+                </div>
+                <span className={`connection-count-chip ${activeRemoteConnections > 1 ? 'is-dual' : activeRemoteConnections === 1 ? 'is-online' : ''}`}>{activeRemoteConnections} {props.locale === 'th' ? 'ช่องทางออนไลน์' : 'online'}</span>
+              </div>
+
+              <details
+                className="connection-method-stack is-recommended"
+                open={remoteMethodOpen}
+                onToggle={(event) => setRemoteMethodOpen(event.currentTarget.open)}
+              >
+                <summary className="connection-method-summary">
+                  <div className="connection-method-summary-copy">
+                    <span className="connection-method-kicker">{props.locale === 'th' ? 'แนะนำ · OAuth' : 'Recommended · OAuth'}</span>
+                    <strong>Remote MCP — Cloudflare Tunnel + OAuth</strong>
+                    <span>{props.locale === 'th' ? 'เชื่อม ChatGPT ผ่าน HTTPS /mcp — Pairing เฉพาะครั้งแรก แล้วจำ OAuth ไว้ให้' : 'Connect ChatGPT through HTTPS /mcp — pair once, then keep the OAuth connection trusted.'}</span>
+                  </div>
+                  <div className="connection-method-summary-status">
+                    <span className={`connection-method-live-dot ${remoteMcpOnline ? 'is-online' : ''}`} aria-hidden="true" />
+                    <span>{remoteMcpOnline ? 'ONLINE' : cloudflaredReady ? 'READY' : 'SETUP'}</span>
+                    <UiIcon name="chevron-down" className="connection-method-chevron" />
+                  </div>
+                </summary>
+                <section className="panel settings-card settings-card-polished guided-tunnel-launch-card connection-method-panel" aria-label="Remote MCP with Cloudflare Tunnel and OAuth">
+                <SettingsCardHeading
+                  title={props.locale === 'th' ? 'Remote MCP — Cloudflare Tunnel + OAuth' : 'Remote MCP — Cloudflare Tunnel + OAuth'}
+                  subtitle={props.locale === 'th' ? 'แนะนำ: เชื่อม ChatGPT ผ่าน OAuth ครั้งแรกครั้งเดียว จากนั้น detunnel จำสิทธิ์และเปิด Remote MCP อัตโนมัติเมื่อเปิดโปรแกรม' : 'Recommended: authorize ChatGPT once; detunnel remembers the OAuth trust and can auto-start Remote MCP on later launches.'}
+                  badge={remoteMcp.state === 'running' ? 'RUNNING' : cloudflaredReady ? 'READY' : 'SETUP'}
+                />
+                <div className="setting-grid two-col">
+                  <div className="setting-field">
+                    <span className="field-label">Local MCP</span>
+                    <code className="settings-path-display">{remoteMcp.localMcpUrl ?? props.dashboard.mcp.url ?? 'http://127.0.0.1:18765/mcp'}</code>
+                    <p className="hint">{props.locale === 'th' ? 'คงเป็น loopback บนเครื่อง ไม่เปิดพอร์ตนี้สู่ Internet โดยตรง' : 'Remains loopback-only; this port is never exposed directly to the Internet.'}</p>
+                  </div>
+                  <div className="setting-field">
+                    <span className="field-label">Public MCP URL</span>
+                    <code className="settings-path-display">{remoteMcp.publicMcpUrl ?? '—'}</code>
+                    <p className="hint">{props.locale === 'th' ? 'URL นี้ลงท้าย /mcp และเป็น URL ที่นำไปใส่ใน ChatGPT' : 'This /mcp URL is the one to add in ChatGPT.'}</p>
+                  </div>
+                </div>
+                  <div className="tunnel-setup-box">
+                  <div className="settings-mini-heading"><strong>{props.locale === 'th' ? '1. เตรียม Cloudflare Tunnel' : '1. Prepare Cloudflare Tunnel'}</strong><span>{cloudflaredReady ? 'READY' : remoteMcp.state === 'installing' ? 'INSTALLING' : 'NOT READY'}</span></div>
+                  <p className="hint">{props.locale === 'th' ? 'detunnel จะติดตั้ง cloudflared และตรวจด้วยการรัน `cloudflared tunnel --version` จริง Quick Tunnel ไม่ต้องใช้ API key หรือ Authtoken' : 'detunnel installs cloudflared and verifies it by running `cloudflared tunnel --version`. Quick Tunnel does not require an API key or authtoken.'}</p>
+                  <div className={`${cloudflaredReady ? 'toast-success-banner' : 'alert-box-warning'} cloudflared-readiness-banner`} role="status">
+                    <MessageIcon kind={cloudflaredReady ? 'success' : 'warning'} />
+                    <strong>{cloudflaredReady ? (props.locale === 'th' ? 'Cloudflare Tunnel พร้อมใช้งาน' : 'Cloudflare Tunnel is installed and ready') : (props.locale === 'th' ? 'ยังไม่พบ cloudflared ที่รันได้' : 'No runnable cloudflared installation detected')}</strong>
+                    {cloudflaredReady && remoteMcp.providerPath !== null ? <code className="cloudflared-ready-path">{remoteMcp.providerPath}</code> : null}
+                  </div>
+                  <div className="inline-actions">
+                    <button type="button" className="btn-save-gold" disabled={remoteMcpBusy || remoteMcp.state === 'running' || cloudflaredReady} onClick={() => { void runRemoteMcpAction('install'); }}>
+                      {cloudflaredReady
+                        ? (props.locale === 'th' ? 'Cloudflare Tunnel พร้อมใช้งาน' : 'Cloudflare Tunnel ready')
+                        : remoteMcp.state === 'installing'
+                          ? (props.locale === 'th' ? 'กำลังติดตั้ง…' : 'Installing…')
+                          : (props.locale === 'th' ? 'ติดตั้ง Cloudflare Tunnel' : 'Install Cloudflare Tunnel')}
+                    </button>
+                  </div>
+                  <p className="hint inline-status-line"><MessageIcon kind="success" /><span>{props.locale === 'th' ? 'Quick Tunnel ใช้การเชื่อมต่อขาออกและไม่ต้องเก็บ credential ของ tunnel ในเครื่อง' : 'Quick Tunnel uses an outbound connection and does not require a tunnel credential stored on this computer.'}</span></p>
+                </div>
+                <div className="tunnel-setup-box">
+                  <div className="settings-mini-heading"><strong>{props.locale === 'th' ? '2. เปิด Remote MCP' : '2. Start Remote MCP'}</strong><span>{remoteMcp.oauthConnected ? 'CHATGPT LINKED' : remoteMcp.pairingRequired ? 'PAIR ONCE' : remoteMcp.oauthProtected ? 'OAUTH PROTECTED' : 'AUTH REQUIRED'}</span></div>
+                  <div className="inline-actions">
+                    <button type="button" className="btn-save-gold" disabled={remoteMcpBusy || !remoteMcp.installed || remoteMcp.state === 'running'} onClick={() => { void runRemoteMcpAction('start'); }}>{remoteMcpBusy && remoteMcp.state !== 'running' ? (props.locale === 'th' ? 'กำลังทำงาน…' : 'Working…') : (props.locale === 'th' ? 'Start Remote MCP' : 'Start Remote MCP')}</button>
+                    <button type="button" disabled={remoteMcpBusy || remoteMcp.state !== 'running'} onClick={() => { void runRemoteMcpAction('stop'); }}>{props.locale === 'th' ? 'หยุด' : 'Stop'}</button>
+                    <button type="button" disabled={remoteMcp.publicMcpUrl === null} onClick={() => { void copyRemoteMcpUrl(); }}>{props.locale === 'th' ? 'Copy MCP URL' : 'Copy MCP URL'}</button>
+                    <button type="button" disabled={remoteMcpBusy || remoteMcp.state !== 'running'} onClick={() => { void runRemoteMcpAction('regenerate'); }}>{remoteMcp.oauthConnected ? (props.locale === 'th' ? 'เชื่อม ChatGPT ใหม่' : 'Reconnect ChatGPT') : (props.locale === 'th' ? 'สร้าง Pairing Code ใหม่' : 'Generate pairing code')}</button>
+                  </div>
+                  {remoteMcp.oauthConnected ? <div className="toast-success-banner remote-mcp-auth-banner" role="status"><MessageIcon kind="success" /><strong>{props.locale === 'th' ? 'อนุญาต ChatGPT แล้ว' : 'ChatGPT authorized'}</strong><span>{remoteMcp.autoStartEnabled ? (props.locale === 'th' ? 'บันทึกสิทธิ์ OAuth แล้ว · เปิด detunnel ครั้งถัดไป Remote MCP จะ Start อัตโนมัติ' : 'OAuth authorization is saved · Remote MCP will auto-start on the next detunnel launch.') : (props.locale === 'th' ? 'บันทึกสิทธิ์ OAuth แล้ว · Auto-start ปิดอยู่เพราะ Remote MCP ถูกหยุดด้วยผู้ใช้' : 'OAuth authorization is saved · auto-start is off because Remote MCP was stopped manually.')}</span></div> : null}
+                  {remoteMcp.pairingRequired && remoteMcp.pairingCode === null ? <div className="alert-box-warning remote-mcp-auth-banner" role="status"><MessageIcon kind="warning" /><strong>{props.locale === 'th' ? 'ไม่พบ Pairing Code' : 'Pairing code unavailable'}</strong><span>{props.locale === 'th' ? 'รหัสอาจหมดอายุแล้ว กด “สร้าง Pairing Code ใหม่” แล้วใช้รหัสใหม่ทันที' : 'The code may have expired. Click “Generate pairing code” and use the new code immediately.'}</span></div> : null}
+                  {remoteMcp.pairingCode === null ? remoteMcp.oauthConnected ? <div className="toast-success-banner remote-mcp-auth-banner" role="status"><MessageIcon kind="success" /><strong>{props.locale === 'th' ? 'Pairing code' : 'Pairing code'}</strong><span>{props.locale === 'th' ? 'ใช้ยืนยันแล้ว · ไม่ต้องใช้ซ้ำ' : 'Authorization complete · no code is needed again.'}</span></div> : null : <div className="alert-box-warning remote-mcp-auth-banner" role="status"><MessageIcon kind="warning" /><strong className="remote-mcp-pairing-line"><span>{props.locale === 'th' ? 'Pairing code' : 'Pairing code'}:</span><span className="remote-mcp-pairing-pin" aria-label={pairingCodeHidden ? (props.locale === 'th' ? 'ซ่อน Pairing code อยู่' : 'Pairing code hidden') : `${props.locale === 'th' ? 'Pairing code' : 'Pairing code'} ${remoteMcp.pairingCode}`}>{pairingCodeHidden ? '••••••' : remoteMcp.pairingCode}</span><button type="button" className="pairing-code-visibility-toggle" aria-pressed={pairingCodeHidden} onClick={() => { setPairingCodeVisibility(!pairingCodeHidden); }}>{pairingCodeHidden ? (props.locale === 'th' ? 'แสดง' : 'Show') : (props.locale === 'th' ? 'ซ่อน' : 'Hide')}</button></strong><span>{props.locale === 'th' ? `ใช้ PIN นี้เพื่ออนุญาต ChatGPT ครั้งเดียว${remoteMcp.pairingCodeExpiresAt === null ? '' : ` · หมดอายุ ${formatDateTime(remoteMcp.pairingCodeExpiresAt)}`}` : `Use this PIN once to authorize ChatGPT${remoteMcp.pairingCodeExpiresAt === null ? '' : ` · expires ${formatDateTime(remoteMcp.pairingCodeExpiresAt)}`}`}</span></div>}
+                  <p className="hint">{props.locale === 'th' ? 'ครั้งแรก: กด Start → นำ Public MCP URL ไปเพิ่มใน ChatGPT แบบ OAuth → ใส่ Pairing Code ครั้งเดียวเพื่อยืนยันว่าเป็นเครื่องของคุณ หลังจากนั้น detunnel จะเก็บ OAuth trust/refresh grant แบบเข้ารหัสและไม่ถาม Pairing ซ้ำตอน Start หรือเปิดโปรแกรมใหม่ หากรหัสหมดอายุ ให้กด “สร้าง Pairing Code ใหม่” ขณะ Remote MCP เป็น ONLINE' : 'First time: Start → add the Public MCP URL in ChatGPT with OAuth → enter the pairing code once to confirm this machine. detunnel then stores the OAuth trust/refresh grant encrypted, so Start and later app launches do not ask for pairing again. If the code expires, click “Generate pairing code” while Remote MCP is ONLINE.'}</p>
+                  {remoteMcp.message === null ? null : <div className={remoteMcp.state === 'error' ? 'alert-box-warning' : 'hint'} role="status">{remoteMcp.message}{remoteMcp.providerPath === null ? '' : ` · cloudflared: ${remoteMcp.providerPath}`}</div>}
+                  {remoteMcpMessage === null ? null : <div className={remoteMcp.state === 'error' || /failed|error|exit|stopped unexpectedly/i.test(remoteMcpMessage) ? 'alert-box-warning' : 'toast-success-banner'} role="status">{remoteMcpMessage}</div>}
+                </div>
+              </section>
+
+              </details>
+
+              {secureTunnelOnline || props.dashboard.tunnel.auth?.mode === 'oauth' ? (
+                <details
+                  className={`connection-method-stack ${remoteMcpOnline ? 'is-secondary' : ''}`}
+                  open={secureMethodOpen}
+                  onToggle={(event) => setSecureMethodOpen(event.currentTarget.open)}
+                >
+                <summary className="connection-method-summary">
+                  <div className="connection-method-summary-copy">
+                    <span className="connection-method-kicker">{remoteMcpOnline ? (props.locale === 'th' ? 'ทางเลือก / ขั้นสูง' : 'Alternative / advanced') : (props.locale === 'th' ? 'ทางเลือก' : 'Alternative')}</span>
+                    <strong>OpenAI Secure MCP Tunnel</strong>
+                    <span>{props.locale === 'th'
+                      ? 'Tunnel ID + Runtime API key เป็นโหมดตรงแบบเดิม; OAuth ภายใน Secure Tunnel (ถ้ามี) เป็นคนละระบบกับ Remote MCP OAuth ด้านบน'
+                      : 'Tunnel ID + Runtime API key is the original direct mode. Secure Tunnel OAuth, when available, is separate from Remote MCP OAuth above.'}</span>
+                  </div>
+                  <div className="connection-method-summary-status">
+                    <span className={`connection-method-live-dot ${secureTunnelOnline ? 'is-online' : ''}`} aria-hidden="true" />
+                    <span>{secureTunnelOnline ? 'ONLINE' : guidedTunnelConfigured ? 'READY' : 'SETUP'}</span>
+                    <span className="active-project-count">{props.dashboard.tunnel.auth?.mode === 'oauth' ? 'OAUTH' : 'API KEY'}</span>
+                    <UiIcon name="chevron-down" className="connection-method-chevron" />
+                  </div>
+                </summary>
+
+              <section className="panel settings-card settings-card-polished connection-method-panel" aria-label="Tunnel authentication">
+                <SettingsCardHeading
+                  title={props.locale === 'th' ? 'OpenAI Secure MCP Tunnel' : 'OpenAI Secure MCP Tunnel'}
+                  subtitle={props.locale === 'th' ? 'โหมดเดิมสำหรับ OpenAI Tunnel transport; Runtime API key ยังรองรับเต็มรูปแบบ และ OAuth ส่วนนี้เป็นคนละระบบกับ Remote MCP OAuth ด้านบน' : 'Existing OpenAI Tunnel transport. Runtime API key remains fully supported; OAuth here is separate from the working Remote MCP OAuth above.'}
+                  badge={props.dashboard.tunnel.auth?.mode === 'oauth' ? 'OAUTH' : 'API KEY'}
+                />
+                <div className="setting-grid two-col">
+                  <div className="setting-field">
+                    <span className="field-label">{props.locale === 'th' ? 'วิธีที่ใช้อยู่' : 'Active method'}</span>
+                    <strong>{props.dashboard.tunnel.auth?.mode === 'oauth' ? 'OAuth Sign-in' : 'Runtime API key'}</strong>
+                    <p className="hint">{props.dashboard.tunnel.auth?.mode === 'oauth'
+                      ? (props.dashboard.tunnel.auth.accountLabel ?? (props.locale === 'th' ? 'ลงชื่อเข้าใช้แล้ว' : 'Signed in'))
+                      : (props.locale === 'th' ? 'วิธีเดิมยังรองรับเต็มรูปแบบและไม่บังคับย้าย' : 'The original method remains fully supported; migration is never forced.')}</p>
+                  </div>
+                  <div className="setting-field">
+                    <span className="field-label">OAuth provisioning</span>
+                    <strong>{props.dashboard.tunnel.oauth?.available ? (props.locale === 'th' ? 'พร้อมใช้งาน' : 'Available') : (props.locale === 'th' ? 'ยังไม่พร้อม' : 'Unavailable')}</strong>
+                    {props.dashboard.tunnel.oauth?.reason === null || props.dashboard.tunnel.oauth?.reason === undefined ? null : <p className="hint">{props.dashboard.tunnel.oauth.reason}</p>}
+                  </div>
+                </div>
+                <div className="inline-actions">
+                  {props.dashboard.tunnel.auth?.mode === 'oauth' ? (
+                    <>
+                      <button type="button" disabled={oauthBusy || !props.dashboard.tunnel.auth.hasLegacyApiKey} onClick={() => { void rollbackToLegacyAuth(); }}>{props.locale === 'th' ? 'กลับไปใช้ Runtime API key' : 'Switch back to Runtime API key'}</button>
+                      <button type="button" disabled={oauthBusy} onClick={() => { void logoutOAuth(); }}>{props.locale === 'th' ? 'ออกจากระบบ OAuth' : 'Sign out OAuth'}</button>
+                    </>
+                  ) : (
+                    <button type="button" className="btn-save-gold" disabled={oauthBusy || props.dashboard.tunnel.oauth?.available !== true} onClick={() => { void beginOAuthLogin(); }}>
+                      {oauthBusy ? (props.locale === 'th' ? 'กำลังเริ่ม…' : 'Starting…') : (props.locale === 'th' ? 'ลงชื่อเข้าใช้ด้วย OAuth' : 'Sign in with OAuth')}
+                    </button>
+                  )}
+                  {oauthLogin?.state === 'waiting_for_browser' || oauthLogin?.state === 'exchanging' ? <button type="button" onClick={() => { void props.onCancelTunnelOAuthLogin().then(setOauthLogin); }}>{props.locale === 'th' ? 'ยกเลิกการลงชื่อเข้าใช้' : 'Cancel sign-in'}</button> : null}
+                </div>
+                {oauthLogin === null ? null : <p className="hint" role="status">OAuth: {oauthLogin.state}{oauthLogin.message === null ? '' : ` — ${oauthLogin.message}`}</p>}
+              </section>
+
+              {tunnelPresentation.isOAuth ? (
+                <section className="panel settings-card settings-card-polished guided-tunnel-launch-card" aria-label="OAuth connection status">
+                   <SettingsCardHeading title={props.locale === 'th' ? 'การเชื่อมต่อด้วย OAuth' : 'OAuth connection'} subtitle={props.locale === 'th' ? 'โหมดนี้ใช้ OAuth เป็นวิธียืนยันตัวตน ส่วนการขนส่งยังเป็น Secure MCP Tunnel' : 'OAuth is the active authentication method; transport still uses Secure MCP Tunnel.'} badge={guidedTunnelRunning ? 'RUNNING' : guidedTunnelConfigured ? 'READY' : 'OAUTH'} />
+                  <p className="hint">{props.dashboard.tunnel.auth?.accountLabel ?? (props.dashboard.tunnel.auth?.authReady ? (props.locale === 'th' ? 'OAuth พร้อมใช้งาน' : 'OAuth is ready') : (props.locale === 'th' ? 'OAuth ต้องการให้ผู้ใช้ดำเนินการ' : 'OAuth requires user action'))}</p>
+                  {props.dashboard.tunnel.auth?.message === null || props.dashboard.tunnel.auth?.message === undefined ? null : <p className="hint">{props.dashboard.tunnel.auth.message}</p>}
+                  <div className="inline-actions">
+                    {!props.dashboard.tunnel.auth?.authReady ? <button type="button" className="btn-save-gold" disabled={oauthBusy || props.dashboard.tunnel.oauth?.available !== true} onClick={() => { void beginOAuthLogin(); }}>{props.locale === 'th' ? 'ลงชื่อเข้าใช้ OAuth' : 'Sign in with OAuth'}</button> : null}
+                    <button type="button" disabled={tunnelBusy || !guidedTunnelConfigured || props.dashboard.tunnel.state === 'running'} onClick={() => { void props.onStartTunnel(); }}>{t(tunnelPresentation.startKey)}</button>
+                    <button type="button" disabled={tunnelBusy || props.dashboard.tunnel.state === 'stopped'} onClick={() => { void props.onStopTunnel(); }}>{t(tunnelPresentation.stopKey)}</button>
+                  </div>
+                </section>
+              ) : (
+                <>
+                  <section className="panel settings-card settings-card-polished guided-tunnel-launch-card" aria-label={t('guidedTunnel.openGuide')}>
+                    <SettingsCardHeading title={t('guidedTunnel.openGuide')} subtitle={t('guidedTunnel.privacy')} badge={guidedTunnelRunning ? 'RUNNING' : guidedTunnelConfigured ? 'READY' : 'SETUP'} />
+                    <p className="hint">{guidedTunnelRunning ? t('guidedTunnel.localComplete') : guidedTunnelConfigured ? t('guidedTunnel.configured') : t('guidedTunnel.dismissedHint')}</p>
+                    <button type="button" className="btn-save-gold" onClick={() => props.onGuidedTunnelSetupOpenChange(true)}>{t('guidedTunnel.openGuide')}</button>
+                  </section>
+
+                  <GuidedTunnelSetup
+                    locale={props.locale}
+                    tunnel={props.dashboard.tunnel}
+                    open={props.guidedTunnelSetupOpen}
+                    onOpenChange={props.onGuidedTunnelSetupOpenChange}
+                    onOpenExternal={props.onOpenExternalSetupPage}
+                    onSaveApiKey={props.onSaveTunnelApiKey}
+                    onConfigureProfile={props.onConfigureTunnelProfile}
+                    onStartTunnel={props.onStartTunnel}
+                    onRefresh={props.onRefresh}
+                    onLocalComplete={props.onGuidedTunnelLocalComplete}
+                  />
+                </>
+              )}
+
+              <details className="guided-tunnel-advanced">
+                <summary>{tunnelPresentation.isOAuth ? (props.locale === 'th' ? 'การตั้งค่าขั้นสูง / Runtime API key สำรอง' : 'Advanced / Runtime API key fallback') : t('guidedTunnel.advanced')}</summary>
+                <section className="panel settings-card settings-card-polished" aria-label={t('settings.tunnelTitle')}>
+              <SettingsCardHeading title={tunnelPresentation.isOAuth ? (props.locale === 'th' ? 'Secure Tunnel — Legacy fallback' : 'Secure Tunnel — Legacy fallback') : t('settings.tunnelTitle')} subtitle={tunnelPresentation.isOAuth ? (props.locale === 'th' ? 'ตัวเลือก Runtime API key สำหรับสลับกลับหรือแก้ปัญหา ไม่ใช่วิธียืนยันตัวตนที่กำลังใช้อยู่' : 'Runtime API key controls are fallback/troubleshooting only and are not the active authentication method.') : (props.locale === 'th' ? 'Credential, tunnel-client และ Setup Wizard' : 'Credentials, tunnel-client, and setup wizard')} badge={tunnelPresentation.isOAuth ? 'LEGACY' : props.dashboard.tunnel.profileExists ? (props.locale === 'th' ? 'พร้อมใช้งาน' : 'READY') : (props.locale === 'th' ? 'ต้องตั้งค่า' : 'SETUP')} />
+              <div className="setting-grid two-col">
+                <div className="setting-field">
+                  <label className="field-label" htmlFor="tunnel-key">{t('settings.tunnelKey')}</label>
+                  <div className="form-row"><div className="password-input-wrapper"><input id="tunnel-key" type={showApiKey ? 'text' : 'password'} placeholder={props.dashboard.tunnel.hasApiKey ? '••••••••••••••••' : 'sk-...'} value={apiKey} onChange={(event) => setApiKey(event.target.value)} autoComplete="off" /><button type="button" className="toggle-pw-btn" onClick={() => setShowApiKey((value) => !value)}>{showApiKey ? 'Hide' : 'Show'}</button></div><button type="button" className="btn-save-gold" onClick={() => { void props.onSaveTunnelApiKey(apiKey).then(() => { setApiKey(''); setSavedMessage(t('settings.saved')); }); }}>{t('settings.saveKey')}</button></div>
+                  <p className="hint">{props.dashboard.tunnel.hasApiKey ? 'Protected with Windows DPAPI' : t('tunnel.needKey')}</p>
+                </div>
+                <div className="setting-field">
+                  <label className="field-label" htmlFor="tunnel-client-path">{props.locale === 'th' ? 'tunnel-client (รวมมากับโปรแกรมแล้ว)' : 'tunnel-client (bundled)'}</label>
+                  <div className="form-row"><input id="tunnel-client-path" placeholder={props.locale === 'th' ? 'ใช้ v0.0.13 ที่มากับ detunnel อัตโนมัติ' : 'Bundled v0.0.13 is used automatically'} value={clientPath} onChange={(event) => setClientPath(event.target.value)} /><button type="button" onClick={() => { void browseTunnelClient(); }}>{props.locale === 'th' ? 'เลือกไฟล์…' : 'Browse…'}</button><button type="button" className="btn-save-gold" onClick={() => { void props.onSetTunnelClientPath(clientPath).then(() => setSavedMessage(clientPath.trim().length === 0 ? (props.locale === 'th' ? 'กลับมาใช้ tunnel-client ที่มากับโปรแกรมแล้ว' : 'Using the bundled tunnel-client again.') : t('settings.saved'))); }}>{clientPath.trim().length === 0 ? (props.locale === 'th' ? 'ใช้ตัวที่มากับโปรแกรม' : 'Use bundled') : (props.locale === 'th' ? 'บันทึก Override' : 'Save override')}</button></div>
+                  <p className="hint">{props.locale === 'th' ? 'ช่องว่าง = ใช้ OpenAI tunnel-client v0.0.13 ที่มากับโปรแกรม หากบันทึก custom override แล้ว path นั้นจะเป็นตัวเลือกหลัก: ถ้าไฟล์หาย detunnel จะแจ้ง error และจะไม่สลับกลับ bundled เอง การเปลี่ยน client ขณะ runtime ทำงานจะหยุด/ยืนยัน owner เดิมก่อนจึงค่อยสลับ' : 'Blank = use the bundled OpenAI tunnel-client v0.0.13. A saved custom override is authoritative: if it is missing, detunnel reports an error and never silently falls back to bundled. Switching clients while running stops and verifies the recorded owner before committing the new selection.'}</p>
+                </div>
+              </div>
+              <div className="tunnel-setup-box">
+                <div className="settings-mini-heading"><strong>Setup Wizard</strong><span>{props.locale === 'th' ? 'ไม่ต้องเปิด PowerShell init เอง' : 'No manual PowerShell init'}</span></div>
+                <label className="field-label" htmlFor="tunnel-id">OpenAI Tunnel ID</label>
+                <div className="form-row"><input id="tunnel-id" placeholder="tunnel_0123456789abcdef..." value={tunnelId} onChange={(event) => setTunnelId(event.target.value)} /><button type="button" className="btn-save-gold" disabled={tunnelBusy} onClick={() => { void configureTunnel(); }}>{tunnelBusy ? (props.locale === 'th' ? 'กำลังตั้งค่า…' : 'Configuring…') : (props.locale === 'th' ? 'Configure Tunnel' : 'Configure Tunnel')}</button></div>
+              </div>
+              {savedMessage === null ? null : <div className="toast-success-banner" role="status"><MessageIcon kind="success" /><span>{savedMessage}</span></div>}
+              {tunnelMessage === null ? null : <div className="alert-box-warning" role="status">{tunnelMessage}</div>}
+              {props.dashboard.tunnel.persistent === null ? null : (
+                <div className="tunnel-setup-box persistent-runtime-card">
+                  <div className="settings-mini-heading"><strong>Persistent Tunnel Identity</strong><span>{props.dashboard.tunnel.persistent.runtimeAlias}</span></div>
+                  <div className="setting-grid two-col">
+                    <div className="setting-field"><span className="field-label">Tunnel ID</span><code className="settings-path-display">{props.dashboard.tunnel.persistent.tunnelIdMasked ?? '—'}</code></div>
+                    <div className="setting-field"><span className="field-label">Runtime mode</span><strong>{props.dashboard.tunnel.persistent.mode}</strong></div>
+                    <div className="setting-field"><span className="field-label">Status</span><strong>{props.dashboard.tunnel.persistent.state}</strong></div>
+                    <div className="setting-field"><span className="field-label">Reconnect count</span><strong>{props.dashboard.tunnel.persistent.reconnectCount}</strong></div>
+                    <div className="setting-field"><span className="field-label">Health / Ready / Poll</span><strong>{formatTunnelTriState(props.dashboard.tunnel.persistent.healthy)} / {formatTunnelTriState(props.dashboard.tunnel.persistent.ready)} / {formatTunnelTriState(props.dashboard.tunnel.persistent.pollHealthy)}</strong></div>
+                    <div className="setting-field"><span className="field-label">Local MCP</span><code className="settings-path-display">{props.dashboard.tunnel.persistent.localMcpUrl ?? '—'}</code></div>
+                  </div>
+                  <div className={props.dashboard.tunnel.persistent.strictZeroDowntime ? 'toast-success-banner' : 'alert-box-warning'}>
+                    <MessageIcon kind={props.dashboard.tunnel.persistent.strictZeroDowntime ? 'success' : 'warning'} />
+                    {props.dashboard.tunnel.persistent.strictZeroDowntime
+                      ? (props.locale === 'th' ? 'Capability gate: strict zero-downtime handoff ผ่านการพิสูจน์' : 'Capability gate: strict zero-downtime handoff is proven')
+                      : (props.locale === 'th' ? 'ยังไม่อ้าง strict zero-downtime: tunnel-client รุ่นนี้ยังไม่มีหลักฐาน ready-before-retire overlap ที่พิสูจน์ได้' : 'Strict zero-downtime is not claimed: this tunnel-client has no proven ready-before-retire overlap primitive.')}
+                  </div>
+                  <div className="inline-actions"><button type="button" className="btn-save-gold" disabled={tunnelBusy} onClick={() => { void reconnectSameTunnel(); }}>{props.locale === 'th' ? 'Reconnect Tunnel เดิม' : 'Reconnect same tunnel'}</button><button type="button" disabled={tunnelBusy || props.dashboard.tunnel.state === 'stopped'} onClick={() => { void stopPersistentTunnel(); }}>{props.locale === 'th' ? 'หยุด Tunnel' : 'Stop tunnel'}</button></div>
+                  {props.dashboard.tunnel.persistent.capabilityEvidence === null ? null : <p className="hint">{props.dashboard.tunnel.persistent.capabilityEvidence}</p>}
+                </div>
+              )}
+                </section>
+              </details>
+                </details>
+              ) : null}
+            </>
+          ) : null}
+
+          {activeSection === 'backup' ? (
+            <>
+              <section className="panel settings-card settings-card-polished" aria-label="Recovery Center">
+                <SettingsCardHeading
+                  title={props.locale === 'th' ? 'Recovery Center' : 'Recovery Center'}
+                  subtitle={props.locale === 'th' ? 'ไฟล์ที่ลบ สำเนาก่อนไฟล์ไบนารีถูกเขียนทับ และ checkpoint ของโปรเจกต์หลัก (Primary)' : 'Deleted items, binary pre-replacement backups, and checkpoints for the Primary Project'}
+                  badge={`${props.dashboard.recovery.trashItems.length + props.dashboard.recovery.checkpoints.length} ITEMS`}
+                />
+                <div className="setting-field">
+                  <span className="field-label">{props.locale === 'th' ? 'ตำแหน่ง Recovery Trash บนเครื่อง' : 'Local Recovery Trash location'}</span>
+                  <code className="settings-path-display">{props.dashboard.recovery.trashRoot ?? (props.locale === 'th' ? 'ยังไม่ได้ตั้งค่า' : 'Not configured')}</code>
+                </div>
+                <div className="recovery-retention-row">
+                  <div>
+                    <strong>{props.locale === 'th' ? 'ลบข้อมูลกู้คืนอัตโนมัติ' : 'Automatic recovery cleanup'}</strong>
+                    <p className="hint">{props.locale === 'th' ? 'เลือกอายุที่ต้องการเก็บ Recovery Trash และ Checkpoint; ค่าเริ่มต้นคือไม่ลบอัตโนมัติ' : 'Choose how long to keep Recovery Trash and checkpoints. The default is never delete automatically.'}</p>
+                  </div>
+                  <select aria-label={props.locale === 'th' ? 'อายุข้อมูลกู้คืน' : 'Recovery retention'} disabled={retentionBusy} value={props.dashboard.settings.recoveryRetentionDays} onChange={(event) => { void setRecoveryRetentionDays(Number(event.target.value)); }}>
+                    <option value={0}>{props.locale === 'th' ? 'ไม่ลบอัตโนมัติ' : 'Never'}</option>
+                    {[7, 14, 30, 60, 90, 180, 365].map((days) => <option key={days} value={days}>{days} {props.locale === 'th' ? 'วัน' : 'days'}</option>)}
+                  </select>
+                </div>
+                <div className="settings-mini-heading"><strong>{props.locale === 'th' ? 'ไฟล์ที่ลบ / สำเนาก่อนเขียนทับ' : 'Deleted / pre-replacement backups'}</strong><span>{props.dashboard.recovery.trashItems.length}</span></div>
+                {props.dashboard.recovery.trashItems.length === 0 ? <div className="empty-setting-state">{props.locale === 'th' ? 'Recovery Trash ยังว่าง' : 'Recovery Trash is empty'}</div> : (
+                  <div className="backup-list settings-backup-list recovery-scroll-list">{props.dashboard.recovery.trashItems.map((item) => (
+                    <div key={item.recoveryId} className="backup-item">
+                      <div><strong>{item.relativePath}</strong><p className="hint">{formatDateTime(item.deletedAt)} · {item.kind === 'replacement_backup' ? (props.locale === 'th' ? 'สำเนาก่อนเขียนทับ' : 'pre-replacement') : item.isDirectory ? 'folder' : 'file'} · {item.payloadAvailable ? (props.locale === 'th' ? 'พร้อมกู้คืน' : 'ready') : (props.locale === 'th' ? 'payload ไม่ครบ' : 'payload missing')}</p></div>
+                      <button type="button" disabled={!item.payloadAvailable || recoveryBusyId !== null} onClick={() => { void restoreTrashItem(item.workspaceId, item.recoveryId, item.relativePath, item.kind); }}>{recoveryBusyId === item.recoveryId ? (props.locale === 'th' ? 'กำลังกู้…' : 'Restoring…') : (props.locale === 'th' ? 'กู้คืน' : 'Restore')}</button>
+                    </div>
+                  ))}</div>
+                )}
+                <div className="settings-mini-heading"><strong>{props.locale === 'th' ? 'Checkpoint ก่อนแก้/เขียนทับ' : 'Pre-change checkpoints'}</strong><span>{props.dashboard.recovery.checkpoints.length}</span></div>
+                {props.dashboard.recovery.checkpoints.length === 0 ? <div className="empty-setting-state">{props.locale === 'th' ? 'ยังไม่มี checkpoint' : 'No checkpoints yet'}</div> : (
+                  <div className="backup-list settings-backup-list recovery-scroll-list">{props.dashboard.recovery.checkpoints.map((checkpoint) => {
+                    const paths = checkpoint.files.map((file) => file.path);
+                    return <div key={checkpoint.id} className="backup-item"><div><strong>{formatDateTime(checkpoint.createdAt)}</strong><p className="hint">{paths.join(', ')} · {formatBytes(checkpoint.files.reduce((total, file) => total + file.size, 0))}</p></div><button type="button" disabled={recoveryBusyId !== null} onClick={() => { void restoreCheckpoint(checkpoint.workspaceId, checkpoint.id, paths); }}>{recoveryBusyId === checkpoint.id ? (props.locale === 'th' ? 'กำลังกู้…' : 'Restoring…') : (props.locale === 'th' ? 'ย้อนกลับจุดนี้' : 'Restore point')}</button></div>;
+                  })}</div>
+                )}
+                {recoveryError === null ? null : <div className="alert-box-warning" role="alert"><MessageIcon kind="warning" /><span>{recoveryError}</span></div>}
+                {recoveryMessage === null ? null : <div className="toast-success-banner" role="status"><MessageIcon kind="success" /><span>{recoveryMessage}</span></div>}
+              </section>
+
+              <section className="panel settings-card settings-card-polished" aria-label="Backup and restore">
+                 <SettingsCardHeading title={props.locale === 'th' ? 'สำรองฐานข้อมูลโปรแกรม' : 'Application Database Backup'} subtitle="SQLite consistent snapshots" action={<button type="button" className="btn-save-gold" disabled={backupBusy} onClick={() => { void createBackupNow(); }}>{backupBusy ? (props.locale === 'th' ? 'กำลังทำงาน…' : 'Working…') : (props.locale === 'th' ? 'Backup ตอนนี้' : 'Backup Now')}</button>} />
+                {props.dashboard.backups.length === 0 ? <div className="empty-setting-state">{props.locale === 'th' ? 'ยังไม่มี Backup' : 'No backups yet'}</div> : (
+                  <div className="backup-list settings-backup-list">{props.dashboard.backups.slice(0, 5).map((backup) => (
+                    <div key={backup.id} className="backup-item"><div><strong>{formatDateTime(backup.createdAt)}</strong><p className="hint">{backup.reason} · {formatBytes(backup.sizeBytes)}</p></div><button type="button" disabled={backupBusy || props.dashboard.tunnel.state === 'running' || props.dashboard.mcp.running} onClick={() => { void scheduleRestore(backup.id); }}>{props.locale === 'th' ? 'Restore ชุดนี้' : 'Restore'}</button></div>
+                  ))}</div>
+                )}
+                {(props.dashboard.tunnel.state === 'running' || props.dashboard.mcp.running) ? <div className="alert-box-warning"><MessageIcon kind="warning" /><span>{props.locale === 'th' ? 'หยุด Tunnel และ Local MCP ก่อน Restore ฐานข้อมูล' : 'Stop Tunnel and local MCP before scheduling a database restore.'}</span></div> : null}
+                {backupError === null ? null : <div className="alert-box-warning" role="alert"><MessageIcon kind="warning" /><span>{backupError}</span></div>}
+                {backupMessage === null ? null : <div className="toast-success-banner" role="status"><MessageIcon kind="success" /><span>{backupMessage}</span></div>}
+              </section>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsCardHeading({ title, subtitle, badge, action }: { readonly title: string; readonly subtitle: string; readonly badge?: string; readonly action?: ReactElement }): ReactElement {
+  return (
+    <div className="section-heading settings-card-heading">
+      <div className="settings-heading-copy"><div><h2 className="settings-card-title">{title}</h2><span className="page-subtitle">{subtitle}</span></div></div>
+      {action ?? (badge === undefined ? null : <span className="pill-badge gold">{badge}</span>)}
+    </div>
+  );
+}
+
+function splitList(value: string): readonly string[] {
+  const seen = new Set<string>();
+  return value.split(/[;\r\n]+/).map((entry) => entry.trim()).filter((entry) => { if (entry.length === 0) return false; const key = entry.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; });
+}
+
+function profileHint(locale: UiLocale, profile: PermissionProfileName): string {
+  const th = { safe: 'ปลอดภัยสูงสุด: งานเขียนและรันคำสั่งต้องขออนุญาต', balanced: 'สมดุล: งานทั่วไปใน workspace ทำได้คล่องขึ้น', full: 'เต็มสิทธิ์สำหรับงานปกติ; เปิด Full Bypass แยกต่างหากหากต้องการข้ามทุก approval/scope ของ detunnel', custom: 'ใช้กฎ READ / WRITE / EXECUTE / DANGEROUS และ executable ที่กำหนดเอง' } as const;
+  const en = { safe: 'Maximum safety: writes and execution require approval.', balanced: 'Balanced: common workspace work is less restrictive.', full: 'Full access for ordinary work; enable Full Bypass separately to skip every detunnel approval and scope check.', custom: 'Uses your READ / WRITE / EXECUTE / DANGEROUS rules and custom executables.' } as const;
+  return (locale === 'th' ? th : en)[profile];
+}
+
+function formatTunnelTriState(value: boolean | null): string {
+  return value === null ? '—' : value ? 'OK' : 'FAIL';
+}
+
+function formatBytes(value: number): string {
+  if (!Number.isFinite(value) || value < 0) return '0 B';
+  if (value < 1024) return value + ' B';
+  if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' KB';
+  return (value / (1024 * 1024)).toFixed(1) + ' MB';
+}

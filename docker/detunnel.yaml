@@ -1,0 +1,22 @@
+# ==============================================================================
+# DETUNNEL - OpenAI Secure MCP Tunnel profile for the Docker gateway.
+# Place this file in %APPDATA%\tunnel-client\detunnel.yaml on Windows or
+# ~/.config/tunnel-client/detunnel.yaml on Linux.
+# ==============================================================================
+
+version: 1
+
+# Tunnel identity provided by OpenAI ChatGPT Web (MCP Connections)
+tunnel:
+  id: "tunnel_your_tunnel_id_here"
+
+# Runtime control plane authentication
+control_plane:
+  api_key: "env:CONTROL_PLANE_API_KEY"
+
+# The Docker Compose port is bound to host localhost.
+mcp:
+  connection_max_ttl: 168h0m0s
+  server_urls:
+    - channel: main
+      url: "http://127.0.0.1:18765/mcp"
