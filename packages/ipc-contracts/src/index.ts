@@ -49,6 +49,7 @@ export const ipcChannels = {
   launchManagedBrowser: 'lnwjud:launch-managed-browser',
   installPdfProvider: 'lnwjud:install-pdf-provider',
   runDoctor: 'lnwjud:run-doctor',
+  autoStart: 'lnwjud:auto-start',
   getToolCatalog: 'lnwjud:get-tool-catalog',
   recheckToolCatalog: 'lnwjud:recheck-tool-catalog',
   setToolAvailability: 'lnwjud:set-tool-availability',
@@ -826,6 +827,12 @@ export interface McpConnectionStatus {
   readonly workspaceId: string | null;
 }
 
+export interface AutoStartResult {
+  readonly mcp: McpConnectionStatus;
+  readonly tunnel: TunnelStatus | null;
+  readonly remoteMcp: RemoteMcpStatus;
+}
+
 export interface ManagedBrowserStatus {
   readonly ready: boolean;
   readonly port: number;
@@ -889,6 +896,7 @@ export interface IpcRequestMap {
   readonly [ipcChannels.launchManagedBrowser]: undefined;
   readonly [ipcChannels.installPdfProvider]: undefined;
   readonly [ipcChannels.runDoctor]: undefined;
+  readonly [ipcChannels.autoStart]: undefined;
   readonly [ipcChannels.getToolCatalog]: GetToolCatalogRequest;
   readonly [ipcChannels.recheckToolCatalog]: RecheckToolCatalogRequest;
   readonly [ipcChannels.setToolAvailability]: SetToolAvailabilityRequest;
@@ -954,6 +962,7 @@ export interface IpcResponseMap {
   readonly [ipcChannels.launchManagedBrowser]: ManagedBrowserStatus;
   readonly [ipcChannels.installPdfProvider]: PdfProviderInstallResult;
   readonly [ipcChannels.runDoctor]: DoctorReport;
+  readonly [ipcChannels.autoStart]: AutoStartResult;
   readonly [ipcChannels.getToolCatalog]: ToolCatalogSnapshot;
   readonly [ipcChannels.recheckToolCatalog]: { readonly catalog: ToolCatalogSnapshot; readonly doctor: DoctorReport };
   readonly [ipcChannels.setToolAvailability]: SetToolAvailabilityResult;
@@ -1021,6 +1030,7 @@ export interface LnwjudApi {
   launchManagedBrowser(): Promise<IpcResponseMap[typeof ipcChannels.launchManagedBrowser]>;
   installPdfProvider(): Promise<IpcResponseMap[typeof ipcChannels.installPdfProvider]>;
   runDoctor(): Promise<IpcResponseMap[typeof ipcChannels.runDoctor]>;
+  autoStart(): Promise<IpcResponseMap[typeof ipcChannels.autoStart]>;
   getToolCatalog(request: GetToolCatalogRequest): Promise<IpcResponseMap[typeof ipcChannels.getToolCatalog]>;
   recheckToolCatalog(request: RecheckToolCatalogRequest): Promise<IpcResponseMap[typeof ipcChannels.recheckToolCatalog]>;
   setToolAvailability(request: SetToolAvailabilityRequest): Promise<IpcResponseMap[typeof ipcChannels.setToolAvailability]>;

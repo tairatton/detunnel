@@ -58,9 +58,9 @@ export class ToolCatalogService {
     return { catalog, doctor: await this.runDoctor(undefined, locale) };
   }
 
-  public async runDoctor(checkIds: readonly string[] | undefined, locale: UiLocale): Promise<DoctorReport> {
+  public async runDoctor(checkIds: readonly string[] | undefined, locale: UiLocale, force = false): Promise<DoctorReport> {
     const ids = checkIds ?? this.#requirements.ids();
-    const results = await this.#requirements.probe(ids, checkIds !== undefined);
+    const results = await this.#requirements.probe(ids, force || checkIds !== undefined);
     const checks: DoctorCheck[] = [];
     for (const id of ids) {
       const result = results.get(id);

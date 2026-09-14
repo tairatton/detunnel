@@ -9,6 +9,7 @@ import {
   ipcChannels,
   pushChannels,
   type AddWorkspaceRequest,
+  type AutoStartResult,
   type BackupSummary,
   type ClearLogBufferRequest,
   type ClearWorkLogRequest,
@@ -67,6 +68,7 @@ import { DEFAULT_MCP_POLL_WAIT_SECONDS, DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS, 
 import { applyPendingSqliteRestoreSync } from '@lnwjud/storage';
 import { createDesktopRuntime, formatCompleteTargetDetail, formatIncompleteLegacyHistory, writeSerializedLogRows, type DesktopRuntime } from './desktop-services.js';
 import { installPdfProvider } from './pdf-provider-installer.js';
+import { installRipgrep } from './ripgrep-installer.js';
 import { DesktopShutdownCoordinator } from './desktop-shutdown.js';
 import { parseOpenExternalSetupPageRequest, resolveExternalSetupUrl } from './external-setup-links.js';
 import { shouldHoldSingleInstanceLock, wantsMcpStdio } from './instance-lock.js';
@@ -89,7 +91,7 @@ import { CrashDiagnosticsRecorder, RendererRecoveryPolicy } from './crash-recove
 import { decryptV3WindowsSafeStorageSecretIfPresent, loadV3CheckpointKeyIfPresent } from './checkpoint-key-compat.js';
 import { unprotectTunnelSecret } from './tunnel-secret-dpapi.js';
 import { isMutationApprovalResponse, mutationApprovalDialogOptions } from './mutation-approval.js';
-import { prependBundledRuntimeToolsToPath } from './runtime-tools.js';
+import { prependBundledRuntimeToolsToPath, prependUserRuntimeToolsToPath } from './runtime-tools.js';
 import { COPY_COMMANDS, OFFICIAL_URL_TARGETS } from './tool-catalog/remediation-registry.js';
 
 // electron-updater publishes CommonJS at runtime. Import its default namespace
@@ -142,6 +144,7 @@ export interface DesktopIpcServices {
   launchManagedBrowser(): Promise<ManagedBrowserStatus>;
   installPdfProvider(): Promise<PdfProviderInstallResult>;
   runDoctor(): Promise<DoctorReport>;
+  autoStart(): Promise<AutoStartResult>;
   getToolCatalog(request: GetToolCatalogRequest): Promise<ToolCatalogSnapshot>;
   recheckToolCatalog(request: RecheckToolCatalogRequest): Promise<{ readonly catalog: ToolCatalogSnapshot; readonly doctor: DoctorReport }>;
   setToolAvailability(request: SetToolAvailabilityRequest): Promise<SetToolAvailabilityResult>;
@@ -308,6 +311,11 @@ const defaultDesktopServices: DesktopIpcServices = {
   runDoctor: async (): Promise<DoctorReport> => ({
     checks: [{ id: 'desktop', required: true, status: 'fail', title: 'Desktop services', summary: 'Desktop services are not configured', affectedToolNames: [], checkedAt: new Date(0).toISOString(), durationMs: 0, message: 'Desktop services are not configured' }],
     exitCode: 1,
+  }),
+  autoStart: async (): Promise<AutoStartResult> => ({
+    mcp: { running: false, url: null, workspaceId: null },
+    tunnel: emptyTunnel,
+    remoteMcp: emptyRemoteMcp,
   }),
   getToolCatalog: async (request): Promise<ToolCatalogSnapshot> => ({ generatedAt: new Date(0).toISOString(), locale: request.locale, items: [], remediations: [] }),
   recheckToolCatalog: async (request): Promise<{ readonly catalog: ToolCatalogSnapshot; readonly doctor: DoctorReport }> => ({
@@ -597,6 +605,11 @@ export function registerIpcHandlers(
     assertTrustedSender(event, getMainWindow());
     assertNoPayload(payload);
     return services.runDoctor();
+  });
+  ipcMain.handle(ipcChannels.autoStart, async (event, payload: unknown) => {
+    assertTrustedSender(event, getMainWindow());
+    assertNoPayload(payload);
+    return services.autoStart();
   });
   ipcMain.handle(ipcChannels.getToolCatalog, async (event, payload: unknown) => {
     assertTrustedSender(event, getMainWindow());
@@ -1427,6 +1440,7 @@ function bootstrapMcpStdio(): void {
   const dataPath = configureDataPath();
   void app.whenReady().then(async () => {
     prependBundledRuntimeToolsToPath();
+    prependUserRuntimeToolsToPath(dataPath);
     const checkpointEncryptionKey = loadV3CheckpointKeyIfPresent(dataPath, safeStorage);
     const runtime = createDesktopRuntime(dataPath, {
       permissionProfile: 'full',
@@ -1716,6 +1730,9 @@ function createNativeDesktopRuntime(dataPath: string): DesktopRuntime {
     pdfProviderInstaller: (rootPath) => installPdfProvider(rootPath, {
       fetchImpl: (url) => net.fetch(url, { redirect: 'follow' }),
     }),
+    ripgrepInstaller: (rootPath) => installRipgrep(rootPath, {
+      fetchImpl: (url) => net.fetch(url, { redirect: 'follow' }),
+    }),
     decryptTunnelSecret: decryptTunnelSecretCompat,
     ...(checkpointEncryptionKey === undefined ? {} : { checkpointEncryptionKey }),
   });
@@ -1731,6 +1748,7 @@ function bootstrapDesktop(): void {
     );
 
     prependBundledRuntimeToolsToPath();
+    prependUserRuntimeToolsToPath(dataPath);
     const runtime = createNativeDesktopRuntime(dataPath);
     desktopRuntime = runtime;
     setDesktopLocale(runtime.getLocale());

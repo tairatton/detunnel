@@ -8,6 +8,8 @@ interface DoctorPanelProps {
   readonly report: DoctorReport | null;
   readonly remediations?: readonly ResolvedRemediation[];
   readonly onRunDoctor: () => Promise<void>;
+  readonly onAutoStart?: () => Promise<void>;
+  readonly autoStartBusy?: boolean;
   readonly onRecheck?: (requirementIds: readonly string[]) => Promise<void>;
   readonly onRemediation?: (action: RemediationAction) => Promise<void>;
   readonly onOpenProjects: () => void;
@@ -24,9 +26,10 @@ function issueRank(check: DoctorCheck): number {
 }
 
 export function DoctorPanel({
-  locale = 'en', report, remediations = [], onRunDoctor, onRecheck, onRemediation, onOpenProjects,
+  locale = 'en', report, remediations = [], onRunDoctor, onAutoStart, autoStartBusy = false, onRecheck, onRemediation, onOpenProjects,
 }: DoctorPanelProps): ReactElement {
   const t = createTranslator(locale);
+  const start = onAutoStart ?? onRunDoctor;
   const checks = [...(report?.checks ?? [])].sort((left, right) => issueRank(left) - issueRank(right) || left.title.localeCompare(right.title));
   const issues = checks.filter((check) => check.status !== 'pass');
   const passed = checks.filter((check) => check.status === 'pass');
@@ -70,7 +73,10 @@ export function DoctorPanel({
     <section className="panel doctor-panel">
       <div className="section-heading">
         <div><p className="page-subtitle" style={{ margin: 0 }}>{locale === 'th' ? 'แก้ปัญหาที่มีผลก่อน แล้วค่อยดูรายการที่ผ่าน' : 'Fix actionable issues first, then review passed checks.'}</p>{report === null ? null : <small>{report.exitCode === 0 ? (locale === 'th' ? 'Core startup checks ผ่าน' : 'Core startup checks passed') : (locale === 'th' ? 'มี required check ที่ยังยืนยันไม่ได้' : 'A required check still needs attention')}</small>}</div>
-        <button type="button" onClick={() => { void onRunDoctor(); }}>{t('doctor.run')}</button>
+        <div className="inline-actions">
+          <button type="button" onClick={() => { void start(); }} disabled={autoStartBusy}>{autoStartBusy ? (locale === 'th' ? 'กำลังเริ่มระบบ…' : 'Starting…') : t('doctor.autoStart')}</button>
+          <button type="button" onClick={() => { void onRunDoctor(); }} disabled={autoStartBusy}>{t('doctor.run')}</button>
+        </div>
       </div>
       {report === null ? <div className="doctor-empty-state"><p>{t('doctor.noReport')}</p></div> : (
         <>

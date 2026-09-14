@@ -94,6 +94,7 @@ import type { Workspace } from '@lnwjud/workspace';
 import { isDriveRoot, SecretPolicy, WorkspacePathGuard, WorkspaceService } from '@lnwjud/workspace';
 import {
   type AddWorkspaceRequest,
+  type AutoStartResult,
   type BackupSummary as IpcBackupSummary,
   type AgentState,
   type AuditEventSummary,
@@ -159,6 +160,8 @@ import { DesktopMcpLifecycle } from './mcp-lifecycle.js';
 import { WorkLogViewState } from './work-log-view-state.js';
 import { installPdfProvider, type InstalledPdfProvider } from './pdf-provider-installer.js';
 import { RemoteMcpController } from './remote-mcp-controller.js';
+import { installRipgrep, type InstalledRipgrep } from './ripgrep-installer.js';
+import { prependUserRuntimeToolsToPath } from './runtime-tools.js';
 import { CLIENT_PATH_SETTING, TunnelController } from './tunnel-controller.js';
 import { legacyTunnelSecretPath, oauthTunnelSessionPath, LegacyApiKeyCredentialProvider } from './tunnel-auth.js';
 import { TunnelAuthCoordinator } from './tunnel-auth-coordinator.js';
@@ -202,6 +205,7 @@ export interface DesktopRuntimeOptions {
   readonly permissionProfile?: PermissionProfileName;
   readonly hostMutationApprovalProvider?: (request: HostMutationApprovalRequest) => boolean | Promise<boolean>;
   readonly pdfProviderInstaller?: (dataPath: string) => Promise<InstalledPdfProvider>;
+  readonly ripgrepInstaller?: (dataPath: string) => Promise<InstalledRipgrep>;
   readonly checkpointEncryptionKey?: Buffer;
   readonly decryptTunnelSecret?: (cipherText: string) => Promise<string>;
   /** Enables bounded SQLite polling for long-lived stdio processes that receive writes from another process. */
@@ -277,6 +281,16 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
   const workspaceService = new WorkspaceService(workspaceRepository);
   const codexDiscovery = new CodexDiscovery();
   const executableResolver = new PathExecutableResolver();
+  const ensureRipgrepRuntime = async (): Promise<void> => {
+    const available = await executableResolver.resolve('rg');
+    if (available.ok) return;
+    try {
+      await (options.ripgrepInstaller ?? installRipgrep)(dataPath);
+      prependUserRuntimeToolsToPath(dataPath);
+    } catch (error: unknown) {
+      console.error(`Automatic ripgrep setup failed: ${error instanceof Error ? error.message : 'unknown error'}`);
+    }
+  };
   const storedProfile = settingsRepository.get(permissionSettingKey);
   let profileName: PermissionProfileName = options.permissionProfile ?? readPermissionProfile(storedProfile);
   if (options.permissionProfile === undefined && storedProfile === null) settingsRepository.set(permissionSettingKey, profileName);
@@ -785,8 +799,8 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
     'tunnel_auth_method', 'oauth_provisioning_capability', 'runtime_key_available',
   ]);
   const requirementIdSet = new Set(requirementRegistry.ids());
-  const buildFullDoctorReport = async (locale: UiLocale): Promise<DoctorReport> => {
-    const base = await toolCatalogService.runDoctor(undefined, locale);
+  const buildFullDoctorReport = async (locale: UiLocale, force = false): Promise<DoctorReport> => {
+    const base = await toolCatalogService.runDoctor(undefined, locale, force);
     const tunnel = withOAuthCapability(await tunnelController.diagnosticStatus());
     recordPersistentTunnelStatus(tunnel);
     const mcp = mcpLifecycle.status();
@@ -801,7 +815,7 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
     const catalog = canonicalIds.length > 0
       ? (await toolCatalogService.recheck(canonicalIds, request.locale)).catalog
       : await toolCatalogService.getSnapshot(request.locale);
-    return { catalog, doctor: await buildFullDoctorReport(request.locale) };
+    return { catalog, doctor: await buildFullDoctorReport(request.locale, true) };
   };
   const mutateToolAvailability = async (
     request: SetToolAvailabilityRequest | ResetToolAvailabilityRequest,
@@ -1161,7 +1175,15 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
       const next = readSettings();
       return { ...installed, restartRequired: runtimeRestartRequired(previous, next) };
     },
-    runDoctor: async (): Promise<DoctorReport> => buildFullDoctorReport(readLocale(settingsRepository)),
+    runDoctor: async (): Promise<DoctorReport> => buildFullDoctorReport(readLocale(settingsRepository), true),
+    autoStart: async (): Promise<AutoStartResult> => {
+      const mcp = await mcpLifecycle.start();
+      await ensureRipgrepRuntime();
+      const tunnel = await autoStartPersistentTunnel(tunnelController, readSettings().tunnelAutoReconnect);
+      const remoteMcp = await remoteMcpController.autoStartIfDesired();
+      recordPersistentTunnelStatus(tunnel);
+      return { mcp, tunnel, remoteMcp };
+    },
     getToolCatalog: async (request: GetToolCatalogRequest): Promise<ToolCatalogSnapshot> => toolCatalogService.getSnapshot(request.locale),
     recheckToolCatalog: recheckCatalogAndDoctor,
     setToolAvailability: async (request: SetToolAvailabilityRequest): Promise<SetToolAvailabilityResult> => mutateToolAvailability(request, request.enabled),
@@ -1274,16 +1296,22 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
           : matched.id;
         settingsRepository.set(selectedWorkspaceSettingKey, workspaceId);
         await activateWorkspace(workspaceId);
-        return mcpLifecycle.start();
+        const status = await mcpLifecycle.start();
+        await ensureRipgrepRuntime();
+        return status;
       }
       const selected = await resolveSelectedWorkspace(workspaceService, settingsRepository);
       if (selected === null) {
         // First run: start MCP without scanning or registering drive letters.
         // The user can add an explicit project in the UI when ready.
-        return mcpLifecycle.start();
+        const status = await mcpLifecycle.start();
+        await ensureRipgrepRuntime();
+        return status;
       }
       await activateWorkspace(selected.id);
-      return mcpLifecycle.start();
+      const status = await mcpLifecycle.start();
+      await ensureRipgrepRuntime();
+      return status;
     },
     autoStartTunnel: async (): Promise<TunnelStatus | null> => autoStartPersistentTunnel(
       tunnelController,

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { bundledRuntimeToolDirectories, prependBundledRuntimeToolsToPath } from '../src/main/runtime-tools.js';
+import { bundledRuntimeToolDirectories, prependBundledRuntimeToolsToPath, prependUserRuntimeToolsToPath, userRuntimeToolDirectories } from '../src/main/runtime-tools.js';
 
 describe('bundled Windows runtime tools', () => {
   it('resolves the packaged ripgrep directory under Electron resources', () => {
@@ -22,5 +22,15 @@ describe('bundled Windows runtime tools', () => {
     const environment: NodeJS.ProcessEnv = { Path: 'C:\\Windows\\System32' };
     expect(prependBundledRuntimeToolsToPath(environment, 'C:\\missing', () => false)).toEqual([]);
     expect(environment.Path).toBe('C:\\Windows\\System32');
+  });
+
+  it('resolves and prepends the per-user repair directory', () => {
+    const dataPath = 'C:\\Users\\Test\\AppData\\Local\\lnwjud';
+    const userDirectory = path.join(dataPath, 'runtime-tools', 'ripgrep');
+    const environment: NodeJS.ProcessEnv = { Path: 'C:\\Windows\\System32' };
+
+    expect(userRuntimeToolDirectories(dataPath)).toEqual([userDirectory]);
+    expect(prependUserRuntimeToolsToPath(dataPath, environment, (candidate) => candidate === userDirectory)).toEqual([userDirectory]);
+    expect(environment.Path?.split(path.delimiter)).toEqual([userDirectory, 'C:\\Windows\\System32']);
   });
 });

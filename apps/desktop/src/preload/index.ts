@@ -3,6 +3,7 @@ import {
   ipcChannels,
   pushChannels,
   type AddWorkspaceRequest,
+  type AutoStartResult,
   type AgentState,
   type BackupSummary,
   type ClearLogBufferRequest,
@@ -769,6 +770,15 @@ function addWorkspace(request: AddWorkspaceRequest): Promise<WorkspaceSummary> {
   return invoke(ipcChannels.addWorkspace, { rootPath: request.rootPath, makePrimary: request.makePrimary === true }).then(workspaceSummary);
 }
 
+function autoStartResult(value: unknown): AutoStartResult {
+  if (!isRecord(value)) throw new Error('Invalid IPC response');
+  return {
+    mcp: mcpStatus(value.mcp),
+    tunnel: value.tunnel === null ? null : tunnelStatus(value.tunnel),
+    remoteMcp: remoteMcpStatus(value.remoteMcp),
+  };
+}
+
 function chooseWorkspaceFolder(): Promise<{ readonly rootPath: string | null }> {
   return invoke(ipcChannels.chooseWorkspaceFolder).then((value: unknown) => {
     if (!isRecord(value)) throw new Error('Invalid IPC response');
@@ -1232,6 +1242,7 @@ const api: LnwjudApi = {
   launchManagedBrowser,
   installPdfProvider,
   runDoctor: () => invoke(ipcChannels.runDoctor).then(doctorReport),
+  autoStart: () => invoke(ipcChannels.autoStart).then(autoStartResult),
   getToolCatalog,
   recheckToolCatalog,
   setToolAvailability,

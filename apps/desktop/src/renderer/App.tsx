@@ -57,6 +57,7 @@ export function App(): ReactElement {
   const [bootError, setBootError] = useState<string | null>(null);
   const [mcpBusy, setMcpBusy] = useState(false);
   const [tunnelBusy, setTunnelBusy] = useState(false);
+  const [autoStartBusy, setAutoStartBusy] = useState(false);
   const [locale, setLocale] = useState<UiLocale>('en');
   const [logLines, setLogLines] = useState<readonly LogLine[]>([]);
   const [tunnelLogPath, setTunnelLogPath] = useState<string | null>(null);
@@ -279,15 +280,20 @@ export function App(): ReactElement {
     }
 
     setStartupDoctorReady(false);
-    void Promise.all([
+    // Give the main process a chance to start the local MCP listener and any
+    // already-configured persistent runtimes before the first Doctor probe.
+    // This avoids sending a clean installation to Doctor merely because the
+    // background startup sequence was still in flight.
+    void window.lnwjud.autoStart().catch(() => undefined).then(() => Promise.all([
       window.lnwjud.runDoctor(),
       window.lnwjud.getToolCatalog({ locale }),
-    ]).then(([report, catalog]) => {
+    ])).then(([report, catalog]) => {
       setDoctor(report);
       setToolCatalog(catalog);
       if (startupDoctorCorePassed(report)) {
         try { markStartupDoctorPassed(window.localStorage, appVersion); } catch { /* Re-run next launch if storage is unavailable. */ }
         setStartupDoctorReady(true);
+        setScreen('home');
         return;
       }
       setGuidedTunnelSetupOpen(false);
@@ -866,7 +872,7 @@ export function App(): ReactElement {
     requestSettingsSection(navigation.section, navigation.focus);
   }
 
-  async function runDoctor(): Promise<void> {
+  async function runDoctor(): Promise<boolean> {
     try {
       const [report, catalog] = await Promise.all([
         window.lnwjud.runDoctor(),
@@ -878,11 +884,29 @@ export function App(): ReactElement {
         try { markStartupDoctorPassed(window.localStorage, appVersion); } catch { /* Re-run next launch if storage is unavailable. */ }
         startupDoctorVersion.current = appVersion;
         setStartupDoctorReady(true);
+        return true;
       } else {
         setStartupDoctorReady(false);
+        return false;
       }
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.doctorRun')));
+      return false;
+    }
+  }
+
+  async function autoStart(): Promise<void> {
+    if (autoStartBusy) return;
+    setAutoStartBusy(true);
+    setError(null);
+    try {
+      await window.lnwjud.autoStart();
+      await refresh();
+      if (await runDoctor()) setScreen('home');
+    } catch (cause: unknown) {
+      setError(errorMessage(cause, locale === 'th' ? 'ไม่สามารถเริ่มระบบอัตโนมัติได้' : 'Auto start could not complete'));
+    } finally {
+      setAutoStartBusy(false);
     }
   }
 
@@ -1046,7 +1070,9 @@ export function App(): ReactElement {
             locale={locale}
             report={doctor}
             remediations={toolCatalog?.remediations ?? []}
-            onRunDoctor={runDoctor}
+            onRunDoctor={async () => { await runDoctor(); }}
+            onAutoStart={autoStart}
+            autoStartBusy={autoStartBusy}
             onRecheck={(requirementIds) => loadToolCatalog(requirementIds)}
             onRemediation={handleToolRemediation}
             onOpenProjects={() => setScreen('projects')}

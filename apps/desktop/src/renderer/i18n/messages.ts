@@ -158,6 +158,7 @@ export type MessageKey =
   | 'live.popOut'
   | 'doctor.title'
   | 'doctor.run'
+  | 'doctor.autoStart'
   | 'doctor.noReport'
   | 'capabilities.title'
   | 'permission.safe'
@@ -440,6 +441,7 @@ export const th: Messages = {
   'live.popOut': 'เปิดหน้าต่างแยก',
   'doctor.title': 'Doctor',
   'doctor.run': 'รัน Doctor',
+  'doctor.autoStart': 'เริ่มระบบอัตโนมัติ',
   'doctor.noReport': 'ยังไม่มีผลการตรวจสอบ',
   'capabilities.title': 'Capabilities',
   'permission.safe': 'Safe (ปลอดภัย)',
@@ -674,6 +676,7 @@ export const en: Messages = {
   'live.popOut': 'Pop out viewer',
   'doctor.title': 'Doctor',
   'doctor.run': 'Run doctor',
+  'doctor.autoStart': 'Auto start and check',
   'doctor.noReport': 'No report yet.',
   'capabilities.title': 'Capabilities',
   'permission.safe': 'Safe',
