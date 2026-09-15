@@ -16,6 +16,16 @@ export interface EffectiveToolAvailability {
   readonly reason: ToolAvailabilityReason;
 }
 
+/**
+ * Tools that can inspect or operate a browser/page or the desktop UI.
+ *
+ * Keeping this list central lets hosts apply one safety switch without
+ * changing the core MCP, file, or process tools used for local development.
+ */
+export function isBrowserAutomationToolName(name: string): boolean {
+  return /^(dom_cdp$|computer_use$|accessibility$|input_event$|vision(?:_|$)|ui_target_action$|window$|screen_record$|inspect_web_app$|debug_ui$|capture_ui_state$|form_context$|network_context$|console_context$|browser_debug_context$|capture_screenshot$|compare_screenshot$|dom_snapshot$|layout_metadata$|visual_context$)/.test(name);
+}
+
 export const DEFAULT_TOOL_AVAILABILITY_SNAPSHOT: ToolAvailabilitySnapshot = Object.freeze({
   version: 1,
   generation: 0,

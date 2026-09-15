@@ -74,7 +74,7 @@ docker compose -f docker/compose.yml up -d --build
 
 สำหรับ Desktop ให้กำหนดตัวแปร `DETUNNEL_*` ผ่าน environment ของระบบหรือ PowerShell ก่อนรัน `python main.py` ส่วน Docker ใช้ `docker/.env.example` เป็นแม่แบบสำหรับ container
 
-ค่าหลักได้แก่ `DETUNNEL_HOST`, `DETUNNEL_PORT`, `DETUNNEL_WORKSPACE`, `DETUNNEL_DATA_PATH`, `DETUNNEL_PROFILE`, `DETUNNEL_FULL_BYPASS` และ `DETUNNEL_UNRESTRICTED`
+ค่าหลักได้แก่ `DETUNNEL_HOST`, `DETUNNEL_PORT`, `DETUNNEL_WORKSPACE`, `DETUNNEL_DATA_PATH`, `DETUNNEL_PROFILE`, `DETUNNEL_FULL_BYPASS`, `DETUNNEL_UNRESTRICTED` และ `DETUNNEL_DISABLE_BROWSER_AUTOMATION` (ตั้งเป็น `1` เพื่อปิด Browser/CDP และ desktop UI automation โดยยังใช้ MCP/file editing ได้)
 
 ค่าเริ่มต้นของ Docker จำกัดการฟังไว้ที่ localhost และปิด unrestricted/full bypass
 

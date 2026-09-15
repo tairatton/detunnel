@@ -40,7 +40,8 @@ ENV NODE_ENV=production \
     DETUNNEL_DATA_PATH=/root/.detunnel \
     DETUNNEL_PROFILE=balanced \
     DETUNNEL_FULL_BYPASS=0 \
-    DETUNNEL_UNRESTRICTED=0
+    DETUNNEL_UNRESTRICTED=0 \
+    DETUNNEL_DISABLE_BROWSER_AUTOMATION=1
 
 # Create persistent mount points.
 RUN mkdir -p /workspace /root/.detunnel

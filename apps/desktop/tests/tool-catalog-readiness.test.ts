@@ -109,6 +109,19 @@ describe('tool catalog readiness aggregation', () => {
     });
   });
 
+  it('marks browser and desktop UI automation as system-ineligible in safety mode', async () => {
+    vi.stubEnv('DETUNNEL_DISABLE_BROWSER_AUTOMATION', '1');
+    const safe = service({}, { codexEnabled: true });
+    const snapshot = await safe.catalog.getSnapshot('en');
+    const browser = snapshot.items.find((item) => item.name === 'dom_cdp');
+    const computer = snapshot.items.find((item) => item.name === 'computer_use');
+    const file = snapshot.items.find((item) => item.name === 'edit_file');
+
+    expect(browser).toMatchObject({ systemEligible: false, effectiveExposed: false });
+    expect(computer).toMatchObject({ systemEligible: false, effectiveExposed: false });
+    expect(file).toMatchObject({ systemEligible: true, effectiveExposed: true });
+  });
+
   it('lists each failed backing requirement for composite desktop automation tools', async () => {
     const composites = service({ windows_ui_automation: 'fail', windows_input: 'fail', windows_window: 'fail', windows_ocr: 'fail' }, { codexEnabled: true });
     const snapshot = await composites.catalog.getSnapshot('en');

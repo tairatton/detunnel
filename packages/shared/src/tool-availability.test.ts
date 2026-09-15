@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_TOOL_AVAILABILITY_SNAPSHOT,
+  isBrowserAutomationToolName,
   parseToolAvailabilitySnapshot,
   resolveEffectiveToolAvailability,
   serializeToolAvailabilitySnapshot,
@@ -8,6 +9,14 @@ import {
 } from './tool-availability.js';
 
 describe('tool availability preferences', () => {
+  it('identifies browser and desktop UI automation tools as one safety group', () => {
+    expect(isBrowserAutomationToolName('dom_cdp')).toBe(true);
+    expect(isBrowserAutomationToolName('inspect_web_app')).toBe(true);
+    expect(isBrowserAutomationToolName('computer_use')).toBe(true);
+    expect(isBrowserAutomationToolName('read_file')).toBe(false);
+    expect(isBrowserAutomationToolName('edit_file')).toBe(false);
+  });
+
   it('defaults missing or corrupt settings to v4.53-compatible empty overrides', () => {
     expect(parseToolAvailabilitySnapshot(null)).toEqual(DEFAULT_TOOL_AVAILABILITY_SNAPSHOT);
     expect(parseToolAvailabilitySnapshot('')).toEqual(DEFAULT_TOOL_AVAILABILITY_SNAPSHOT);

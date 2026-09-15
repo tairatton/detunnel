@@ -18,6 +18,7 @@ services:
       DETUNNEL_PROFILE: ${DETUNNEL_PROFILE:-balanced}
       DETUNNEL_FULL_BYPASS: ${DETUNNEL_FULL_BYPASS:-0}
       DETUNNEL_UNRESTRICTED: ${DETUNNEL_UNRESTRICTED:-0}
+      DETUNNEL_DISABLE_BROWSER_AUTOMATION: ${DETUNNEL_DISABLE_BROWSER_AUTOMATION:-1}
     volumes:
       - ../workspace:/workspace
       - detunnel-data:/root/.detunnel

@@ -16,6 +16,8 @@ import { DefaultPermissionEngine, permissionProfiles, type PermissionProfile } f
 import {
   DEFAULT_DESTRUCTIVE_AUTO_APPROVAL_POLICY,
   DEFAULT_TOOL_AVAILABILITY_SNAPSHOT,
+  isBrowserAutomationToolName,
+  parseBooleanSetting,
   prohibitedAgentCommandReason,
   resolveEffectiveToolAvailability,
   type DestructiveAutoApprovalPolicy,
@@ -228,6 +230,7 @@ export class ToolRegistry {
   }
 
   private isEffectivelyExposed(name: string): boolean {
+    if (parseBooleanSetting(process.env.DETUNNEL_DISABLE_BROWSER_AUTOMATION, false) && isBrowserAutomationToolName(name)) return false;
     return resolveEffectiveToolAvailability({
       name,
       snapshot: this.currentToolAvailabilitySnapshot(),

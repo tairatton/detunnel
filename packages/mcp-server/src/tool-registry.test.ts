@@ -20,6 +20,7 @@ const approveMutation: NonNullable<ToolRegistryOptions['hostMutationApprovalProv
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllEnvs();
 });
 
 describe('MCP tool registry', () => {
@@ -84,6 +85,19 @@ describe('MCP tool registry', () => {
     expect(enabled.list().filter((tool) => tool.name.startsWith('codex_')).map((tool) => tool.name)).toEqual([...CODEX_TOOL_NAMES]);
     expect(enabled.list().map((tool) => tool.name)).toContain('agent_swarm_run');
     expect(enabled.list()).toHaveLength(hidden.list().length + CODEX_TOOL_NAMES.length + 1);
+  });
+
+  it('hides browser and desktop UI automation when the safety environment switch is enabled', () => {
+    vi.stubEnv('DETUNNEL_DISABLE_BROWSER_AUTOMATION', '1');
+    const registry = new ToolRegistry({}, actor);
+    const names = registry.list().map((tool) => tool.name);
+
+    expect(names).toContain('read_file');
+    expect(names).toContain('edit_file');
+    expect(names).not.toContain('dom_cdp');
+    expect(names).not.toContain('computer_use');
+    expect(names).not.toContain('inspect_web_app');
+    expect(names).not.toContain('capture_screenshot');
   });
 
   it('applies live per-tool availability overrides to list and invoke without rebuilding the registry', async () => {

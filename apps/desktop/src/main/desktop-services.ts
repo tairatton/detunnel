@@ -1169,6 +1169,9 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
       return { configured: true, profilePath };
     },
     launchManagedBrowser: async (): Promise<ManagedBrowserStatus> => {
+      if (parseBooleanSetting(process.env.DETUNNEL_DISABLE_BROWSER_AUTOMATION, false)) {
+        throw new Error('Managed browser is disabled by DETUNNEL_DISABLE_BROWSER_AUTOMATION');
+      }
       // This path is invoked only by the user clicking the desktop UI action.
       // Preserve the normal MCP authorization boundary while carrying that explicit click
       // through to the capability backend so launch is not rejected as unconfirmed.

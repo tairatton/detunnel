@@ -12,7 +12,7 @@ import type {
   UiLocale,
 } from '@lnwjud/ipc-contracts';
 import { ToolRegistry, isAdvertisedDeliveryState, upgradeCatalogEntry } from '@lnwjud/mcp-server';
-import { DEFAULT_TOOL_AVAILABILITY_SNAPSHOT, resolveEffectiveToolAvailability, type ToolAvailabilitySnapshot } from '@lnwjud/shared';
+import { DEFAULT_TOOL_AVAILABILITY_SNAPSHOT, isBrowserAutomationToolName, parseBooleanSetting, resolveEffectiveToolAvailability, type ToolAvailabilitySnapshot } from '@lnwjud/shared';
 import { catalogDefinitions } from './catalog-definitions.js';
 import { resolveCatalogCopy } from './catalog-copy.js';
 import { RequirementRegistry, type RequirementSnapshot } from './requirement-registry.js';
@@ -110,11 +110,13 @@ export class ToolCatalogService {
       const codexEnabled = !codexFamily || this.#options.codexEnabled?.() === true;
       const codexDisabled = codexFamily && !codexEnabled;
       const systemEligible = (delivery === undefined || isAdvertisedDeliveryState(delivery)) && codexEnabled;
+      const browserAutomationDisabled = parseBooleanSetting(process.env.DETUNNEL_DISABLE_BROWSER_AUTOMATION, false)
+        && isBrowserAutomationToolName(definition.name);
       const effectiveAvailability = resolveEffectiveToolAvailability({
         name: definition.name,
         snapshot: availabilitySnapshot,
-        systemEligible,
-        defaultEnabled: systemEligible,
+        systemEligible: systemEligible && !browserAutomationDisabled,
+        defaultEnabled: systemEligible && !browserAutomationDisabled,
       });
       const readinessState = computeReadiness(requirementResults, profileDecision, delivery, codexDisabled);
       const { readiness, readinessReason, deliveryState, available } = readinessState;
