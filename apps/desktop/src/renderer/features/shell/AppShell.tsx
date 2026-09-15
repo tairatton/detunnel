@@ -94,9 +94,12 @@ export function AppShell(props: AppShellProps): ReactElement {
 }
 
 function versionBadgeText(status: UpdateStatus | null, locale: UiLocale, appVersion: string): string {
-  const displayVersion = status?.currentVersion.trim() || appVersion.trim() || 'unknown';
+  const displayVersion = formatBadgeVersion(status?.currentVersion || appVersion) || 'unknown';
   if (status === null) return `v${displayVersion}`;
-  const next = status.availableVersion;
+  const availableVersion = status.availableVersion;
+  const next = availableVersion === null || availableVersion === undefined
+    ? null
+    : formatBadgeVersion(availableVersion);
   if (status.phase === 'ready' && next !== null) return locale === 'th' ? `อัปเดต v${next}` : `Update v${next}`;
   if (status.phase === 'installing' && next !== null) return locale === 'th' ? `กำลังติดตั้ง v${next}` : `Installing v${next}`;
   if (status.phase === 'downloading') {
@@ -107,4 +110,12 @@ function versionBadgeText(status: UpdateStatus | null, locale: UiLocale, appVers
   if (status.phase === 'checking') return locale === 'th' ? `v${displayVersion} • เช็ก…` : `v${displayVersion} • checking…`;
   if (status.phase === 'error') return `v${displayVersion} • !`;
   return `v${displayVersion}`;
+}
+
+function formatBadgeVersion(version: string): string {
+  const normalized = version.trim();
+  const match = /^(\d+)\.(\d+)\.0$/.exec(normalized);
+  const major = match?.[1];
+  const minor = match?.[2];
+  return major === undefined || minor === undefined ? normalized : `${major}.${minor.padStart(2, '0')}`;
 }
