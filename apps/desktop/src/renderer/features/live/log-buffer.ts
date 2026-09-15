@@ -10,8 +10,9 @@ export function applyLogSnapshot(
   for (const line of snapshotLines) {
     if (!byId.has(line.id)) byId.set(line.id, line);
   }
-  const ids = new Set(previousIds);
-  for (const line of byId.values()) ids.add(line.id);
   const lines = [...byId.values()].sort((left, right) => left.id - right.id);
+  // Do not retain IDs for lines that were evicted from the bounded buffer.
+  // Keeping the old Set made renderer memory grow for the entire app lifetime.
+  const ids = new Set(lines.map((line) => line.id));
   return { lines, ids };
 }

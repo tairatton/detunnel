@@ -94,7 +94,14 @@ export function App(): ReactElement {
   const appendLogLine = useCallback((line: LogLine): void => {
     if (logIds.current.has(line.id)) return;
     logIds.current.add(line.id);
-    setLogLines((previous) => [...previous.slice(-(MAX_CLIENT_LOG_LINES - 1)), line]);
+    setLogLines((previous) => {
+      const next = [...previous.slice(-(MAX_CLIENT_LOG_LINES - 1)), line];
+      // Keep the de-duplication index bounded together with the visible log
+      // buffer. Without this, every log line ever received stayed reachable
+      // from the renderer and long-running sessions eventually exhausted V8.
+      logIds.current = new Set(next.map((entry) => entry.id));
+      return next;
+    });
   }, []);
 
   useEffect(() => {

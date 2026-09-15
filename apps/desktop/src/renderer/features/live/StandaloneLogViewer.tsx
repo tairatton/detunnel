@@ -22,7 +22,12 @@ export function StandaloneLogViewer(): ReactElement {
   const appendLine = useCallback((line: LogLine): void => {
     if (logIds.current.has(line.id)) return;
     logIds.current.add(line.id);
-    setLines((previous) => [...previous.slice(-(MAX_CLIENT_LOG_LINES - 1)), line]);
+    setLines((previous) => {
+      const next = [...previous.slice(-(MAX_CLIENT_LOG_LINES - 1)), line];
+      // The visible buffer is bounded; the de-duplication index must be too.
+      logIds.current = new Set(next.map((entry) => entry.id));
+      return next;
+    });
   }, []);
   const resolveTargetDetail = useCallback(async (detailRef: string) => (await window.lnwjud.resolveActivityTargetDetail({ detailRef })).detail, []);
   const searchTargetDetails = useCallback(async (
