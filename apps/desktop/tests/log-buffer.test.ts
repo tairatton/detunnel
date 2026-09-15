@@ -10,9 +10,10 @@ describe('applyLogSnapshot', () => {
   it('keeps live lines that arrived before a stale snapshot resolves', () => {
     const live = line(2, 'live mcp');
     const snapshot = [line(1, 'older')];
-    const merged = applyLogSnapshot([live], new Set([2]), snapshot);
+    const merged = applyLogSnapshot([live], new Set([2, 999]), snapshot);
     expect(merged.lines.map((entry) => entry.text)).toEqual(['older', 'live mcp']);
     expect(merged.ids.has(2)).toBe(true);
     expect(merged.ids.has(1)).toBe(true);
+    expect(merged.ids.has(999)).toBe(false);
   });
 });
