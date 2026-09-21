@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
-import { isAdvertisedDeliveryState, UPGRADE_TOOL_CATALOG } from '@lnwjud/mcp-server';
+import { isAdvertisedDeliveryState, UPGRADE_TOOL_CATALOG } from '@detunnel/mcp-server';
 import { chromium, expect, test, type Page } from '@playwright/test';
 
 const desktopRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -17,7 +17,7 @@ test('desktop serves the real MCP client development workflow', async () => {
   test.setTimeout(180_000);
   const fixtureRoot = await createFixture();
   const fixtureRealRoot = await realpath(fixtureRoot);
-  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-mcp-client-data-'));
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-mcp-client-data-'));
   let electronProcess: ChildProcess | undefined;
   let browser: Awaited<ReturnType<typeof chromium.connectOverCDP>> | undefined;
   let page: Page | undefined;
@@ -72,7 +72,7 @@ test('desktop serves the real MCP client development workflow', async () => {
     expect(endpoint.pathname).toBe('/mcp');
 
     client = new Client(
-      { name: 'lnwjud-desktop-e2e-client', version: '0.1.0' },
+      { name: 'detunnel-desktop-e2e-client', version: '0.1.0' },
       { versionNegotiation: { mode: { pin: '2026-07-28' } } },
     );
     await client.connect(new StreamableHTTPClientTransport(endpoint));
@@ -149,7 +149,7 @@ test('desktop serves the real MCP client development workflow', async () => {
     browser = undefined;
   } finally {
     if (client !== undefined) await client.close().catch(() => undefined);
-    if (page !== undefined) await page.evaluate(() => window.lnwjud.stopMcp()).catch(() => undefined);
+    if (page !== undefined) await page.evaluate(() => window.detunnel.stopMcp()).catch(() => undefined);
     if (browser !== undefined) await browser.close().catch(() => undefined);
     if (electronProcess !== undefined) await terminateProcessTree(electronProcess);
     await Promise.all([removeTemporaryRoot(fixtureRoot), removeTemporaryRoot(dataRoot)]);
@@ -157,12 +157,12 @@ test('desktop serves the real MCP client development workflow', async () => {
 });
 
 async function createFixture(): Promise<string> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-mcp-client-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-mcp-client-'));
   await mkdir(path.join(root, 'src'));
   await writeFile(path.join(root, 'src', 'app.ts'), "export const value = 'before';\n", 'utf8');
   await writeFile(path.join(root, '.env'), 'SECRET_NOT_FOR_TOOLS=hidden\n', 'utf8');
   await writeFile(path.join(root, 'package.json'), JSON.stringify({
-    name: 'lnwjud-desktop-flow-fixture',
+    name: 'detunnel-desktop-flow-fixture',
     scripts: { test: "node -e \"process.stdout.write('project-test-pass\\n')\"" },
   }), 'utf8');
   await writeFile(path.join(root, 'package-lock.json'), '{}', 'utf8');

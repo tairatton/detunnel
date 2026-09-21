@@ -21,8 +21,8 @@ import {
   WorkspaceQueryService,
   ToolAvailabilityService,
   type FileActor,
-} from '@lnwjud/application';
-import { AuditService, decodeActivityTargetReference } from '@lnwjud/audit';
+} from '@detunnel/application';
+import { AuditService, decodeActivityTargetReference } from '@detunnel/audit';
 import {
   BrowserCdpBackend,
   HealthCapabilityBackend,
@@ -41,16 +41,16 @@ import {
   WINDOWS_CAPABILITY_BRIDGE_SIZE_BYTES,
   WslCapabilityBackend,
   WslFilesystemCapabilityBackend,
-} from '@lnwjud/capabilities';
-import type { Result } from '@lnwjud/domain';
-import { ALLOW_AI_DELETE_SETTING_KEY, DESTRUCTIVE_AUTO_APPROVAL_SETTING_KEY, DEFAULT_CODEX_TOOLS_ENABLED, DEFAULT_MCP_CALL_TIMEOUT_MS, DEFAULT_MCP_IDLE_TIMEOUT_MS, DEFAULT_PROCESS_TIMEOUT_MS, DEFAULT_MCP_POLL_WAIT_SECONDS, DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS, USER_SETTING_KEYS, loadCheckpointEncryptionKey, parseBooleanSetting, parseCustomPermissionSettings, parseDestructiveAutoApprovalPolicy, parseIntegerSetting, parsePathList, parseStringRecordSetting, type DestructiveAutoApprovalPolicy } from '@lnwjud/shared';
+} from '@detunnel/capabilities';
+import type { Result } from '@detunnel/domain';
+import { ALLOW_AI_DELETE_SETTING_KEY, DESTRUCTIVE_AUTO_APPROVAL_SETTING_KEY, DEFAULT_CODEX_TOOLS_ENABLED, DEFAULT_MCP_CALL_TIMEOUT_MS, DEFAULT_MCP_IDLE_TIMEOUT_MS, DEFAULT_PROCESS_TIMEOUT_MS, DEFAULT_MCP_POLL_WAIT_SECONDS, DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS, USER_SETTING_KEYS, loadCheckpointEncryptionKey, parseBooleanSetting, parseCustomPermissionSettings, parseDestructiveAutoApprovalPolicy, parseIntegerSetting, parsePathList, parseStringRecordSetting, type DestructiveAutoApprovalPolicy } from '@detunnel/shared';
 import {
   EXTENSIONS_SETTINGS_KEY,
   createLocalExtensionsService,
   type ExtensionsService,
-} from '@lnwjud/extensions';
-import { ActivityTracker, RuntimeGoalManagedTaskStateReader, SharedActivitySnapshotLease, composeActivitySinks, createFileActivitySink, currentSharedActivityOwner, mcpActivityLogPath, type ActivitySink, type ActivitySinkEvent, type McpApplicationServices, type WorkspaceScope } from '@lnwjud/mcp-server';
-import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@lnwjud/permissions';
+} from '@detunnel/extensions';
+import { ActivityTracker, RuntimeGoalManagedTaskStateReader, SharedActivitySnapshotLease, composeActivitySinks, createFileActivitySink, currentSharedActivityOwner, mcpActivityLogPath, type ActivitySink, type ActivitySinkEvent, type McpApplicationServices, type WorkspaceScope } from '@detunnel/mcp-server';
+import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@detunnel/permissions';
 import {
   AesGcmCheckpointCipher,
   SqliteAgentSwarmRepository,
@@ -60,8 +60,8 @@ import {
   SqliteGoalRepository,
   SqliteSettingsRepository,
   SqliteWorkspaceRepository,
-} from '@lnwjud/storage';
-import { isDriveRoot, SecretPolicy, WorkspacePathGuard, WorkspaceService, type Workspace } from '@lnwjud/workspace';
+} from '@detunnel/storage';
+import { isDriveRoot, SecretPolicy, WorkspacePathGuard, WorkspaceService, type Workspace } from '@detunnel/workspace';
 import { StrictWorkspaceRepository } from './strict-workspace-repository.js';
 
 export interface StdioMcpRuntime {
@@ -92,7 +92,7 @@ export function createStdioMcpRuntime(
   unrestricted: boolean = false,
   options: StdioMcpRuntimeOptions = {},
 ): StdioMcpRuntime {
-  const databaseFilename = path.join(dataPath, 'lnwjud.sqlite');
+  const databaseFilename = path.join(dataPath, 'detunnel.sqlite');
   const database = new SqliteDatabase(databaseFilename, { backupDirectory: path.join(dataPath, 'backups') });
   const rawWorkspaceRepository = new SqliteWorkspaceRepository(database);
   const workspaceRepository = options.strictAllowedRoots === undefined
@@ -182,7 +182,7 @@ export function createStdioMcpRuntime(
     requestCancellation,
   });
   const scheduledContinuationService = new ScheduledContinuationService(goalRepository, { workerLiveness: goalMutationFence });
-  const actor: FileActor = { clientId: 'cli-mcp-stdio', clientName: 'lnwjud cli MCP' };
+  const actor: FileActor = { clientId: 'cli-mcp-stdio', clientName: 'detunnel cli MCP' };
   const sharedActivityLease = createSharedActivityLease(process.env.TUNNEL_CLIENT_PROFILE_DIR);
   const activityReady = sharedActivityLease.then(async (lease) => lease?.initialize());
   const sharedActivitySink: ActivitySink = {
@@ -454,9 +454,9 @@ function windowsOcrHelperPath(): string | undefined {
   const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
   const scriptDir = resolveScriptDirectory();
   const candidates = [
-    scriptDir === undefined ? undefined : path.join(scriptDir, 'native', 'windows-ocr', 'lnwjud-windows-ocr.exe'),
-    resourcesPath === undefined ? undefined : path.join(resourcesPath, 'windows-ocr', 'lnwjud-windows-ocr.exe'),
-    path.join(path.dirname(process.execPath), 'windows-ocr', 'lnwjud-windows-ocr.exe'),
+    scriptDir === undefined ? undefined : path.join(scriptDir, 'native', 'windows-ocr', 'detunnel-windows-ocr.exe'),
+    resourcesPath === undefined ? undefined : path.join(resourcesPath, 'windows-ocr', 'detunnel-windows-ocr.exe'),
+    path.join(path.dirname(process.execPath), 'windows-ocr', 'detunnel-windows-ocr.exe'),
   ].filter((candidate): candidate is string => candidate !== undefined);
   return candidates.find((candidate) => existsSync(candidate));
 }

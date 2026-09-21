@@ -1,77 +1,77 @@
-export const APP_NAME = 'lnwjud';
+export const APP_NAME = 'detunnel';
 export const APP_VERSION = '2.0.0';
 
 export const ipcChannels = {
-  listWorkspaces: 'lnwjud:list-workspaces',
-  addWorkspace: 'lnwjud:add-workspace',
-  chooseWorkspaceFolder: 'lnwjud:choose-workspace-folder',
-  selectWorkspace: 'lnwjud:select-workspace',
-  setWorkspaceActive: 'lnwjud:set-workspace-active',
-  setWorkspaceArchived: 'lnwjud:set-workspace-archived',
-  deleteWorkspace: 'lnwjud:delete-workspace',
-  getDashboard: 'lnwjud:get-dashboard',
-  setPermissionProfile: 'lnwjud:set-permission-profile',
-  setUnrestrictedMode: 'lnwjud:set-unrestricted-mode',
-  setAiDeletePolicy: 'lnwjud:set-ai-delete-policy',
-  setStdioPolicy: 'lnwjud:set-stdio-policy',
-  createBackup: 'lnwjud:create-backup',
-  scheduleRestoreBackup: 'lnwjud:schedule-restore-backup',
-  restoreRecoveryItem: 'lnwjud:restore-recovery-item',
-  restoreCheckpoint: 'lnwjud:restore-checkpoint',
-  listProcesses: 'lnwjud:list-processes',
-  startProcess: 'lnwjud:start-process',
-  stopProcess: 'lnwjud:stop-process',
-  startMcp: 'lnwjud:start-mcp',
-  stopMcp: 'lnwjud:stop-mcp',
-  restartMcp: 'lnwjud:restart-mcp',
-  clearWorkLog: 'lnwjud:clear-work-log',
-  saveTunnelApiKey: 'lnwjud:save-tunnel-api-key',
-  startTunnel: 'lnwjud:start-tunnel',
-  stopTunnel: 'lnwjud:stop-tunnel',
-  getTunnelStatus: 'lnwjud:get-tunnel-status',
-  beginTunnelOAuthLogin: 'lnwjud:begin-tunnel-oauth-login',
-  getTunnelOAuthLoginStatus: 'lnwjud:get-tunnel-oauth-login-status',
-  cancelTunnelOAuthLogin: 'lnwjud:cancel-tunnel-oauth-login',
-  switchTunnelAuthToLegacy: 'lnwjud:switch-tunnel-auth-to-legacy',
-  logoutTunnelOAuth: 'lnwjud:logout-tunnel-oauth',
-  getRemoteMcpStatus: 'lnwjud:get-remote-mcp-status',
-  installRemoteMcpProvider: 'lnwjud:install-remote-mcp-provider',
-  saveRemoteMcpAuthtoken: 'lnwjud:save-remote-mcp-authtoken',
-  startRemoteMcp: 'lnwjud:start-remote-mcp',
-  stopRemoteMcp: 'lnwjud:stop-remote-mcp',
-  regenerateRemoteMcpPairingCode: 'lnwjud:regenerate-remote-mcp-pairing-code',
-  setTunnelClientPath: 'lnwjud:set-tunnel-client-path',
-  setLocale: 'lnwjud:set-locale',
-  setUserSettings: 'lnwjud:set-user-settings',
-  chooseTunnelClientPath: 'lnwjud:choose-tunnel-client-path',
-  configureTunnelProfile: 'lnwjud:configure-tunnel-profile',
-  openExternalSetupPage: 'lnwjud:open-external-setup-page',
-  launchManagedBrowser: 'lnwjud:launch-managed-browser',
-  installPdfProvider: 'lnwjud:install-pdf-provider',
-  runDoctor: 'lnwjud:run-doctor',
-  autoStart: 'lnwjud:auto-start',
-  getToolCatalog: 'lnwjud:get-tool-catalog',
-  recheckToolCatalog: 'lnwjud:recheck-tool-catalog',
-  setToolAvailability: 'lnwjud:set-tool-availability',
-  resetToolAvailability: 'lnwjud:reset-tool-availability',
-  openToolSetupTarget: 'lnwjud:open-tool-setup-target',
-  copyToolCommand: 'lnwjud:copy-tool-command',
-  getLogSnapshot: 'lnwjud:get-log-snapshot',
-  clearLogBuffer: 'lnwjud:clear-log-buffer',
-  resolveActivityTargetDetail: 'lnwjud:resolve-activity-target-detail',
-  searchActivityTargetDetails: 'lnwjud:search-activity-target-details',
-  exportLogs: 'lnwjud:export-logs',
-  exportWorkLog: 'lnwjud:export-work-log',
-  captureIncident: 'lnwjud:capture-incident',
-  openLogViewer: 'lnwjud:open-log-viewer',
-  getUpdateStatus: 'lnwjud:get-update-status',
-  checkForUpdates: 'lnwjud:check-for-updates',
-  installUpdate: 'lnwjud:install-update',
+  listWorkspaces: 'detunnel:list-workspaces',
+  addWorkspace: 'detunnel:add-workspace',
+  chooseWorkspaceFolder: 'detunnel:choose-workspace-folder',
+  selectWorkspace: 'detunnel:select-workspace',
+  setWorkspaceActive: 'detunnel:set-workspace-active',
+  setWorkspaceArchived: 'detunnel:set-workspace-archived',
+  deleteWorkspace: 'detunnel:delete-workspace',
+  getDashboard: 'detunnel:get-dashboard',
+  setPermissionProfile: 'detunnel:set-permission-profile',
+  setUnrestrictedMode: 'detunnel:set-unrestricted-mode',
+  setAiDeletePolicy: 'detunnel:set-ai-delete-policy',
+  setStdioPolicy: 'detunnel:set-stdio-policy',
+  createBackup: 'detunnel:create-backup',
+  scheduleRestoreBackup: 'detunnel:schedule-restore-backup',
+  restoreRecoveryItem: 'detunnel:restore-recovery-item',
+  restoreCheckpoint: 'detunnel:restore-checkpoint',
+  listProcesses: 'detunnel:list-processes',
+  startProcess: 'detunnel:start-process',
+  stopProcess: 'detunnel:stop-process',
+  startMcp: 'detunnel:start-mcp',
+  stopMcp: 'detunnel:stop-mcp',
+  restartMcp: 'detunnel:restart-mcp',
+  clearWorkLog: 'detunnel:clear-work-log',
+  saveTunnelApiKey: 'detunnel:save-tunnel-api-key',
+  startTunnel: 'detunnel:start-tunnel',
+  stopTunnel: 'detunnel:stop-tunnel',
+  getTunnelStatus: 'detunnel:get-tunnel-status',
+  beginTunnelOAuthLogin: 'detunnel:begin-tunnel-oauth-login',
+  getTunnelOAuthLoginStatus: 'detunnel:get-tunnel-oauth-login-status',
+  cancelTunnelOAuthLogin: 'detunnel:cancel-tunnel-oauth-login',
+  switchTunnelAuthToLegacy: 'detunnel:switch-tunnel-auth-to-legacy',
+  logoutTunnelOAuth: 'detunnel:logout-tunnel-oauth',
+  getRemoteMcpStatus: 'detunnel:get-remote-mcp-status',
+  installRemoteMcpProvider: 'detunnel:install-remote-mcp-provider',
+  saveRemoteMcpAuthtoken: 'detunnel:save-remote-mcp-authtoken',
+  startRemoteMcp: 'detunnel:start-remote-mcp',
+  stopRemoteMcp: 'detunnel:stop-remote-mcp',
+  regenerateRemoteMcpPairingCode: 'detunnel:regenerate-remote-mcp-pairing-code',
+  setTunnelClientPath: 'detunnel:set-tunnel-client-path',
+  setLocale: 'detunnel:set-locale',
+  setUserSettings: 'detunnel:set-user-settings',
+  chooseTunnelClientPath: 'detunnel:choose-tunnel-client-path',
+  configureTunnelProfile: 'detunnel:configure-tunnel-profile',
+  openExternalSetupPage: 'detunnel:open-external-setup-page',
+  launchManagedBrowser: 'detunnel:launch-managed-browser',
+  installPdfProvider: 'detunnel:install-pdf-provider',
+  runDoctor: 'detunnel:run-doctor',
+  autoStart: 'detunnel:auto-start',
+  getToolCatalog: 'detunnel:get-tool-catalog',
+  recheckToolCatalog: 'detunnel:recheck-tool-catalog',
+  setToolAvailability: 'detunnel:set-tool-availability',
+  resetToolAvailability: 'detunnel:reset-tool-availability',
+  openToolSetupTarget: 'detunnel:open-tool-setup-target',
+  copyToolCommand: 'detunnel:copy-tool-command',
+  getLogSnapshot: 'detunnel:get-log-snapshot',
+  clearLogBuffer: 'detunnel:clear-log-buffer',
+  resolveActivityTargetDetail: 'detunnel:resolve-activity-target-detail',
+  searchActivityTargetDetails: 'detunnel:search-activity-target-details',
+  exportLogs: 'detunnel:export-logs',
+  exportWorkLog: 'detunnel:export-work-log',
+  captureIncident: 'detunnel:capture-incident',
+  openLogViewer: 'detunnel:open-log-viewer',
+  getUpdateStatus: 'detunnel:get-update-status',
+  checkForUpdates: 'detunnel:check-for-updates',
+  installUpdate: 'detunnel:install-update',
 } as const;
 
 export const pushChannels = {
-  logEvent: 'lnwjud:event:log',
-  updateStatus: 'lnwjud:event:update-status',
+  logEvent: 'detunnel:event:log',
+  updateStatus: 'detunnel:event:update-status',
 } as const;
 
 export type IpcChannel = typeof ipcChannels[keyof typeof ipcChannels];
@@ -90,7 +90,7 @@ export interface DestructiveDeletePolicy {
 }
 export type UiLocale = 'th' | 'en';
 
-export type ToolOrigin = 'lnwjud' | 'external_mcp';
+export type ToolOrigin = 'detunnel' | 'external_mcp';
 export type ToolCategory =
   | 'workspace'
   | 'files'
@@ -243,9 +243,9 @@ export interface ExtraMcpServerSettings {
 
 export interface UserSettings {
   readonly customPermission: CustomPermissionSettings;
-  /** Full profile only. Explicitly bypasses lnwjud application authorization on Desktop HTTP/Secure Tunnel. */
+  /** Full profile only. Explicitly bypasses detunnel application authorization on Desktop HTTP/Secure Tunnel. */
   readonly desktopFullBypassAll: boolean;
-  /** Full profile only. Explicitly bypasses lnwjud application authorization for direct STDIO. */
+  /** Full profile only. Explicitly bypasses detunnel application authorization for direct STDIO. */
   readonly stdioFullBypassAll: boolean;
   readonly mcpCallTimeoutMs: number;
   readonly mcpIdleTimeoutMs: number;
@@ -982,7 +982,7 @@ export interface IpcResponseMap {
   readonly [ipcChannels.installUpdate]: { readonly accepted: boolean; readonly status: UpdateStatus };
 }
 
-export interface LnwjudApi {
+export interface DetunnelApi {
   listWorkspaces(): Promise<IpcResponseMap[typeof ipcChannels.listWorkspaces]>;
   addWorkspace(request: AddWorkspaceRequest): Promise<IpcResponseMap[typeof ipcChannels.addWorkspace]>;
   chooseWorkspaceFolder(): Promise<IpcResponseMap[typeof ipcChannels.chooseWorkspaceFolder]>;

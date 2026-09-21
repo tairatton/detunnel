@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { buildTunnelInitArgs, tunnelClientEnv } from '../src/main/tunnel-controller.js';
 
 describe('Secure Tunnel Desktop HTTP wiring', () => {
-  it('passes only tunnel-client runtime state and does not leak headless lnwjud scope switches', () => {
+  it('passes only tunnel-client runtime state and does not leak headless detunnel scope switches', () => {
     const env = tunnelClientEnv('key', 'C:/Users/me/AppData/Roaming/tunnel-client');
     expect(env.CONTROL_PLANE_API_KEY).toBe('key');
-    expect(env.TUNNEL_CLIENT_PROFILE).toBe('lnwjud');
+    expect(env.TUNNEL_CLIENT_PROFILE).toBe('detunnel');
     expect(env.TUNNEL_CLIENT_PROFILE_DIR).toBe('C:/Users/me/AppData/Roaming/tunnel-client');
     expect(env.DETUNNEL_DATA_PATH).toBeUndefined();
     expect(env.DETUNNEL_UNRESTRICTED).toBeUndefined();
@@ -30,6 +30,6 @@ describe('Secure Tunnel Desktop HTTP wiring', () => {
       'http://127.0.0.1:18765/mcp',
     ]));
     expect(args).not.toContain('--mcp-command');
-    expect(args.join(' ')).not.toContain('lnwjud-mcp-stdio');
+    expect(args.join(' ')).not.toContain('detunnel-mcp-stdio');
   });
 });

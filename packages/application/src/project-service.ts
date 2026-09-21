@@ -1,6 +1,6 @@
-import { appError, err, type CommandSpec, type Result } from '@lnwjud/domain';
-import { JsCommandDetector, ProjectDetector, type ProjectCommandKind, type ProjectProfile } from '@lnwjud/project';
-import type { WorkspaceRepository } from '@lnwjud/workspace';
+import { appError, err, type CommandSpec, type Result } from '@detunnel/domain';
+import { JsCommandDetector, ProjectDetector, type ProjectCommandKind, type ProjectProfile } from '@detunnel/project';
+import type { WorkspaceRepository } from '@detunnel/workspace';
 
 export class ProjectService {
   public constructor(

@@ -15,7 +15,7 @@ afterEach(async () => {
 describe('SqliteBackupService', { timeout: 30_000 }, () => {
   it('creates a WAL-consistent snapshot and restores it on the next startup', async () => {
     const root = await temporaryRoot();
-    const databaseFile = path.join(root, 'lnwjud.sqlite');
+    const databaseFile = path.join(root, 'detunnel.sqlite');
     const backupDirectory = path.join(root, 'backups');
     const database = new SqliteDatabase(databaseFile, { backupDirectory });
     database.connection.exec('CREATE TABLE restore_fixture (value TEXT NOT NULL);');
@@ -39,7 +39,7 @@ describe('SqliteBackupService', { timeout: 30_000 }, () => {
 
   it('does not duplicate the automatic daily backup inside the 24-hour window', async () => {
     const root = await temporaryRoot();
-    const databaseFile = path.join(root, 'lnwjud.sqlite');
+    const databaseFile = path.join(root, 'detunnel.sqlite');
     const backupDirectory = path.join(root, 'backups');
     const database = new SqliteDatabase(databaseFile, { backupDirectory });
     let now = new Date('2026-08-01T00:00:00.000Z');
@@ -55,7 +55,7 @@ describe('SqliteBackupService', { timeout: 30_000 }, () => {
 
   it('coordinates the daily backup lease across concurrent database runtimes', async () => {
     const root = await temporaryRoot();
-    const databaseFile = path.join(root, 'lnwjud.sqlite');
+    const databaseFile = path.join(root, 'detunnel.sqlite');
     const backupDirectory = path.join(root, 'backups');
     const firstDatabase = new SqliteDatabase(databaseFile, { backupDirectory });
     const secondDatabase = new SqliteDatabase(databaseFile, { backupDirectory });
@@ -103,7 +103,7 @@ describe('SqliteBackupService', { timeout: 30_000 }, () => {
 
   it('retains seven recent daily snapshots plus four older weekly representatives', async () => {
     const root = await temporaryRoot();
-    const databaseFile = path.join(root, 'lnwjud.sqlite');
+    const databaseFile = path.join(root, 'detunnel.sqlite');
     const backupDirectory = path.join(root, 'backups');
     const database = new SqliteDatabase(databaseFile, { backupDirectory });
     try {
@@ -124,7 +124,7 @@ describe('SqliteBackupService', { timeout: 30_000 }, () => {
 });
 
 async function temporaryRoot(): Promise<string> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-backup-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-backup-'));
   temporaryRoots.push(root);
   return root;
 }

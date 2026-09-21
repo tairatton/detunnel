@@ -66,9 +66,9 @@ try {
         }
         $rootPackage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'package.json') -Raw | ConvertFrom-Json
         $requiredWindowsArtifacts = @(
-            "lnwjud-Setup-$($rootPackage.version).exe",
-            "lnwjud-Setup-$($rootPackage.version).exe.blockmap",
-            "lnwjud-Portable-$($rootPackage.version).exe",
+            "detunnel-Setup-$($rootPackage.version).exe",
+            "detunnel-Setup-$($rootPackage.version).exe.blockmap",
+            "detunnel-Portable-$($rootPackage.version).exe",
             'latest.yml',
             'portable.yml',
             'SHA256SUMS.txt',

@@ -10,14 +10,14 @@ import {
   SearchService,
   WorkspaceInfoService,
   WorkspaceQueryService,
-} from '@lnwjud/application';
-import { AuditService } from '@lnwjud/audit';
-import { CodexAdapter, type CodexDiscoveryPort, type CodexInvocationBuilderPort } from '@lnwjud/codex';
-import { ok, type Result } from '@lnwjud/domain';
-import { ProcessManager } from '@lnwjud/process';
-import { ToolRegistry, type McpApplicationServices } from '@lnwjud/mcp-server';
-import { SqliteAuditRepository, SqliteDatabase, SqliteWorkspaceRepository } from '@lnwjud/storage';
-import { WorkspaceService } from '@lnwjud/workspace';
+} from '@detunnel/application';
+import { AuditService } from '@detunnel/audit';
+import { CodexAdapter, type CodexDiscoveryPort, type CodexInvocationBuilderPort } from '@detunnel/codex';
+import { ok, type Result } from '@detunnel/domain';
+import { ProcessManager } from '@detunnel/process';
+import { ToolRegistry, type McpApplicationServices } from '@detunnel/mcp-server';
+import { SqliteAuditRepository, SqliteDatabase, SqliteWorkspaceRepository } from '@detunnel/storage';
+import { WorkspaceService } from '@detunnel/workspace';
 
 const temporaryRoots: string[] = [];
 
@@ -34,7 +34,7 @@ afterEach(async () => {
 describe('Codex review flow', () => {
   it('delegates to a fake Codex executable, reviews the diff, runs the project test, and stops an owned task', async () => {
     const fixtureRoot = await createFixture();
-    const rawStateRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-codex-flow-state-'));
+    const rawStateRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-codex-flow-state-'));
     temporaryRoots.push(rawStateRoot);
     const stateRoot = await realpath(rawStateRoot);
     const fakeCodexPath = path.join(stateRoot, 'fake-codex.mjs');
@@ -134,13 +134,13 @@ function fakeCodexAdapter(fakeCodexPath: string): CodexAdapter {
 }
 
 async function createFixture(): Promise<string> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-codex-flow-fixture-'));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-codex-flow-fixture-'));
   temporaryRoots.push(rawRoot);
   const root = await realpath(rawRoot);
   await mkdir(path.join(root, 'src'));
   await writeFile(path.join(root, 'src', 'reviewed.ts'), 'export const reviewed = false;\n', 'utf8');
   await writeFile(path.join(root, 'project-test.mjs'), "process.stdout.write('project-test-pass\\n');\n", 'utf8');
-  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'lnwjud-codex-fixture', scripts: { test: 'node project-test.mjs' } }), 'utf8');
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'detunnel-codex-fixture', scripts: { test: 'node project-test.mjs' } }), 'utf8');
   await writeFile(path.join(root, 'package-lock.json'), '{}', 'utf8');
   return root;
 }

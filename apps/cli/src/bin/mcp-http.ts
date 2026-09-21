@@ -1,15 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { startMcpHttp } from '@lnwjud/mcp-server';
+import { parseMcpToolExposureProfile, startMcpHttp } from '@detunnel/mcp-server';
+import { migrateDetunnelDataPath } from '@detunnel/shared/node';
 import {
   UNRESTRICTED_SETTING_KEY,
   USER_SETTING_KEYS,
   parseBooleanSetting,
   parseStdioPermissionProfile,
   resolveDetunnelDataPath,
-} from '@lnwjud/shared';
-import { applyPendingSqliteRestoreSync, SqliteDatabase, SqliteSettingsRepository, SqliteWorkspaceRepository } from '@lnwjud/storage';
-import { normalizeWorkspaceRoot, WorkspaceService } from '@lnwjud/workspace';
+} from '@detunnel/shared';
+import { applyPendingSqliteRestoreSync, SqliteDatabase, SqliteSettingsRepository, SqliteWorkspaceRepository } from '@detunnel/storage';
+import { normalizeWorkspaceRoot, WorkspaceService } from '@detunnel/workspace';
 import { createStdioMcpRuntime } from '../runtime/stdio-mcp-runtime.js';
 
 const PERMISSION_PROFILE_SETTING_KEY = 'permission_profile';
@@ -31,10 +32,11 @@ function resolveDataPath(): string {
 
 async function main(): Promise<void> {
   const dataPath = resolveDataPath();
+  migrateDetunnelDataPath(dataPath, process.env);
   fs.mkdirSync(dataPath, { recursive: true });
   // Keep the same database filename as Desktop and STDIO so all transports
   // share one workspace/settings/audit state.
-  const databaseFilename = path.join(dataPath, 'lnwjud.sqlite');
+  const databaseFilename = path.join(dataPath, 'detunnel.sqlite');
   const restore = applyPendingSqliteRestoreSync(databaseFilename, path.join(dataPath, 'backups'));
   if (restore.error !== undefined) process.stderr.write(`detunnel MCP HTTP: scheduled restore failed: ${restore.error}\n`);
   if (restore.applied) process.stderr.write(`detunnel MCP HTTP: restored database from ${restore.backupId ?? 'scheduled backup'}\n`);
@@ -43,7 +45,8 @@ async function main(): Promise<void> {
   const rawWorkspaceRepository = new SqliteWorkspaceRepository(database);
   const settingsRepository = new SqliteSettingsRepository(database);
 
-  const profileName = parseStdioPermissionProfile(
+  const toolExposureProfile = parseMcpToolExposureProfile(process.env.DETUNNEL_MCP_TOOL_PROFILE);
+  const profileName = toolExposureProfile === 'plugin-safe' ? 'safe' : parseStdioPermissionProfile(
     readArg('--profile')
       ?? process.env.DETUNNEL_PROFILE
       ?? process.env.DETUNNEL_PROFILE
@@ -52,7 +55,7 @@ async function main(): Promise<void> {
     'balanced',
   );
 
-  const fullBypass = hasFlag('--full-bypass')
+  const fullBypass = toolExposureProfile === 'plugin-safe' ? false : hasFlag('--full-bypass')
     || (process.env.DETUNNEL_FULL_BYPASS !== undefined
       ? parseBooleanSetting(process.env.DETUNNEL_FULL_BYPASS, false)
       : process.env.DETUNNEL_STDIO_FULL_BYPASS_ALL !== undefined
@@ -61,7 +64,7 @@ async function main(): Promise<void> {
 
   const workspaceRepository = rawWorkspaceRepository;
   const workspaceService = new WorkspaceService(workspaceRepository);
-  const unrestricted = fullBypass || parseBooleanSetting(
+  const unrestricted = toolExposureProfile === 'plugin-safe' ? false : fullBypass || parseBooleanSetting(
     process.env.DETUNNEL_UNRESTRICTED
       ?? process.env.DETUNNEL_UNRESTRICTED
       ?? settingsRepository.get(UNRESTRICTED_SETTING_KEY),
@@ -135,6 +138,7 @@ async function main(): Promise<void> {
     activityTracker: runtime.activityTracker,
     codexToolsEnabled: runtime.codexToolsEnabled,
     profileProvider: runtime.profileProvider,
+    toolExposureProfile,
     authorizationModeProvider: () => fullBypass ? 'full_bypass' : 'standard',
     allowAiDeleteProvider: runtime.allowAiDeleteProvider,
     destructivePolicyProvider: runtime.destructivePolicyProvider,
@@ -147,7 +151,7 @@ async function main(): Promise<void> {
   process.stdout.write(`  DETUNNEL MCP Server running!\n`);
   process.stdout.write(`  Endpoint: ${handle.endpoint.toString()}\n`);
   process.stdout.write(`  Workspace: ${workspace.realRootPath}\n`);
-  process.stdout.write(`  Profile: ${profileName} (full_bypass=${fullBypass})\n`);
+  process.stdout.write(`  Profile: ${profileName} exposure=${toolExposureProfile} (full_bypass=${fullBypass})\n`);
   process.stdout.write(`=======================================================\n\n`);
 
   let shuttingDown = false;

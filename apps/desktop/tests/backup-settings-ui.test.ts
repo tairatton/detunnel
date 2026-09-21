@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { DashboardSnapshot } from '@lnwjud/ipc-contracts';
+import type { DashboardSnapshot } from '@detunnel/ipc-contracts';
 import { SettingsPage } from '../src/renderer/features/settings/SettingsPage.js';
 
 const noop = async (): Promise<void> => undefined;
@@ -29,8 +29,8 @@ const dashboard: DashboardSnapshot = {
   stdioStrictRoots: false,
   stdioAllowedRoots: [],
   backups: [{ id: 'backup-2026-08-22T00-00-00-000Z-deadbeef', createdAt: '2026-08-22T00:00:00.000Z', reason: 'daily', sizeBytes: 4096 }],
-  recovery: { trashRoot: 'C:\\Users\\Tester\\AppData\\Roaming\\lnwjud\\recovery-trash', trashItems: [], checkpoints: [] },
-  connectionModes: { httpUrl: null, stdioCommand: 'lnwjud --mcp-stdio' },
+  recovery: { trashRoot: 'C:\\Users\\Tester\\AppData\\Roaming\\detunnel\\recovery-trash', trashItems: [], checkpoints: [] },
+  connectionModes: { httpUrl: null, stdioCommand: 'detunnel --mcp-stdio' },
   workLog: [],
   inFlight: [],
   tunnel: { state: 'stopped', source: 'desktop', hasApiKey: false, clientPath: null, profileExists: false, message: null, logPath: null },

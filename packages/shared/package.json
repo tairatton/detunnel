@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/shared",
+  "name": "@detunnel/shared",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,13 @@
       "import": {
         "development": "./src/index.ts",
         "default": "./dist/index.js"
+      }
+    },
+    "./node": {
+      "types": "./src/data-path-node.ts",
+      "import": {
+        "development": "./src/data-path-node.ts",
+        "default": "./dist/data-path-node.js"
       }
     }
   },

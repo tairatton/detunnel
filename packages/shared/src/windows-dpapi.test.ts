@@ -6,14 +6,14 @@ import { loadCheckpointEncryptionKey, loadOrCreateWindowsProtectedKey, protectWi
 
 describe.runIf(process.platform === 'win32')('Windows DPAPI helpers', () => {
   it('round-trips UTF-8 text through direct Windows DPAPI', () => {
-    const plaintext = 'lnwjud-dpapi-ทดสอบ-' + Date.now();
+    const plaintext = 'detunnel-dpapi-ทดสอบ-' + Date.now();
     const protectedValue = protectWithWindowsDpapi(plaintext);
     expect(protectedValue).not.toContain(plaintext);
     expect(unprotectWithWindowsDpapi(protectedValue)).toBe(plaintext);
   }, 15_000);
 
   it('persists a v2 protected key and reuses the same key', async () => {
-    const filePath = path.join(os.tmpdir(), 'lnwjud-dpapi-' + process.pid + '-' + Date.now() + '.key');
+    const filePath = path.join(os.tmpdir(), 'detunnel-dpapi-' + process.pid + '-' + Date.now() + '.key');
     try {
       const first = loadOrCreateWindowsProtectedKey(filePath, 32);
       const stored = await readFile(filePath, 'utf8');
@@ -27,7 +27,7 @@ describe.runIf(process.platform === 'win32')('Windows DPAPI helpers', () => {
 
 describe.runIf(process.platform !== 'win32')('portable checkpoint key helper', () => {
   it('creates and reuses a local key when Windows DPAPI is unavailable', async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-local-key-'));
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'detunnel-local-key-'));
     const filePath = path.join(directory, 'checkpoint-master.key');
     try {
       const first = loadCheckpointEncryptionKey(directory);

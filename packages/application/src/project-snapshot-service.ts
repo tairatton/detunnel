@@ -1,7 +1,7 @@
-import { ok, type Result } from '@lnwjud/domain';
-import type { ManagedProcess, ProcessLogResult } from '@lnwjud/process';
-import type { ProjectProfile } from '@lnwjud/project';
-import type { WorkspaceRepository } from '@lnwjud/workspace';
+import { ok, type Result } from '@detunnel/domain';
+import type { ManagedProcess, ProcessLogResult } from '@detunnel/process';
+import type { ProjectProfile } from '@detunnel/project';
+import type { WorkspaceRepository } from '@detunnel/workspace';
 import type { FileActor } from './file-service.js';
 import { ProcessService } from './process-service.js';
 import { ProjectService } from './project-service.js';
@@ -25,7 +25,7 @@ export interface ProjectSnapshotProcessError {
 export interface ProjectSnapshot {
   readonly project: ProjectProfile;
   readonly tree: {
-    readonly entries: import('@lnwjud/filesystem').TreeResult['entries'];
+    readonly entries: import('@detunnel/filesystem').TreeResult['entries'];
     readonly truncated: boolean;
   };
   readonly runningProcesses: readonly ProjectSnapshotProcessSummary[];

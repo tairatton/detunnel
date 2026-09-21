@@ -1,4 +1,4 @@
-import { ok } from '@lnwjud/domain';
+import { ok } from '@detunnel/domain';
 import type { McpApplicationServices } from './tools/tool-types.js';
 
 type ServiceResolver = (method: string, args: readonly unknown[]) => unknown;
@@ -31,7 +31,7 @@ export function createRuntimeSuccessServices(calls: string[]): McpApplicationSer
   return {
     sandboxRuntimeOptions: {
       platform: process.platform,
-      sandboxExecutable: '__lnwjud_runtime_contract_missing_windows_sandbox__.exe',
+      sandboxExecutable: '__detunnel_runtime_contract_missing_windows_sandbox__.exe',
     },
     workspaceInfo: serviceProxy('workspaceInfo', calls, (method) => method === 'list'
       ? [{ id: 'workspace-1', path: process.cwd(), realRootPath: process.cwd() }]
@@ -45,7 +45,7 @@ export function createRuntimeSuccessServices(calls: string[]): McpApplicationSer
         const filePath = typeof request.path === 'string' ? request.path : 'README.md';
         const startLine = typeof request.startLine === 'number' ? request.startLine : 1;
         const paged = filePath === 'paged.txt';
-        const content = filePath === '.lnwjud/project-profile.json'
+        const content = filePath === '.detunnel/project-profile.json'
           ? '{"language":"typescript"}\n'
           : filePath === 'package.json'
             ? '{"packageManager":"pnpm@10.15.0","scripts":{"benchmark":"vitest bench"}}\n'
@@ -98,7 +98,7 @@ export function createRuntimeSuccessServices(calls: string[]): McpApplicationSer
       if (method === 'listMcpResources') return { server: 'server-1', enabled: true, connected: true, resources: [{ uri: 'file:///resource.txt', name: 'resource' }] };
       return { called: true };
     }),
-    localProviders: () => ({ pdfProvider: '__lnwjud_missing_pdf_provider__.exe' }),
+    localProviders: () => ({ pdfProvider: '__detunnel_missing_pdf_provider__.exe' }),
     capabilities: {
       async execute(tool: string, input: unknown) {
         calls.push(`capabilities.${tool}`);

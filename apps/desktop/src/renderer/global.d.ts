@@ -1,8 +1,8 @@
-import type { LnwjudApi } from '@lnwjud/ipc-contracts';
+import type { DetunnelApi } from '@detunnel/ipc-contracts';
 
 declare global {
   interface Window {
-    readonly lnwjud: LnwjudApi;
+    readonly detunnel: DetunnelApi;
   }
 }
 

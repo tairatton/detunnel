@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/codex",
+  "name": "@detunnel/codex",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,8 @@
     }
   },
   "dependencies": {
-    "@lnwjud/domain": "workspace:*",
-    "@lnwjud/process": "workspace:*"
+    "@detunnel/domain": "workspace:*",
+    "@detunnel/process": "workspace:*"
   },
   "scripts": {
     "test": "vitest run",

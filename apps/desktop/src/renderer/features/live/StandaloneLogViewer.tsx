@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
-import { workspaceScopeMatches, type LiveLogExportReference, type LogLine, type LogSource, type TunnelAuthStatus, type WorkspaceSummary } from '@lnwjud/ipc-contracts';
+import { workspaceScopeMatches, type LiveLogExportReference, type LogLine, type LogSource, type TunnelAuthStatus, type WorkspaceSummary } from '@detunnel/ipc-contracts';
 import { createTranslator } from '../../i18n/index.js';
 import { tunnelAuthPresentation } from '../../tunnel-auth-presentation.js';
 import { applyLogSnapshot } from './log-buffer.js';
@@ -29,15 +29,15 @@ export function StandaloneLogViewer(): ReactElement {
       return next;
     });
   }, []);
-  const resolveTargetDetail = useCallback(async (detailRef: string) => (await window.lnwjud.resolveActivityTargetDetail({ detailRef })).detail, []);
+  const resolveTargetDetail = useCallback(async (detailRef: string) => (await window.detunnel.resolveActivityTargetDetail({ detailRef })).detail, []);
   const searchTargetDetails = useCallback(async (
     query: string,
     candidates: readonly { readonly id: string; readonly detailRef: string | null }[],
-  ) => (await window.lnwjud.searchActivityTargetDetails({ query, candidates })).matchingIds, []);
+  ) => (await window.detunnel.searchActivityTargetDetails({ query, candidates })).matchingIds, []);
 
   useEffect(() => {
     let disposed = false;
-    void window.lnwjud.getLogSnapshot().then((snapshot) => {
+    void window.detunnel.getLogSnapshot().then((snapshot) => {
       if (disposed) return;
       setLines((previous) => {
         const merged = applyLogSnapshot(previous, logIds.current, snapshot.lines);
@@ -48,10 +48,10 @@ export function StandaloneLogViewer(): ReactElement {
       setTunnelLogExists(snapshot.tunnelLogExists);
       setTunnelAuth(snapshot.tunnelAuth);
     }).catch(() => undefined);
-    void window.lnwjud.listWorkspaces().then((nextWorkspaces) => {
+    void window.detunnel.listWorkspaces().then((nextWorkspaces) => {
       if (!disposed) setWorkspaces(nextWorkspaces);
     }).catch(() => undefined);
-    const unsubscribe = window.lnwjud.onLogEvent((line) => {
+    const unsubscribe = window.detunnel.onLogEvent((line) => {
       appendLine(line);
       if (line.source === 'tunnel') setTunnelLogExists(true);
     });
@@ -67,18 +67,18 @@ export function StandaloneLogViewer(): ReactElement {
       ...(scope.workspaceId === null ? {} : { workspaceId: scope.workspaceId }),
       ...(scope.sessionId === null ? {} : { sessionId: scope.sessionId }),
     };
-    await window.lnwjud.clearLogBuffer(request).catch(() => undefined);
+    await window.detunnel.clearLogBuffer(request).catch(() => undefined);
     setLines((previous) => previous.filter((line) => line.source !== source || !lineMatchesScope(line, scope, workspaces)));
   }
 
   async function clearAll(): Promise<void> {
-    await Promise.all(sources.map((source) => window.lnwjud.clearLogBuffer({ source }).catch(() => undefined)));
+    await Promise.all(sources.map((source) => window.detunnel.clearLogBuffer({ source }).catch(() => undefined)));
     logIds.current = new Set();
     setLines([]);
   }
 
   async function exportLogs(source: LogSource, scope: LogScopeSelection, query: string, lines: readonly LiveLogExportReference[]): Promise<void> {
-    await window.lnwjud.exportLogs({
+    await window.detunnel.exportLogs({
       source,
       filePath: '',
       ...(scope.workspaceId === null ? {} : { workspaceId: scope.workspaceId }),

@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { AuditEvent } from '@lnwjud/audit';
+import type { AuditEvent } from '@detunnel/audit';
 import { SqliteAuditRepository } from './audit-repository.js';
 import { SqliteDatabase } from './database.js';
 
@@ -13,10 +13,10 @@ afterEach(async () => {
 });
 
 describe('SqliteDatabase WAL', () => {
-  it('opens in WAL mode so desktop and stdio MCP can share lnwjud.sqlite', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-wal-'));
+  it('opens in WAL mode so desktop and stdio MCP can share detunnel.sqlite', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-wal-'));
     temporaryRoots.push(root);
-    const filename = path.join(root, 'lnwjud.sqlite');
+    const filename = path.join(root, 'detunnel.sqlite');
     const writer = new SqliteDatabase(filename);
     const mode = writer.connection.prepare('PRAGMA journal_mode;').get() as { journal_mode?: string } | undefined;
     expect(mode?.journal_mode?.toLowerCase()).toBe('wal');
@@ -26,7 +26,7 @@ describe('SqliteDatabase WAL', () => {
       id: 'event-mcp-1',
       timestamp: new Date().toISOString(),
       actorId: 'cli-mcp-stdio',
-      actorName: 'lnwjud cli MCP',
+      actorName: 'detunnel cli MCP',
       action: 'mcp_tool:read_file',
       resultCode: 'SUCCESS',
       durationMs: 3,

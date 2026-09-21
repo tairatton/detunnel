@@ -1,6 +1,6 @@
-import { err, ok, type InvocationAuthorization, type Result } from '@lnwjud/domain';
-import type { CapabilityService } from '@lnwjud/capabilities';
-import type { ExtensionsService } from '@lnwjud/extensions';
+import { err, ok, type InvocationAuthorization, type Result } from '@detunnel/domain';
+import type { CapabilityService } from '@detunnel/capabilities';
+import type { ExtensionsService } from '@detunnel/extensions';
 import type {
   AgentSwarmService,
   ApplyPatchRequest,
@@ -23,7 +23,7 @@ import type {
   WorkspaceIndexService,
   WorkspaceQueryService,
   WriteFileRequest,
-} from '@lnwjud/application';
+} from '@detunnel/application';
 import { z } from 'zod';
 import type { ContextEconomyRuntime } from '../context-economy.js';
 

@@ -53,7 +53,7 @@ describe('focused ChatGPT product surface', () => {
     expect(homeSource).toContain('ไม่ลบโฟลเดอร์หรือไฟล์');
     expect(homeSource).toContain('เลือกใช้งานได้ครั้งละ 1 โปรเจกต์');
     expect(appSource).toContain('async function selectWorkspaceExclusive(workspaceId: string)');
-    expect(appSource).toContain('if (workspace.id !== workspaceId) await window.lnwjud.setWorkspaceActive({ workspaceId: workspace.id, active: false })');
+    expect(appSource).toContain('if (workspace.id !== workspaceId) await window.detunnel.setWorkspaceActive({ workspaceId: workspace.id, active: false })');
     expect(appSource).toContain('async function addWorkspaceExclusive(rootPath: string)');
     expect(homeSource).not.toContain('Remove from active');
     expect(homeSource).not.toContain('Add to active');

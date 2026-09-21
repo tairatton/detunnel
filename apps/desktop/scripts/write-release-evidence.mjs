@@ -25,9 +25,9 @@ if (!capabilityBridgeRuntime || capabilityBridgeRuntime.sha256 !== runtimeEviden
 }
 
 const artifactNames = [
-  `lnwjud-Setup-${version}.exe`,
-  `lnwjud-Setup-${version}.exe.blockmap`,
-  `lnwjud-Portable-${version}.exe`,
+  `detunnel-Setup-${version}.exe`,
+  `detunnel-Setup-${version}.exe.blockmap`,
+  `detunnel-Portable-${version}.exe`,
   'latest.yml',
   'portable.yml',
 ];
@@ -41,7 +41,7 @@ for (const name of artifactNames) {
 
 const provenance = {
   schemaVersion: 1,
-  product: 'lnwjud',
+  product: 'detunnel',
   version,
   source: {
     kind: 'local-build',
@@ -70,7 +70,7 @@ const sumLines = [
 ];
 await writeFile(path.join(installerDirectory, 'SHA256SUMS.txt'), `${sumLines.join('\n')}\n`, 'utf8');
 
-process.stdout.write(`Release evidence written for lnwjud ${version}\n`);
+process.stdout.write(`Release evidence written for detunnel ${version}\n`);
 
 function isCapabilityBridgeIdentity(value) {
   return value !== null

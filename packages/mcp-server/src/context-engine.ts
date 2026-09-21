@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { err, ok, type AppError, type Result } from '@lnwjud/domain';
-import type { FileActor, SearchService } from '@lnwjud/application';
-import { classifyContextPath } from '@lnwjud/search';
+import { err, ok, type AppError, type Result } from '@detunnel/domain';
+import type { FileActor, SearchService } from '@detunnel/application';
+import { classifyContextPath } from '@detunnel/search';
 import type { McpApplicationServices } from './tools/tool-types.js';
 import { ContextEconomyRuntime, type ContextEconomyStats, type ContextDeliveryKind } from './context-economy.js';
 

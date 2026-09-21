@@ -1,14 +1,14 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { ipcChannels, type LnwjudApi, type ToolCatalogItem, type ToolCatalogSnapshot } from '@lnwjud/ipc-contracts';
+import { ipcChannels, type DetunnelApi, type ToolCatalogItem, type ToolCatalogSnapshot } from '@detunnel/ipc-contracts';
 
 const electron = vi.hoisted(() => ({
-  exposed: undefined as LnwjudApi | undefined,
+  exposed: undefined as DetunnelApi | undefined,
   invoke: vi.fn(),
 }));
 
 vi.mock('electron', () => ({
   contextBridge: {
-    exposeInMainWorld: (_name: string, api: LnwjudApi): void => { electron.exposed = api; },
+    exposeInMainWorld: (_name: string, api: DetunnelApi): void => { electron.exposed = api; },
   },
   ipcRenderer: {
     invoke: electron.invoke,
@@ -19,7 +19,7 @@ vi.mock('electron', () => ({
 
 const checkedAt = '2026-08-30T00:00:00.000Z';
 const item: ToolCatalogItem = {
-  name: 'read_file', origin: 'lnwjud', category: 'files', title: 'Read file', shortDescription: 'Read file', longDescription: 'Read file',
+  name: 'read_file', origin: 'detunnel', category: 'files', title: 'Read file', shortDescription: 'Read file', longDescription: 'Read file',
   declaredPermission: 'EXECUTE', profileDecision: 'ALLOW', riskMode: 'fixed', readiness: 'ready',
   userPreference: 'default', systemEligible: true, effectiveExposed: true, stale: false,
   checkedAt, supportsCancel: false, supportsDryRun: false, requirements: [], remediationIds: [], inputSchema: null, searchText: ['read', 'file'],

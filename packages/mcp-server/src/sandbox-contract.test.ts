@@ -7,7 +7,7 @@ describe('Windows Sandbox execution contract', () => {
       workspaceId: 'ws-1',
       allowedRoots: ['C:\\workspace'],
       inputPath: 'C:\\workspace\\fixture',
-      outputPath: 'C:\\workspace\\.lnwjud\\sandbox-output',
+      outputPath: 'C:\\workspace\\.detunnel\\sandbox-output',
       executable: 'node',
       arguments: ['--version'],
     });
@@ -16,7 +16,7 @@ describe('Windows Sandbox execution contract', () => {
       networking: 'disabled',
       processIo: 'artifact-only',
       inputReadOnly: true,
-      outputArtifact: expect.objectContaining({ path: 'C:\\workspace\\.lnwjud\\sandbox-output' }),
+      outputArtifact: expect.objectContaining({ path: 'C:\\workspace\\.detunnel\\sandbox-output' }),
       jobManifest: expect.objectContaining({ executable: 'node', arguments: ['--version'] }),
       wsbXml: expect.stringContaining('<Networking>Disable</Networking>'),
     } });

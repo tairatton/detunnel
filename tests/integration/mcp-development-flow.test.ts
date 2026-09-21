@@ -2,11 +2,11 @@ import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promi
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { CheckpointService, FileService, ProcessService, ProjectService, ProjectSnapshotService, SearchService, WorkspaceInfoService, WorkspaceQueryService } from '@lnwjud/application';
-import { ok, type CommandSpec, type Result } from '@lnwjud/domain';
-import { ToolRegistry, type McpApplicationServices } from '@lnwjud/mcp-server';
-import { SqliteCheckpointRepository, SqliteDatabase, SqliteWorkspaceRepository } from '@lnwjud/storage';
-import { WorkspaceService } from '@lnwjud/workspace';
+import { CheckpointService, FileService, ProcessService, ProjectService, ProjectSnapshotService, SearchService, WorkspaceInfoService, WorkspaceQueryService } from '@detunnel/application';
+import { ok, type CommandSpec, type Result } from '@detunnel/domain';
+import { ToolRegistry, type McpApplicationServices } from '@detunnel/mcp-server';
+import { SqliteCheckpointRepository, SqliteDatabase, SqliteWorkspaceRepository } from '@detunnel/storage';
+import { WorkspaceService } from '@detunnel/workspace';
 
 const temporaryRoots: string[] = [];
 
@@ -23,7 +23,7 @@ afterEach(async () => {
 describe('MCP development flow', () => {
   it('keeps the complete fixture workflow inside application services', async () => {
     const fixtureRoot = await createFixture();
-    const rawDatabaseRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-mcp-db-'));
+    const rawDatabaseRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-mcp-db-'));
     temporaryRoots.push(rawDatabaseRoot);
     const databaseRoot = await realpath(rawDatabaseRoot);
     const database = new SqliteDatabase(path.join(databaseRoot, 'state.sqlite'));
@@ -122,7 +122,7 @@ describe('MCP development flow', () => {
 });
 
 async function createFixture(): Promise<string> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-mcp-fixture-'));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-mcp-fixture-'));
   temporaryRoots.push(rawRoot);
   const root = await realpath(rawRoot);
   await mkdir(path.join(root, 'src'));
@@ -132,7 +132,7 @@ async function createFixture(): Promise<string> {
   await writeFile(path.join(root, '.env'), 'SECRET_NOT_FOR_TOOLS=hidden\n', 'utf8');
   await writeFile(path.join(root, 'project-test.mjs'), "process.stdout.write('project-test-pass\\n');\n", 'utf8');
   await writeFile(path.join(root, 'package.json'), JSON.stringify({
-    name: 'lnwjud-flow-fixture',
+    name: 'detunnel-flow-fixture',
     scripts: { test: 'node project-test.mjs' },
   }), 'utf8');
   await writeFile(path.join(root, 'package-lock.json'), '{}', 'utf8');

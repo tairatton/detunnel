@@ -1,5 +1,5 @@
-appId: com.lnwjud.desktop
-productName: lnwjud
+appId: com.detunnel.desktop
+productName: detunnel
 asar: true
 npmRebuild: false
 directories:
@@ -15,7 +15,7 @@ files:
 publish:
   provider: github
   owner: engasnm111
-  repo: lnwjud
+  repo: detunnel
   releaseType: release
 afterPack: scripts/capture-packaged-runtime-evidence.mjs
 afterSign: scripts/capture-packaged-runtime-evidence.mjs
@@ -32,16 +32,16 @@ extraResources:
     to: tunnel-client
   - from: build/runtime-tools
     to: runtime-tools
-  - from: ../../.agents/skills/lnwjud-scheduled-continuation
-    to: agent-skills/lnwjud-scheduled-continuation
-# Tunnel profile expects these next to lnwjud.exe (not only under resources/).
+  - from: ../../.agents/skills/detunnel-scheduled-continuation
+    to: agent-skills/detunnel-scheduled-continuation
+# Tunnel profile expects these next to detunnel.exe (not only under resources/).
 extraFiles:
-  - from: build/lnwjud-mcp-stdio.cjs
-    to: lnwjud-mcp-stdio.cjs
-  - from: build/lnwjud-mcp-stdio.cmd
-    to: lnwjud-mcp-stdio.cmd
-  - from: build/lnwjud-node.exe
-    to: lnwjud-node.exe
+  - from: build/detunnel-mcp-stdio.cjs
+    to: detunnel-mcp-stdio.cjs
+  - from: build/detunnel-mcp-stdio.cmd
+    to: detunnel-mcp-stdio.cmd
+  - from: build/detunnel-node.exe
+    to: detunnel-node.exe
 win:
   icon: build/icon.ico
   target:
@@ -51,13 +51,13 @@ win:
     - target: portable
       arch:
         - x64
-  artifactName: lnwjud-Setup-${version}.${ext}
-  # Keep the branded icon embedded in lnwjud.exe for Windows shortcuts and taskbar.
+  artifactName: detunnel-Setup-${version}.${ext}
+  # Keep the branded icon embedded in detunnel.exe for Windows shortcuts and taskbar.
   signAndEditExecutable: true
 nsis:
   oneClick: false
   perMachine: false
-  # Preserve the historical per-user default (%LOCALAPPDATA%\Programs\lnwjud).
+  # Preserve the historical per-user default (%LOCALAPPDATA%\Programs\detunnel).
   # All-users remains an explicit installer-page choice instead of the default.
   selectPerMachineByDefault: false
   allowToChangeInstallationDirectory: true
@@ -69,4 +69,4 @@ nsis:
   uninstallDisplayName: ${productName}
   include: build/installer.nsh
 portable:
-  artifactName: lnwjud-Portable-${version}.${ext}
+  artifactName: detunnel-Portable-${version}.${ext}

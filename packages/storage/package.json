@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/storage",
+  "name": "@detunnel/storage",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     }
   },
   "dependencies": {
-    "@lnwjud/audit": "workspace:*",
-    "@lnwjud/domain": "workspace:*",
-    "@lnwjud/workspace": "workspace:*"
+    "@detunnel/audit": "workspace:*",
+    "@detunnel/domain": "workspace:*",
+    "@detunnel/workspace": "workspace:*"
   },
   "scripts": {
     "test": "vitest run",

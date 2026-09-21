@@ -2,9 +2,9 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { appError, err, ok, type InvocationAuthorization } from '@lnwjud/domain';
-import type { ManagedProcess } from '@lnwjud/process';
-import { SqliteAgentSwarmRepository, SqliteDatabase } from '@lnwjud/storage';
+import { appError, err, ok, type InvocationAuthorization } from '@detunnel/domain';
+import type { ManagedProcess } from '@detunnel/process';
+import { SqliteAgentSwarmRepository, SqliteDatabase } from '@detunnel/storage';
 import { AgentSwarmService, type AgentSwarmCodexPort } from './agent-swarm-service.js';
 import type { AgentSwarmStartRequest } from './agent-swarm-types.js';
 import type { FileActor } from './file-service.js';
@@ -24,7 +24,7 @@ function managed(codexTaskId: string, state: ManagedProcess['state'] = 'running'
     processId: `process-${codexTaskId}`,
     executable: 'codex',
     args: ['exec'],
-    cwd: 'E:\\lnwjud',
+    cwd: 'E:\\detunnel',
     state,
     startedAt: '2026-08-31T00:00:00.000Z',
     ...(state === 'exited' ? { finishedAt: '2026-08-31T00:00:01.000Z', exitCode: 0 } : {}),
@@ -32,7 +32,7 @@ function managed(codexTaskId: string, state: ManagedProcess['state'] = 'running'
 }
 
 async function fixture(codex: AgentSwarmCodexPort): Promise<{ database: SqliteDatabase; repository: SqliteAgentSwarmRepository; service: AgentSwarmService }> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-agent-swarm-service-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-agent-swarm-service-'));
   temporaryRoots.push(root);
   const database = new SqliteDatabase(path.join(root, 'state.sqlite'));
   const repository = new SqliteAgentSwarmRepository(database);

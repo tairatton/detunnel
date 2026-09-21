@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { TunnelStatus, UiLocale } from '@lnwjud/ipc-contracts';
+import type { TunnelStatus, UiLocale } from '@detunnel/ipc-contracts';
 import { FirstRunTunnelTip } from '../src/renderer/features/onboarding/FirstRunTunnelTip.js';
 import { GuidedTunnelSetup } from '../src/renderer/features/onboarding/GuidedTunnelSetup.js';
 
@@ -30,7 +30,7 @@ function guideMarkup(locale: UiLocale, status: TunnelStatus): string {
     onOpenChange: noop,
     onOpenExternal: noopAsync,
     onSaveApiKey: noopAsync,
-    onConfigureProfile: async (): Promise<string> => 'C:\\fixture\\lnwjud.yaml',
+    onConfigureProfile: async (): Promise<string> => 'C:\\fixture\\detunnel.yaml',
     onStartTunnel: async (): Promise<TunnelStatus> => status,
     onRefresh: noopAsync,
     onLocalComplete: noop,
@@ -95,7 +95,7 @@ describe('guided tunnel onboarding UI', () => {
       persistent: {
         enabled: true,
         tunnelIdMasked: 'tunnel_0123********cdef',
-        runtimeAlias: 'lnwjud',
+        runtimeAlias: 'detunnel',
         mode: 'native-managed',
         state: 'running',
         healthy: true,
@@ -128,7 +128,7 @@ describe('guided tunnel onboarding UI', () => {
       persistent: {
         enabled: true,
         tunnelIdMasked: 'tunnel_old********3456',
-        runtimeAlias: 'lnwjud',
+        runtimeAlias: 'detunnel',
         mode: 'native-managed',
         state: 'error',
         healthy: true,

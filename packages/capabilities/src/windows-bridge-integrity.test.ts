@@ -104,7 +104,7 @@ async function temporaryRoot(): Promise<string> {
   // junction. Canonicalize that parent first so the fixture itself is a regular,
   // non-reparse path while production integrity checks remain fail-closed.
   const canonicalTemp = await realpath(os.tmpdir());
-  const root = await mkdtemp(path.join(canonicalTemp, 'lnwjud-bridge-integrity-'));
+  const root = await mkdtemp(path.join(canonicalTemp, 'detunnel-bridge-integrity-'));
   temporaryRoots.push(root);
   return root;
 }

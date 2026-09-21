@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
+import { appError, err, ok, type Result } from '@detunnel/domain';
 import type { CapabilityBackend } from './local-capability-service.js';
 
 /**

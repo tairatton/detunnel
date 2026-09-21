@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { isProtectedCriticalPath, type DestructiveAutoApprovalPolicy } from '@lnwjud/shared';
+import { isProtectedCriticalPath, type DestructiveAutoApprovalPolicy } from '@detunnel/shared';
 import type { MutationPolicyDecision } from './mutation-policy.js';
 
 export interface WorkspaceScope {

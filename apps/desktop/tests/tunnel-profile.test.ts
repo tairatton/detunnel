@@ -29,7 +29,7 @@ describe('tunnel profile MCP target', () => {
       'mcp:',
       '  commands:',
       '    - channel: main',
-      '      command: "D:/lnwjud/lnwjud-mcp-stdio.cmd"',
+      '      command: "D:/detunnel/detunnel-mcp-stdio.cmd"',
       '',
     ].join('\n');
     const next = rewriteTunnelYamlMcpServerUrl(yaml, 'http://127.0.0.1:3001/mcp');
@@ -37,7 +37,7 @@ describe('tunnel profile MCP target', () => {
     expect(next).toContain('connection_max_ttl: 168h0m0s');
     expect(next).toContain('url: "http://127.0.0.1:3001/mcp"');
     expect(next).not.toContain('commands:');
-    expect(next).not.toContain('lnwjud-mcp-stdio.cmd');
+    expect(next).not.toContain('detunnel-mcp-stdio.cmd');
   });
 
   it('repairs an existing HTTP profile when the Desktop MCP port changes', () => {
@@ -152,53 +152,53 @@ describe('tunnel profile MCP target', () => {
       'mcp:',
       '  commands:',
       '    - channel: main',
-      '      command: "C:/Users/me/AppData/Local/Programs/lnwjud/lnwjud-mcp-stdio.cmd"',
+      '      command: "C:/Users/me/AppData/Local/Programs/detunnel/detunnel-mcp-stdio.cmd"',
     ].join('\n');
     const next = rewriteTunnelYamlMcpCommand(
       yaml,
-      'C:\\Users\\me\\AppData\\Local\\Programs\\lnwjud\\lnwjud-mcp-stdio.cmd',
+      'C:\\Users\\me\\AppData\\Local\\Programs\\detunnel\\detunnel-mcp-stdio.cmd',
     );
-    expect(next).toContain('command: "C:/Users/me/AppData/Local/Programs/lnwjud/lnwjud-mcp-stdio.cmd"');
+    expect(next).toContain('command: "C:/Users/me/AppData/Local/Programs/detunnel/detunnel-mcp-stdio.cmd"');
   });
 
-  it('keeps lnwjud.exe --mcp-stdio as a local stdio MCP command', () => {
-    const yaml = '      command: "C:/old/lnwjud-mcp-stdio.cmd --workspace E:/lnwjud"';
-    expect(rewriteTunnelYamlMcpCommand(yaml, 'D:/lnwjud/lnwjud.exe --mcp-stdio')).toContain(
-      'command: "D:/lnwjud/lnwjud.exe --mcp-stdio"',
+  it('keeps detunnel.exe --mcp-stdio as a local stdio MCP command', () => {
+    const yaml = '      command: "C:/old/detunnel-mcp-stdio.cmd --workspace E:/detunnel"';
+    expect(rewriteTunnelYamlMcpCommand(yaml, 'D:/detunnel/detunnel.exe --mcp-stdio')).toContain(
+      'command: "D:/detunnel/detunnel.exe --mcp-stdio"',
     );
   });
 
   it('replaces a stale node command for direct local stdio use', () => {
     const yaml = '      command: "node"';
-    expect(rewriteTunnelYamlMcpCommand(yaml, 'D:/lnwjud/lnwjud-mcp-stdio.cmd')).toContain(
-      'command: "D:/lnwjud/lnwjud-mcp-stdio.cmd"',
+    expect(rewriteTunnelYamlMcpCommand(yaml, 'D:/detunnel/detunnel-mcp-stdio.cmd')).toContain(
+      'command: "D:/detunnel/detunnel-mcp-stdio.cmd"',
     );
   });
 
-  it('falls back to the cmd launcher when the local host is not lnwjud.exe', () => {
-    expect(preferredTunnelMcpCommand('C:\\Program Files\\nodejs\\node.exe', 'D:\\lnwjud\\lnwjud-mcp-stdio.cmd')).toBe(
-      'D:\\lnwjud\\lnwjud-mcp-stdio.cmd',
+  it('falls back to the cmd launcher when the local host is not detunnel.exe', () => {
+    expect(preferredTunnelMcpCommand('C:\\Program Files\\nodejs\\node.exe', 'D:\\detunnel\\detunnel-mcp-stdio.cmd')).toBe(
+      'D:\\detunnel\\detunnel-mcp-stdio.cmd',
     );
   });
 
-  it('prefers the packaged cmd launcher for direct local stdio when the host is a GUI lnwjud.exe', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-stdio-exe-'));
+  it('prefers the packaged cmd launcher for direct local stdio when the host is a GUI detunnel.exe', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-stdio-exe-'));
     temporaryRoots.push(root);
-    const exePath = path.join(root, 'lnwjud.exe');
+    const exePath = path.join(root, 'detunnel.exe');
     await writeFile(exePath, 'stub', 'utf8');
-    const cmdPath = path.join(root, 'lnwjud-mcp-stdio.cmd');
+    const cmdPath = path.join(root, 'detunnel-mcp-stdio.cmd');
     await writeFile(cmdPath, '@echo off\n', 'utf8');
     expect(preferredTunnelMcpCommand(exePath, cmdPath)).toBe(await realpath(cmdPath));
   });
 
   it('resolves the first existing packaged cmd candidate', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-stdio-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-stdio-'));
     temporaryRoots.push(root);
     const resources = path.join(root, 'resources');
     await mkdir(resources);
-    const cmdPath = path.join(root, 'lnwjud-mcp-stdio.cmd');
+    const cmdPath = path.join(root, 'detunnel-mcp-stdio.cmd');
     await writeFile(cmdPath, '@echo off\n', 'utf8');
-    expect(resolveStdioLauncherPath(packagedStdioLauncherCandidates(path.join(root, 'lnwjud.exe'), resources))).toBe(
+    expect(resolveStdioLauncherPath(packagedStdioLauncherCandidates(path.join(root, 'detunnel.exe'), resources))).toBe(
       path.resolve(cmdPath),
     );
   });

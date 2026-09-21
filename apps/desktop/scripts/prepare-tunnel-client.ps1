@@ -99,7 +99,7 @@ if ([string]::IsNullOrWhiteSpace($cloudflaredVersion)) {
 }
 
 $manifest = @(
-    'OpenAI tunnel-client bundled by lnwjud',
+    'OpenAI tunnel-client bundled by detunnel',
     "version=$version",
     "asset=$assetName",
     "source=$assetUrl",

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { Workspace, WorkspaceRepository } from '@lnwjud/workspace';
+import type { Workspace, WorkspaceRepository } from '@detunnel/workspace';
 import { JsonWorkspaceIndexStore, WorkspaceIndexService } from './workspace-index.js';
 
 function fixtureRepository(workspace: Workspace): WorkspaceRepository {
@@ -16,7 +16,7 @@ function fixtureRepository(workspace: Workspace): WorkspaceRepository {
 
 describe('WorkspaceIndexService', () => {
   it('indexes source and metadata paths by default while allowing an explicit ignored subtree', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-index-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-index-'));
     await mkdir(path.join(root, '.source-metadata'), { recursive: true });
     await mkdir(path.join(root, 'dist'), { recursive: true });
     await mkdir(path.join(root, 'node_modules', 'fixture'), { recursive: true });

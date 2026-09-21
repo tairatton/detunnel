@@ -1,6 +1,6 @@
-import { type Result } from '@lnwjud/domain';
-import { TreeReader, type TreeOptions, type TreeResult } from '@lnwjud/filesystem';
-import { WorkspacePathGuard, type WorkspaceRepository } from '@lnwjud/workspace';
+import { type Result } from '@detunnel/domain';
+import { TreeReader, type TreeOptions, type TreeResult } from '@detunnel/filesystem';
+import { WorkspacePathGuard, type WorkspaceRepository } from '@detunnel/workspace';
 import type { FileActor } from './file-service.js';
 import { resolveWorkspaceForPath } from './workspace-locator.js';
 

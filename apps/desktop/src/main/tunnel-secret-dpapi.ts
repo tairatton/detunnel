@@ -44,7 +44,7 @@ export function sanitizeTunnelSecretPowerShellError(message: string): string {
   if (/is not a valid encrypted string/i.test(trimmed)) {
     return 'Stored tunnel secret is not a valid encrypted string';
   }
-  return trimmed.replace(/lnwjud-secret:v3:[A-Za-z0-9._-]+:[A-Za-z0-9+/=\s]+/g, '[redacted protected secret]');
+  return trimmed.replace(/detunnel-secret:v3:[A-Za-z0-9._-]+:[A-Za-z0-9+/=\s]+/g, '[redacted protected secret]');
 }
 
 function runWindowsPowerShellWithStdin(command: string, input: string): Promise<string> {

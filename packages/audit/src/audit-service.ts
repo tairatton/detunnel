@@ -64,7 +64,7 @@ export class AuditService {
         ...(input.activityTargetDetail === undefined
           ? {}
           : { activityTargetDetail: redactActivityTargetDetail(input.activityTargetDetail, this.redactor) }),
-        ...(input.resultMessage === undefined ? {} : { errorMessage: input.resultMessage }),
+        ...(input.resultMessage === undefined ? {} : { errorMessage: this.redactor.redactText(input.resultMessage) }),
         ...(input.traceId === undefined ? {} : { traceId: input.traceId }),
         ...(input.traceParent === undefined ? {} : { traceParent: input.traceParent }),
         ...(input.authorizationMode === undefined ? {} : { authorizationMode: input.authorizationMode }),

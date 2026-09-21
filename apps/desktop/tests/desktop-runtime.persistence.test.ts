@@ -24,7 +24,7 @@ afterEach(async () => {
 
 describe('DesktopRuntime persistence', () => {
   it('builds the production dashboard audit summary without parsing large started metadata', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-audit-summary-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-audit-summary-'));
     temporaryRoots.push(rawDataRoot);
     const runtime = createDesktopRuntime(await realpath(rawDataRoot));
     const maximumLengthPath = `E:\\${'x'.repeat(4_093)}`;
@@ -50,7 +50,7 @@ describe('DesktopRuntime persistence', () => {
   }, 15_000);
 
   it('starts with no automatically registered drive roots even when unrestricted mode is enabled', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-no-auto-drives-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-no-auto-drives-'));
     temporaryRoots.push(rawDataRoot);
     const runtime = createDesktopRuntime(await realpath(rawDataRoot));
     try {
@@ -61,7 +61,7 @@ describe('DesktopRuntime persistence', () => {
   });
 
   it('wires durable goals and scheduled continuation orchestration into desktop MCP services', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-continuation-data-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-continuation-data-'));
     temporaryRoots.push(rawDataRoot);
     const runtime = createDesktopRuntime(await realpath(rawDataRoot));
     try {
@@ -72,8 +72,8 @@ describe('DesktopRuntime persistence', () => {
     }
   });
   it('updates one connected Desktop MCP client immediately when in-process tool availability changes', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-tool-availability-data-'));
-    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-tool-availability-workspace-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-tool-availability-data-'));
+    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-tool-availability-workspace-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceRoot);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRoot = await realpath(rawWorkspaceRoot);
@@ -104,7 +104,7 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('persists user tool availability across a Desktop runtime restart', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-tool-availability-restart-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-tool-availability-restart-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
 
@@ -126,8 +126,8 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('applies and restores permission settings without restoring an MCP listener', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-data-'));
-    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-workspace-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-data-'));
+    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-workspace-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceRoot);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRoot = await realpath(rawWorkspaceRoot);
@@ -174,9 +174,9 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('keeps one desktop MCP listener alive while selecting and serving different workspaces', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-multi-data-'));
-    const rawWorkspaceA = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-multi-a-'));
-    const rawWorkspaceB = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-multi-b-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-multi-data-'));
+    const rawWorkspaceA = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-multi-a-'));
+    const rawWorkspaceB = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-multi-b-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceA, rawWorkspaceB);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRootA = await realpath(rawWorkspaceA);
@@ -222,8 +222,8 @@ describe('DesktopRuntime persistence', () => {
     }
   }, 30_000);
   it('persists AI delete and STDIO security policy settings and applies scoped delete dynamically', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-policy-data-'));
-    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-policy-workspace-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-policy-data-'));
+    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-policy-workspace-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceRoot);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRoot = await realpath(rawWorkspaceRoot);
@@ -273,9 +273,9 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('archives, restores, and deletes project registrations without deleting the project folder', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-project-lifecycle-data-'));
-    const rawWorkspaceA = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-project-lifecycle-a-'));
-    const rawWorkspaceB = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-project-lifecycle-b-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-project-lifecycle-data-'));
+    const rawWorkspaceA = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-project-lifecycle-a-'));
+    const rawWorkspaceB = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-project-lifecycle-b-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceA, rawWorkspaceB);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRootA = await realpath(rawWorkspaceA);
@@ -339,7 +339,7 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('defaults to English and restores the persisted UI locale for native tray startup', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-locale-data-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-locale-data-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
 
@@ -362,7 +362,7 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('persists user-configurable runtime settings and custom MCP server definitions', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-user-settings-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-user-settings-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
 
@@ -458,7 +458,7 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('installs and configures the PDF provider through the desktop service without requiring restart', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-pdf-provider-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-pdf-provider-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
     const providerPath = path.join(dataRoot, 'runtime-tools', 'pdf-provider', 'fixture', 'Library', 'bin', 'pdftotext.exe');
@@ -485,7 +485,7 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('applies MCP poll and foreground wait settings live without requiring a runtime restart', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-live-waits-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-live-waits-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
     const runtime = createDesktopRuntime(dataRoot);
@@ -504,8 +504,8 @@ describe('DesktopRuntime persistence', () => {
   }, 30_000);
 
   it('serves the local capability health tool through the desktop MCP listener', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-data-'));
-    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-workspace-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-data-'));
+    const rawWorkspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-workspace-'));
     temporaryRoots.push(rawDataRoot, rawWorkspaceRoot);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRoot = await realpath(rawWorkspaceRoot);

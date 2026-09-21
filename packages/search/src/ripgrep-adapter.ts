@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { DEFAULT_SEARCH_RESULTS, err, MAX_PROCESS_LOG_BYTES, MAX_SEARCH_RESULTS, ok, type Result } from '@lnwjud/domain';
+import { DEFAULT_SEARCH_RESULTS, err, MAX_PROCESS_LOG_BYTES, MAX_SEARCH_RESULTS, ok, type Result } from '@detunnel/domain';
 import { PathExecutableResolver, type ExecutableResolver } from './executable-resolver.js';
 import {
   classifyContextPath,

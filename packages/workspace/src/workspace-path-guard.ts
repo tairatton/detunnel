@@ -1,6 +1,6 @@
 import { lstat, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { appError, err, isFullBypassAuthorization, ok, type InvocationAuthorization, type Result } from '@lnwjud/domain';
+import { appError, err, isFullBypassAuthorization, ok, type InvocationAuthorization, type Result } from '@detunnel/domain';
 import { isWithin } from './path-containment.js';
 import { SecretPolicy } from './secret-policy.js';
 import type { ResolvedWorkspacePath, Workspace } from './workspace-types.js';

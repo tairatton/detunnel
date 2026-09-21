@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { TunnelStatus } from '@lnwjud/ipc-contracts';
+import type { TunnelStatus } from '@detunnel/ipc-contracts';
 import { autoStartPersistentTunnel } from '../src/main/desktop-services.js';
 import { TunnelRuntimeReconciler, type TunnelRuntimeDesiredState, type TunnelRuntimeReconcilerAdapter } from '../src/main/tunnel-runtime-reconciler.js';
 import { TunnelRuntimeSupervisor, TRANSIENT_BACKOFF_MS } from '../src/main/tunnel-runtime-supervisor.js';
@@ -33,7 +33,7 @@ class MutableRuntimeAdapter implements TunnelRuntimeReconcilerAdapter {
     this.current = runtime(initial);
   }
 
-  public runtimeAlias(): string { return 'lnwjud'; }
+  public runtimeAlias(): string { return 'detunnel'; }
   public async capabilities(): Promise<TunnelRuntimeCapabilities> { return CAPABILITIES; }
   public async status(): Promise<NativeTunnelRuntimeStatus> { return { ...this.current }; }
 
@@ -181,10 +181,10 @@ describe('v4.11 persistent tunnel continuity acceptance', () => {
       state: 'running',
       source: 'external',
       hasApiKey: true,
-      clientPath: 'C:\\Program Files\\lnwjud\\resources\\tunnel-client\\tunnel-client.exe',
+      clientPath: 'C:\\Program Files\\detunnel\\resources\\tunnel-client\\tunnel-client.exe',
       profileExists: true,
       message: null,
-      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\lnwjud.log',
+      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\detunnel.log',
       persistent: null,
     };
     const prerequisiteGaps: TunnelStatus[] = [
@@ -206,10 +206,10 @@ describe('v4.11 persistent tunnel continuity acceptance', () => {
       state: 'running',
       source: 'external',
       hasApiKey: true,
-      clientPath: 'C:\\Program Files\\lnwjud\\resources\\tunnel-client\\tunnel-client.exe',
+      clientPath: 'C:\\Program Files\\detunnel\\resources\\tunnel-client\\tunnel-client.exe',
       profileExists: true,
       message: null,
-      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\lnwjud.log',
+      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\detunnel.log',
       persistent: null,
     };
     const startAutomatically = vi.fn(async (): Promise<TunnelStatus> => status);
@@ -227,7 +227,7 @@ describe('v4.11 persistent tunnel continuity acceptance', () => {
       clientPath: null,
       profileExists: false,
       message: null,
-      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\lnwjud.log',
+      logPath: 'C:\\Users\\fixture\\AppData\\Roaming\\tunnel-client\\detunnel.log',
       persistent: null,
     };
     const reconcileStoppedRuntime = vi.fn(async (): Promise<TunnelStatus | null> => stopped);

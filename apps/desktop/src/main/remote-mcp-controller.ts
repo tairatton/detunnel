@@ -3,7 +3,7 @@ import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { RemoteMcpStatus } from '@lnwjud/ipc-contracts';
+import type { RemoteMcpStatus } from '@detunnel/ipc-contracts';
 import { protectTunnelSecret, unprotectTunnelSecret } from './tunnel-secret-dpapi.js';
 
 interface RegisteredClient {

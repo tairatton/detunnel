@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promi
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ok, type Result } from '@lnwjud/domain';
-import { permissionProfiles } from '@lnwjud/permissions';
-import { WorkspacePathGuard, type Checkpoint, type Workspace, type WorkspaceRepository } from '@lnwjud/workspace';
+import { ok, type Result } from '@detunnel/domain';
+import { permissionProfiles } from '@detunnel/permissions';
+import { WorkspacePathGuard, type Checkpoint, type Workspace, type WorkspaceRepository } from '@detunnel/workspace';
 import { FileService, type CheckpointServicePort } from './file-service.js';
 
 const temporaryRoots: string[] = [];
@@ -15,7 +15,7 @@ afterEach(async () => {
 });
 
 async function createWorkspace(): Promise<Workspace> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-file-write-'));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-file-write-'));
   temporaryRoots.push(rawRoot);
   const root = await realpath(rawRoot);
   await mkdir(path.join(root, 'src'));
@@ -45,7 +45,7 @@ function checkpointService(): CheckpointServicePort & { calls: string[][] } {
 describe('FileService writes', () => {
   it('uses Full Bypass for exact outside-workspace file operations without inventing recovery evidence', async () => {
     const workspace = await createWorkspace();
-    const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-file-outside-'));
+    const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-file-outside-'));
     temporaryRoots.push(outsideRoot);
     const outsideRealRoot = await realpath(outsideRoot);
     const outsideFile = path.join(outsideRealRoot, 'proof.txt');
@@ -308,7 +308,7 @@ describe('FileService writes', () => {
 
   it('creates a checkpoint and moves delete_file targets into recovery trash', async () => {
     const workspace = await createWorkspace();
-    const recoveryRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-recovery-'));
+    const recoveryRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-recovery-'));
     temporaryRoots.push(recoveryRoot);
     const checkpoints = checkpointService();
     const source = path.join(workspace.rootPath, 'src', 'recover-me.txt');
@@ -346,7 +346,7 @@ describe('FileService writes', () => {
 
   it('backs up binary replacement targets and keeps the replaced version as rollback when restored', async () => {
     const workspace = await createWorkspace();
-    const recoveryRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-replacement-recovery-'));
+    const recoveryRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-replacement-recovery-'));
     temporaryRoots.push(recoveryRoot);
     const target = path.join(workspace.rootPath, 'src', 'report.docx');
     const original = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0x10]);

@@ -1,4 +1,4 @@
-﻿import type { UiLocale, UpdateStatus } from '@lnwjud/ipc-contracts';
+﻿import type { UiLocale, UpdateStatus } from '@detunnel/ipc-contracts';
 
 export interface NativeMessages {
   readonly trayOpen: string;

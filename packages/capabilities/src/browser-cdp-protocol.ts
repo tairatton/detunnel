@@ -3,8 +3,8 @@ import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
-import { WindowsProcessTree, type ProcessTreeTerminator } from '@lnwjud/process';
+import { appError, err, ok, type Result } from '@detunnel/domain';
+import { WindowsProcessTree, type ProcessTreeTerminator } from '@detunnel/process';
 import type { BrowserCdpProtocol, BrowserCdpTab } from './browser-cdp-backend.js';
 
 interface BrowserCdpProtocolOptions {
@@ -24,7 +24,7 @@ export class NodeBrowserCdpProtocol implements BrowserCdpProtocol {
 
   public constructor(options: BrowserCdpProtocolOptions = {}) {
     this.port = options.port ?? readPort(process.env.DETUNNEL_BROWSER_CDP_PORT);
-    this.profileDir = options.profileDir ?? process.env.DETUNNEL_BROWSER_PROFILE ?? path.join(os.tmpdir(), 'lnwjud-browser-profile');
+    this.profileDir = options.profileDir ?? process.env.DETUNNEL_BROWSER_PROFILE ?? path.join(os.tmpdir(), 'detunnel-browser-profile');
     this.chromeExecutable = options.chromeExecutable ?? process.env.DETUNNEL_BROWSER_EXECUTABLE;
     this.terminator = options.terminator ?? new WindowsProcessTree();
     this.terminationRetryMs = Math.max(1, options.terminationRetryMs ?? 250);

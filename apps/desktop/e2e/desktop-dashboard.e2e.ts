@@ -5,8 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, expect, test, type Page } from '@playwright/test';
-import { AuditService, redactActivityTargetDetail } from '@lnwjud/audit';
-import { SqliteAuditRepository, SqliteDatabase } from '@lnwjud/storage';
+import { AuditService, redactActivityTargetDetail } from '@detunnel/audit';
+import { SqliteAuditRepository, SqliteDatabase } from '@detunnel/storage';
 
 const desktopRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const mainEntry = path.join(desktopRoot, 'dist', 'main', 'main.js');
@@ -16,9 +16,9 @@ const packagedExecutable = process.env.DETUNNEL_PACKAGED_EXECUTABLE;
 test('control center auto-starts MCP and supports project + doctor journey', async ({ browserName }, testInfo) => {
   void browserName;
   test.setTimeout(90_000);
-  const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-dashboard-'));
+  const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-dashboard-'));
   const fixtureRealRoot = await realpath(fixtureRoot);
-  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-dashboard-data-'));
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-dashboard-data-'));
   await seedExpandableWorkLog(dataRoot, fixtureRealRoot);
   await writeFile(path.join(fixtureRoot, '.env'), 'SECRET_NOT_FOR_UI=do-not-display\n', 'utf8');
   const devToolsPort = await findEphemeralPort();
@@ -133,7 +133,7 @@ test('control center auto-starts MCP and supports project + doctor journey', asy
 });
 
 async function seedExpandableWorkLog(dataRoot: string, workspaceId: string): Promise<void> {
-  const database = new SqliteDatabase(path.join(dataRoot, 'lnwjud.sqlite'));
+  const database = new SqliteDatabase(path.join(dataRoot, 'detunnel.sqlite'));
   try {
     const repository = new SqliteAuditRepository(database);
     const audit = new AuditService(repository);

@@ -8,11 +8,11 @@ import {
   type InvocationAuthorization,
   type InvocationAuthorizationMode,
   type InvocationAuthorizationSource,
-} from '@lnwjud/domain';
+} from '@detunnel/domain';
 import { z } from 'zod';
-import { sanitizeException, type DiagnosticLogger, type FileActor } from '@lnwjud/application';
-import { CAPABILITY_ACTIVE_WORKSPACE_ROOT_METADATA_KEY } from '@lnwjud/capabilities';
-import { DefaultPermissionEngine, permissionProfiles, type PermissionProfile } from '@lnwjud/permissions';
+import { sanitizeException, type DiagnosticLogger, type FileActor } from '@detunnel/application';
+import { CAPABILITY_ACTIVE_WORKSPACE_ROOT_METADATA_KEY } from '@detunnel/capabilities';
+import { DefaultPermissionEngine, permissionProfiles, type PermissionProfile } from '@detunnel/permissions';
 import {
   DEFAULT_DESTRUCTIVE_AUTO_APPROVAL_POLICY,
   DEFAULT_TOOL_AVAILABILITY_SNAPSHOT,
@@ -22,7 +22,7 @@ import {
   resolveEffectiveToolAvailability,
   type DestructiveAutoApprovalPolicy,
   type ToolAvailabilitySnapshot,
-} from '@lnwjud/shared';
+} from '@detunnel/shared';
 import { ActivityTracker, describeStructuredResultDetail, summarizeStructuredResultTarget, summarizeToolTarget, type ActivitySink, type TraceContext } from './activity-tracker.js';
 import { ContextEngine } from './context-engine.js';
 import { ContextEconomyRuntime } from './context-economy.js';
@@ -52,6 +52,7 @@ import { scheduledContinuationTools } from './tools/scheduled-continuation-tools
 import { skillTools } from './tools/skill-tools.js';
 import { workspaceTools } from './tools/workspace-tools.js';
 import type { McpApplicationServices, McpToolContext, McpToolDefinition } from './tools/tool-types.js';
+import { isPluginSafeTool, parseMcpToolExposureProfile, PLUGIN_SAFE_VERIFICATION_TOOLS, pluginSafeInputViolation, type McpToolExposureProfile } from './tool-exposure-profile.js';
 
 export type { McpApplicationServices } from './tools/tool-types.js';
 export type { ActiveProjectScope, WorkspaceScope } from './destructive-scope.js';
@@ -63,6 +64,8 @@ export interface ToolRegistryOptions {
   readonly activityTracker?: ActivityTracker;
   readonly sessionId?: string;
   readonly profileProvider?: () => PermissionProfile;
+  /** Transport-scoped tool exposure. Omitted preserves the current catalog. */
+  readonly toolExposureProfile?: McpToolExposureProfile;
   /** Explicit transport-scoped authorization override. Effective only while the active profile is Full. */
   readonly authorizationModeProvider?: () => AuthorizationMode;
   /** Legacy compatibility. New callers should supply destructivePolicyProvider. */
@@ -125,6 +128,7 @@ export class ToolRegistry {
   private readonly sessionId: string | undefined;
   private readonly permissionEngine = new DefaultPermissionEngine();
   private readonly profileProvider: () => PermissionProfile;
+  private readonly toolExposureProfile: McpToolExposureProfile;
   private readonly authorizationModeProvider: () => AuthorizationMode;
   private readonly destructivePolicyProvider: () => DestructiveAutoApprovalPolicy;
   private readonly activeWorkspaceScopeProvider: () => Promise<WorkspaceScope | null>;
@@ -145,6 +149,7 @@ export class ToolRegistry {
     this.activity = options.activityTracker ?? new ActivityTracker(options.activity);
     this.sessionId = options.sessionId;
     this.profileProvider = options.profileProvider ?? ((): PermissionProfile => permissionProfiles.full);
+    this.toolExposureProfile = parseMcpToolExposureProfile(options.toolExposureProfile);
     this.authorizationModeProvider = options.authorizationModeProvider ?? ((): AuthorizationMode => 'standard');
     this.destructivePolicyProvider = options.destructivePolicyProvider ?? ((): DestructiveAutoApprovalPolicy => legacyDeletePolicy(options.allowAiDeleteProvider?.() === true));
     this.activeWorkspaceScopeProvider = normalizeActiveWorkspaceScopeProvider(options);
@@ -177,7 +182,9 @@ export class ToolRegistry {
       ...scheduledContinuationTools(context),
       ...upgradeTools(context, this.activity),
     ];
-    const exposedAllBaseTools = allBaseTools.map((tool) => withToolEnvelopes(tool));
+    const exposedAllBaseTools = allBaseTools
+      .map((tool) => withToolEnvelopes(tool))
+      .map((tool) => this.toolExposureProfile === 'plugin-safe' ? withPluginSafeAnnotations(tool) : tool);
     const systemEligibleBaseTools = exposedAllBaseTools.filter((tool) => {
       if ((tool.name.startsWith('codex_') || tool.name === 'agent_swarm_run') && options.codexToolsEnabled !== true) return false;
       if (tool.name === 'agent_swarm_run' && services.agentSwarm === undefined) return false;
@@ -230,6 +237,7 @@ export class ToolRegistry {
   }
 
   private isEffectivelyExposed(name: string): boolean {
+    if (this.toolExposureProfile === 'plugin-safe' && !isPluginSafeTool(name)) return false;
     if (parseBooleanSetting(process.env.DETUNNEL_DISABLE_BROWSER_AUTOMATION, false) && isBrowserAutomationToolName(name)) return false;
     return resolveEffectiveToolAvailability({
       name,
@@ -240,8 +248,12 @@ export class ToolRegistry {
   }
 
   public async invoke(name: string, input: unknown, traceContext?: TraceContext, parentSignal?: AbortSignal): Promise<McpToolResponse> {
-    const profile = this.profileProvider();
-    const fullBypass = profile.name === 'full' && this.authorizationModeProvider() === 'full_bypass';
+    const profile = this.toolExposureProfile === 'plugin-safe' ? permissionProfiles.safe : this.profileProvider();
+    // A remote/plugin-safe transport must never inherit a Full Bypass decision
+    // from a legacy profile or environment setting.
+    const fullBypass = this.toolExposureProfile !== 'plugin-safe'
+      && profile.name === 'full'
+      && this.authorizationModeProvider() === 'full_bypass';
     const authorizationMode: AuthorizationMode = fullBypass ? 'full_bypass' : 'standard';
     const activityWorkspaceId = await this.resolveActivityWorkspaceId(name, input);
     const workspaceActivityInput = withActivityWorkspaceId(stripGoalLeaseEnvelope(input), activityWorkspaceId);
@@ -270,6 +282,14 @@ export class ToolRegistry {
       const goalLease = readGoalLeaseProof(parsed.value);
       const parsedInput = stripGoalLeaseEnvelope(parsed.value);
       const activeRoutedInput = await this.routeInputToActiveWorkspace(parsedInput);
+      if (this.toolExposureProfile === 'plugin-safe') {
+        const violation = pluginSafeInputViolation(tool.name, activeRoutedInput);
+        if (violation !== undefined) {
+          const response = mapError(appError('PERMISSION_DENIED', violation));
+          await this.activity.end(callId, 'PERMISSION_DENIED', Date.now() - started, violation);
+          return response;
+        }
+      }
       const prohibitedReason = fullBypass ? undefined : prohibitedInvocationReason(tool.name, activeRoutedInput);
       if (prohibitedReason !== undefined) {
         const response = mapError(appError('PERMISSION_DENIED', prohibitedReason));
@@ -277,6 +297,9 @@ export class ToolRegistry {
         return response;
       }
       let mutationDecision = inspectMutationOperation(tool.name, activeRoutedInput, tool.permission);
+      if (this.toolExposureProfile === 'plugin-safe' && PLUGIN_SAFE_VERIFICATION_TOOLS.has(tool.name)) {
+        mutationDecision = { kind: 'execute', reason: `${tool.name} is a bounded project verification action` };
+      }
       const policy = this.destructivePolicyProvider();
       const mutationWorkspaceId = readExplicitWorkspaceId(activeRoutedInput);
       const nativePathScopeRequired = requiresNativePathScope(tool.name, activeRoutedInput);
@@ -327,7 +350,11 @@ export class ToolRegistry {
       }
       const policyAllowsScopedDestructive = !fullBypass && mutationWorkspaceId !== undefined
         && isScopedAutoApprovalAllowed(tool.name, activeRoutedInput, mutationDecision, policy, activeWorkspaceScope);
-      const hostApprovalRequired = !fullBypass && requiresProfileMutationConfirmation(tool.name, mutationDecision, profile);
+      const hostApprovalRequired = !fullBypass && (
+        this.toolExposureProfile === 'plugin-safe'
+          ? mutationDecision.kind !== 'read' && this.hostMutationApprovalProvider !== undefined
+          : requiresProfileMutationConfirmation(tool.name, mutationDecision, profile)
+      );
       const effectivePermission = permissionLevelForMutationDecision(mutationDecision);
       const permissionDecision = fullBypass ? 'ALLOW' : this.permissionEngine.decide(profile, {
         action: 'mcp:' + tool.name,
@@ -489,7 +516,7 @@ export class ToolRegistry {
     if (!preview.ok) {
       return { ok: false, response: mapError(preview.error), code: preview.error.code, message: preview.error.message };
     }
-    return { ok: true, value: { ...input, __lnwjudApprovedProjectCommand: preview.value } };
+    return { ok: true, value: { ...input, __detunnelApprovedProjectCommand: preview.value } };
   }
 
   private async resolveActivityWorkspaceId(name: string, input: unknown): Promise<string | undefined> {
@@ -807,6 +834,19 @@ function withToolEnvelopes(tool: McpToolDefinition): McpToolDefinition {
   return withApprovalEnvelope(withGoalLeaseEnvelope(tool));
 }
 
+function withPluginSafeAnnotations(tool: McpToolDefinition): McpToolDefinition {
+  if (!['write_file', 'apply_patch', 'edit_file', 'restore_checkpoint'].includes(tool.name)) return tool;
+  return {
+    ...tool,
+    annotations: {
+      ...tool.annotations,
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: false,
+    },
+  };
+}
+
 function withApprovalEnvelope(tool: McpToolDefinition): McpToolDefinition {
   const extendObjectSchema = (schema: z.ZodObject): z.ZodObject =>
     schema.safeExtend({ userConfirmed: approvalEnvelopeSchema.optional() });
@@ -1041,7 +1081,7 @@ function isSensitiveApprovalKey(key: string): boolean {
 }
 
 function readApprovedProjectCommand(input: Record<string, unknown>): CommandSpec | undefined {
-  const value = input.__lnwjudApprovedProjectCommand;
+  const value = input.__detunnelApprovedProjectCommand;
   if (!isRecord(value)) return undefined;
   const executable = readTrimmedString(value.executable);
   const args = readStringArray(value.args);

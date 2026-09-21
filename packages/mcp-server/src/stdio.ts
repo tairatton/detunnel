@@ -16,10 +16,10 @@ export function isBenignStdioPipeError(error: Error): boolean {
 
 function writeStdioDiagnostic(error: Error): void {
   if (isBenignStdioPipeError(error)) {
-    process.stderr.write(`lnwjud MCP stdio: peer closed (${error.message})\n`);
+    process.stderr.write(`detunnel MCP stdio: peer closed (${error.message})\n`);
     return;
   }
-  process.stderr.write(`lnwjud MCP stdio error: ${error.message}\n`);
+  process.stderr.write(`detunnel MCP stdio error: ${error.message}\n`);
 }
 
 export function startMcpStdio(options: McpStdioOptions): StdioServerHandle {

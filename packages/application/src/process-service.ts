@@ -10,12 +10,12 @@ import {
   type CommandSpec,
   type InvocationAuthorization,
   type Result,
-} from '@lnwjud/domain';
-import { CommandPolicy, DefaultPermissionEngine, permissionProfiles, type PermissionEngine, type PermissionProfile } from '@lnwjud/permissions';
-import { ProcessManager, type LogQuery, type ManagedProcess, type ManagedProcessStart, type ProcessLogResult } from '@lnwjud/process';
-import { JsCommandDetector, ProjectDetector, type ProjectCommandKind } from '@lnwjud/project';
-import { prohibitedAgentCommandReason, riskyAgentCommandReason } from '@lnwjud/shared';
-import { WorkspacePathGuard, type Workspace, type WorkspaceRepository } from '@lnwjud/workspace';
+} from '@detunnel/domain';
+import { CommandPolicy, DefaultPermissionEngine, permissionProfiles, type PermissionEngine, type PermissionProfile } from '@detunnel/permissions';
+import { ProcessManager, type LogQuery, type ManagedProcess, type ManagedProcessStart, type ProcessLogResult } from '@detunnel/process';
+import { JsCommandDetector, ProjectDetector, type ProjectCommandKind } from '@detunnel/project';
+import { prohibitedAgentCommandReason, riskyAgentCommandReason } from '@detunnel/shared';
+import { WorkspacePathGuard, type Workspace, type WorkspaceRepository } from '@detunnel/workspace';
 import type { FileActor } from './file-service.js';
 import { ProjectService } from './project-service.js';
 
@@ -50,7 +50,7 @@ export interface ProcessServiceDependencies {
   readonly defaultTimeoutMsProvider?: () => number;
   /** Full-access mode can broaden executable policy and allow an explicitly absolute cwd outside the selected workspace. */
   readonly unrestricted?: boolean;
-  /** Full-profile Bypass All skips lnwjud command/profile authorization while retaining exact process ownership. */
+  /** Full-profile Bypass All skips detunnel command/profile authorization while retaining exact process ownership. */
   readonly authorizationBypassProvider?: () => boolean;
 }
 

@@ -1,6 +1,6 @@
-import { appError, err, type Result } from '@lnwjud/domain';
-import { startMcpStdio, type McpServerOptions } from '@lnwjud/mcp-server';
-import type { Workspace } from '@lnwjud/workspace';
+import { appError, err, type Result } from '@detunnel/domain';
+import { startMcpStdio, type McpServerOptions } from '@detunnel/mcp-server';
+import type { Workspace } from '@detunnel/workspace';
 
 export interface ConfiguredWorkspaceResolver {
   resolve(reference: string): Promise<Result<Workspace>>;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ok } from '@lnwjud/domain';
+import { ok } from '@detunnel/domain';
 import { ToolRegistry } from '../tool-registry.js';
-import type { ExtensionsService } from '@lnwjud/extensions';
+import type { ExtensionsService } from '@detunnel/extensions';
 
 describe('skills and mcp bridge tools', () => {
   it('registers skill and MCP inspection as read-only while mcp_call remains opaque mutation', async () => {

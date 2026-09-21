@@ -2,8 +2,8 @@ import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promi
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@lnwjud/permissions';
-import type { Checkpoint, CheckpointRepository, Workspace, WorkspaceRepository } from '@lnwjud/workspace';
+import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@detunnel/permissions';
+import type { Checkpoint, CheckpointRepository, Workspace, WorkspaceRepository } from '@detunnel/workspace';
 import { CheckpointService } from './checkpoint-service.js';
 
 const temporaryRoots: string[] = [];
@@ -13,7 +13,7 @@ afterEach(async () => {
 });
 
 async function setup(): Promise<{ workspace: Workspace; checkpoints: MemoryCheckpointRepository }> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-checkpoint-'));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-checkpoint-'));
   temporaryRoots.push(rawRoot);
   const root = await realpath(rawRoot);
   await mkdir(path.join(root, 'src'));

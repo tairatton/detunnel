@@ -57,19 +57,19 @@ describe('Windows desktop packaging', () => {
     expect(desktopPackage.repository).toBeUndefined();
   });
 
-  it('declares lnwjud x64 NSIS and portable packaging with built runtime bundles', async () => {
+  it('declares detunnel x64 NSIS and portable packaging with built runtime bundles', async () => {
     const configPath = path.join(desktopRoot, 'electron-builder.yml');
     const config = await readFile(configPath, 'utf8');
     const desktopPackage = JSON.parse(await readFile(path.join(desktopRoot, 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
 
-    expect(config).toContain('productName: lnwjud');
+    expect(config).toContain('productName: detunnel');
     expect(config).toContain('output: dist/installers');
     expect(config).toContain('target: nsis');
     expect(config).toContain('target: portable');
     expect(config).toContain('- x64');
-    expect(config).toContain('artifactName: lnwjud-Setup-${version}.${ext}');
+    expect(config).toContain('artifactName: detunnel-Setup-${version}.${ext}');
     expect(config).toContain('portable:');
-    expect(config).toContain('artifactName: lnwjud-Portable-${version}.${ext}');
+    expect(config).toContain('artifactName: detunnel-Portable-${version}.${ext}');
     expect(desktopPackage.scripts?.['package:windows']).toContain('--win nsis portable --x64');
     expect(desktopPackage.scripts?.['package:windows']).toContain('write-portable-update-manifest.mjs');
     expect(config).toContain('icon: build/icon.ico');
@@ -80,7 +80,7 @@ describe('Windows desktop packaging', () => {
     const tunnelControllerSource = await readFile(path.join(desktopRoot, 'src', 'main', 'tunnel-controller.ts'), 'utf8');
     expect(tunnelControllerSource).not.toContain("'Downloads', 'tunnel', 'tunnel-client.exe'");
     const installerScript = await readFile(path.join(desktopRoot, 'build', 'installer.nsh'), 'utf8');
-    expect(installerScript).toContain('CreateShortCut "$SMPROGRAMS\\lnwjud.lnk" "$INSTDIR\\lnwjud.exe"');
+    expect(installerScript).toContain('CreateShortCut "$SMPROGRAMS\\detunnel.lnk" "$INSTDIR\\detunnel.exe"');
     expect(installerScript).toContain('SetOutPath "$INSTDIR"');
     expect(installerScript).not.toMatch(/[A-Z]:\\Users\\[^\r\n]+/i);
     expect(config).toContain('extraResources:');
@@ -88,15 +88,15 @@ describe('Windows desktop packaging', () => {
     expect(config).toContain('from: build/capability-bridge/windows-capability-bridge.sha256');
     expect(config).toContain('from: build/capability-bridge/windows-capability-bridge.integrity.json');
     expect(config).not.toContain('from: ../../packages/capabilities/src/windows-capability-bridge.ps1');
-    expect(config).toContain('build/lnwjud-node.exe');
-    expect(config).toContain('to: lnwjud-node.exe');
+    expect(config).toContain('build/detunnel-node.exe');
+    expect(config).toContain('to: detunnel-node.exe');
     expect(config).toContain('build/runtime-tools');
     expect(config).toContain('to: runtime-tools');
     expect(config).toContain('from: build/tunnel-client');
     expect(config).toContain('to: tunnel-client');
-    expect(config).toContain('from: ../../.agents/skills/lnwjud-scheduled-continuation');
-    expect(config).toContain('to: agent-skills/lnwjud-scheduled-continuation');
-    await access(path.join(repositoryRoot, '.agents', 'skills', 'lnwjud-scheduled-continuation', 'SKILL.md'));
+    expect(config).toContain('from: ../../.agents/skills/detunnel-scheduled-continuation');
+    expect(config).toContain('to: agent-skills/detunnel-scheduled-continuation');
+    await access(path.join(repositoryRoot, '.agents', 'skills', 'detunnel-scheduled-continuation', 'SKILL.md'));
     expect(desktopPackage.scripts?.['package:windows']).toContain('prepare-ripgrep.ps1');
     expect(desktopPackage.scripts?.['package:windows']).toContain('../../scripts/prepare-windows-ocr.ps1');
     const prepareOcr = await readFile(path.join(repositoryRoot, 'scripts', 'prepare-windows-ocr.ps1'), 'utf8');
@@ -105,9 +105,9 @@ describe('Windows desktop packaging', () => {
     const registerOcr = await readFile(path.join(repositoryRoot, 'scripts', 'register-windows-ocr.ps1'), 'utf8');
     expect(registerOcr).toContain("GetEnvironmentVariable('ProgramFiles(x86)')");
     expect(registerOcr).not.toContain('C:\\Program Files (x86)\\Windows Kits');
-    await access(path.join(desktopRoot, 'build', 'lnwjud-node.exe'));
-    const stdioLauncher = await readFile(path.join(desktopRoot, 'build', 'lnwjud-mcp-stdio.cmd'), 'utf8');
-    expect(stdioLauncher).toContain('lnwjud-node.exe');
+    await access(path.join(desktopRoot, 'build', 'detunnel-node.exe'));
+    const stdioLauncher = await readFile(path.join(desktopRoot, 'build', 'detunnel-mcp-stdio.cmd'), 'utf8');
+    expect(stdioLauncher).toContain('detunnel-node.exe');
     expect(stdioLauncher).toContain('RIPGREP_DIR');
     expect(stdioLauncher).toContain('runtime-tools\\ripgrep');
     expect(stdioLauncher).toContain('set "PATH=%RIPGREP_DIR%;%PATH%"');
@@ -124,14 +124,14 @@ describe('Windows desktop packaging', () => {
     const tunnelBundle = await readFile(path.join(desktopRoot, 'dist', 'main', 'tunnel-controller.js'), 'utf8');
     expect(windowBundle).toContain('webSecurity: true');
     expect(windowBundle).not.toContain('webSecurity: false');
-    expect(mainBundle).toMatch(/setName\(["']lnwjud["']|setName\(APP_NAME\)/);
+    expect(mainBundle).toMatch(/setName\(["']detunnel["']|setName\(APP_NAME\)/);
     expect(tunnelBundle).toContain('delete env.DETUNNEL_DATA_PATH');
     expect(tunnelBundle).toContain('delete env.DETUNNEL_UNRESTRICTED');
     expect(mainBundle).toMatch(/setPath\(["']userData["']/);
   });
 
   it('targets Windows 10 OCR through the .NET 8 Windows TFM without the legacy SDK contracts package', async () => {
-    const ocrProject = await readFile(path.join(repositoryRoot, 'native', 'windows-ocr', 'lnwjud-windows-ocr.csproj'), 'utf8');
+    const ocrProject = await readFile(path.join(repositoryRoot, 'native', 'windows-ocr', 'detunnel-windows-ocr.csproj'), 'utf8');
     expect(ocrProject).toContain('<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>');
     expect(ocrProject).not.toContain('Microsoft.Windows.SDK.Contracts');
     expect(ocrProject).not.toContain('10.0.28000');
@@ -164,8 +164,8 @@ describe('Windows desktop packaging', () => {
   });
 
   it('runs the stdio launcher with the bundled Node runtime even when PATH contains no system Node', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-packaged-stdio-'));
-    const launcher = path.join(desktopRoot, 'build', 'lnwjud-mcp-stdio.cmd');
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-packaged-stdio-'));
+    const launcher = path.join(desktopRoot, 'build', 'detunnel-mcp-stdio.cmd');
     const systemRoot = process.env.SystemRoot ?? path.win32.join(`C:${path.win32.sep}`, 'Windows');
     const commandProcessor = process.env.ComSpec ?? path.join(systemRoot, 'System32', 'cmd.exe');
     const child = spawn(commandProcessor, ['/d', '/c', 'call', launcher, '--workspace', repositoryRoot], {
@@ -185,7 +185,7 @@ describe('Windows desktop packaging', () => {
         child.stderr?.setEncoding('utf8');
         child.stderr?.on('data', (chunk: string) => {
           stderr += chunk;
-          if (!stderr.includes('lnwjud MCP stdio ready ')) return;
+          if (!stderr.includes('detunnel MCP stdio ready ')) return;
           clearTimeout(timer);
           resolve();
         });
@@ -194,12 +194,12 @@ describe('Windows desktop packaging', () => {
           reject(error);
         });
         child.once('exit', (code) => {
-          if (stderr.includes('lnwjud MCP stdio ready ')) return;
+          if (stderr.includes('detunnel MCP stdio ready ')) return;
           clearTimeout(timer);
           reject(new Error(`stdio launcher exited early with ${String(code)}: ${stderr}`));
         });
       });
-      expect(stderr).toContain('lnwjud MCP stdio ready ');
+      expect(stderr).toContain('detunnel MCP stdio ready ');
     } finally {
       if (child.exitCode === null && child.pid !== undefined) {
         const taskkill = spawn(path.join(systemRoot, 'System32', 'taskkill.exe'), ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
@@ -213,10 +213,10 @@ describe('Windows desktop packaging', () => {
 
   it('defines a dedicated Portable update manifest instead of reusing the Installer feed', async () => {
     const manifestScript = await readFile(path.join(desktopRoot, 'scripts', 'write-portable-update-manifest.mjs'), 'utf8');
-    expect(manifestScript).toContain('lnwjud-Portable-${version}.exe');
+    expect(manifestScript).toContain('detunnel-Portable-${version}.exe');
     expect(manifestScript).toContain("createHash('sha512')");
     expect(manifestScript).toContain('size: ${metadata.size}');
     expect(manifestScript).toContain("'portable.yml'");
-    expect(manifestScript).not.toContain('lnwjud-Setup-${version}.exe');
+    expect(manifestScript).not.toContain('detunnel-Setup-${version}.exe');
   });
 });

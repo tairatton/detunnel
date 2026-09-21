@@ -1,4 +1,7 @@
-import type { AppError, Result } from '@lnwjud/domain';
+import type { AppError, Result } from '@detunnel/domain';
+import { Redactor } from '@detunnel/audit';
+
+const responseRedactor = new Redactor();
 
 export interface McpTextContent {
   readonly type: 'text';
@@ -21,12 +24,13 @@ export interface McpToolResponse {
 
 export function mapResult<T>(result: Result<T>): McpToolResponse {
   if (!result.ok) return mapError(result.error);
-  const structuredContent = toStructuredContent(result.value);
-  const image = extractImageContent(result.value);
+  const safeValue = responseRedactor.redact(result.value);
+  const structuredContent = toStructuredContent(safeValue);
+  const image = extractImageContent(safeValue);
   return {
     content: image === undefined
-      ? [{ type: 'text', text: toText(result.value) }]
-      : [image, { type: 'text', text: toText(result.value) }],
+      ? [{ type: 'text', text: toText(safeValue) }]
+      : [image, { type: 'text', text: toText(safeValue) }],
     ...(structuredContent === undefined ? {} : { structuredContent }),
   };
 }
@@ -41,7 +45,7 @@ export function mapError(error: AppError): McpToolResponse {
         code: error.code,
         message,
         recoverable: error.recoverable,
-        ...(error.details === undefined ? {} : { details: error.details }),
+        ...(error.details === undefined ? {} : { details: responseRedactor.redact(error.details) }),
       },
     },
   };

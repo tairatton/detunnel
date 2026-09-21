@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { WorkspaceInfoService } from './workspace-info-service.js';
-import { WorkspaceService, type Workspace, type WorkspaceRepository } from '@lnwjud/workspace';
+import { WorkspaceService, type Workspace, type WorkspaceRepository } from '@detunnel/workspace';
 
 const temporaryRoots: string[] = [];
 
@@ -13,7 +13,7 @@ afterEach(async () => {
 
 describe('WorkspaceInfoService.register', () => {
   it('registers an explicit absolute project without an automatically generated machine root', async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-register-direct-'));
+    const projectRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-register-direct-'));
     temporaryRoots.push(projectRoot);
     const projectRealRoot = await realpath(projectRoot);
 
@@ -37,7 +37,7 @@ describe('WorkspaceInfoService.register', () => {
   });
 
   it('registers a project under whichever drive-root machine root owns it and is idempotent', async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-register-'));
+    const projectRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-register-'));
     temporaryRoots.push(projectRoot);
     const machineRoot = path.parse(projectRoot).root;
     if (!/^[A-Za-z]:\\$/.test(machineRoot)) return;
@@ -69,7 +69,7 @@ describe('WorkspaceInfoService.register', () => {
     const alternateDrive = machineRoot[0]?.toUpperCase() === 'Z' ? 'Y' : 'Z';
     const outside = await service.register(actor, {
       parentWorkspaceId: machine.value.id,
-      path: `${alternateDrive}:\\outside-lnwjud`,
+      path: `${alternateDrive}:\\outside-detunnel`,
     });
     expect(outside).toMatchObject({ ok: false, error: { code: 'INVALID_INPUT' } });
   });

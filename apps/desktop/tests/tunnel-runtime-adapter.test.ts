@@ -45,7 +45,7 @@ describe('TunnelRuntimeAdapter', () => {
 
   it('maps unknown alias status to a missing runtime instead of throwing', async () => {
     const execute = executor({
-      'runtimes status lnwjud --json': { error: 'alias lnwjud is not known; run create or connect first' },
+      'runtimes status detunnel --json': { error: 'alias detunnel is not known; run create or connect first' },
     });
     const adapter = new TunnelRuntimeAdapter({ clientPath: 'client.exe', profileDirectory: 'profile', environment: {}, execute });
     await expect(adapter.status()).resolves.toMatchObject({ exists: false, running: false });
@@ -55,8 +55,8 @@ describe('TunnelRuntimeAdapter', () => {
     let statusCalls = 0;
     const execute: TunnelRuntimeExecutor = vi.fn(async (_executable, args) => {
       const key = args.join(' ');
-      if (key === 'runtimes stop lnwjud --json') return { stdout: JSON.stringify({ alias: 'lnwjud' }), stderr: '' };
-      if (key === 'runtimes status lnwjud --json') {
+      if (key === 'runtimes stop detunnel --json') return { stdout: JSON.stringify({ alias: 'detunnel' }), stderr: '' };
+      if (key === 'runtimes status detunnel --json') {
         statusCalls += 1;
         return {
           stdout: JSON.stringify({
@@ -80,8 +80,8 @@ describe('TunnelRuntimeAdapter', () => {
   it('fails loudly when the managed runtime remains live after an explicit stop', async () => {
     const execute: TunnelRuntimeExecutor = vi.fn(async (_executable, args) => {
       const key = args.join(' ');
-      if (key === 'runtimes stop lnwjud --json') return { stdout: JSON.stringify({ alias: 'lnwjud' }), stderr: '' };
-      if (key === 'runtimes status lnwjud --json') return { stdout: JSON.stringify({ tunnel_id: 'tunnel_fixture012345', process: { running: true, pid: 1234 } }), stderr: '' };
+      if (key === 'runtimes stop detunnel --json') return { stdout: JSON.stringify({ alias: 'detunnel' }), stderr: '' };
+      if (key === 'runtimes status detunnel --json') return { stdout: JSON.stringify({ tunnel_id: 'tunnel_fixture012345', process: { running: true, pid: 1234 } }), stderr: '' };
       throw new Error(`unexpected command: ${key}`);
     });
     const adapter = new TunnelRuntimeAdapter({
@@ -96,7 +96,7 @@ describe('TunnelRuntimeAdapter', () => {
     const tunnelId = 'tunnel_0123456789abcdef';
     const mcpServerUrl = 'http://127.0.0.1:18765/mcp';
     const execute = executor({
-      [`runtimes connect --alias lnwjud --tunnel-id ${tunnelId} --runtime-api-key env:CONTROL_PLANE_API_KEY --mcp-server-url ${mcpServerUrl} --profile lnwjud --profile-dir C:\\profile --json`]: {
+      [`runtimes connect --alias detunnel --tunnel-id ${tunnelId} --runtime-api-key env:CONTROL_PLANE_API_KEY --mcp-server-url ${mcpServerUrl} --profile detunnel --profile-dir C:\\profile --json`]: {
         stdout: JSON.stringify({ tunnel_id: tunnelId, process: { running: true, pid: 1234 }, health: { healthy: true, ready: true }, control_plane: { poll_healthy: true }, mcp_server_url: mcpServerUrl }),
       },
     });
@@ -120,7 +120,7 @@ describe('TunnelRuntimeAdapter', () => {
 describe('parseNativeRuntimeStatus', () => {
   it('normalizes nested JSON fields from runtime status output', () => {
     expect(parseNativeRuntimeStatus(JSON.stringify({
-      alias: 'lnwjud',
+      alias: 'detunnel',
       tunnel: { id: 'tunnel_fixture012345' },
       process: { running: true, pid: 7654 },
       health: { healthy: true, ready: true, ui_url: 'http://127.0.0.1:9123/ui' },
@@ -141,7 +141,7 @@ describe('parseNativeRuntimeStatus', () => {
 
   it('understands tunnel-client 0.0.12 target_value and explicit unknown poll-health state', () => {
     expect(parseNativeRuntimeStatus(JSON.stringify({
-      alias: 'lnwjud',
+      alias: 'detunnel',
       tunnel_id: 'tunnel_fixture012345',
       healthy: true,
       ready: true,
@@ -174,7 +174,7 @@ describe('parseNativeRuntimeStatus', () => {
   it('parses the real tunnel-client 0.0.13 stopped-status shape without treating unknown poll health as failure', () => {
     expect(parseNativeRuntimeStatus(JSON.stringify({
       admin_profile: 'default',
-      alias: 'lnwjud',
+      alias: 'detunnel',
       control_plane_poll_health: {
         reason: 'no live admin UI system snapshot',
         state: 'unknown',

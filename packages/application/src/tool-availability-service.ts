@@ -5,7 +5,7 @@ import {
   serializeToolAvailabilitySnapshot,
   type ToolAvailabilityOverride,
   type ToolAvailabilitySnapshot,
-} from '@lnwjud/shared';
+} from '@detunnel/shared';
 
 export interface ToolAvailabilitySettingsPort {
   get(key: string): string | null;

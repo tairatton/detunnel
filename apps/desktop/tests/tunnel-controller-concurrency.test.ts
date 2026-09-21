@@ -41,15 +41,15 @@ afterEach(async () => {
 
 describe('TunnelController concurrent start', () => {
   it('shares one staggered start across lock acquisition, doctor, decryption, and spawn', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-tunnel-concurrent-start-'));
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-tunnel-concurrent-start-'));
     temporaryRoots.push(dataPath);
     vi.stubEnv('APPDATA', path.join(dataPath, 'appdata'));
     const profileDir = path.join(dataPath, 'appdata', 'tunnel-client');
     const clientPath = path.join(dataPath, 'tunnel-client.exe');
     await (await import('node:fs/promises')).mkdir(profileDir, { recursive: true });
     await writeFile(clientPath, 'fixture', 'utf8');
-    await writeFile(path.join(profileDir, 'lnwjud.yaml'), 'control_plane:\n  tunnel_id: "tunnel_fixture123"\n  api_key: "env:CONTROL_PLANE_API_KEY"\nmcp:\n  commands:\n    - channel: main\n      command: fixture\n', 'utf8');
-    await writeFile(path.join(profileDir, 'lnwjud.runtime.secret'), 'encrypted-fixture', 'utf8');
+    await writeFile(path.join(profileDir, 'detunnel.yaml'), 'control_plane:\n  tunnel_id: "tunnel_fixture123"\n  api_key: "env:CONTROL_PLANE_API_KEY"\nmcp:\n  commands:\n    - channel: main\n      command: fixture\n', 'utf8');
+    await writeFile(path.join(profileDir, 'detunnel.runtime.secret'), 'encrypted-fixture', 'utf8');
 
     let releaseProbe!: () => void;
     let markProbeEntered!: () => void;
@@ -112,16 +112,16 @@ describe('TunnelController concurrent start', () => {
   });
 
   it('cancels a start blocked in doctor before stop releases ownership', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-tunnel-start-stop-'));
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-tunnel-start-stop-'));
     temporaryRoots.push(dataPath);
     vi.stubEnv('APPDATA', path.join(dataPath, 'appdata'));
     const profileDir = path.join(dataPath, 'appdata', 'tunnel-client');
     const clientPath = path.join(dataPath, 'tunnel-client.exe');
-    const lockPath = path.join(profileDir, 'lnwjud.tunnel.lock');
+    const lockPath = path.join(profileDir, 'detunnel.tunnel.lock');
     await (await import('node:fs/promises')).mkdir(profileDir, { recursive: true });
     await writeFile(clientPath, 'fixture', 'utf8');
-    await writeFile(path.join(profileDir, 'lnwjud.yaml'), 'control_plane:\n  tunnel_id: "tunnel_fixture456"\n  api_key: "env:CONTROL_PLANE_API_KEY"\nmcp:\n  commands:\n    - channel: main\n      command: fixture\n', 'utf8');
-    await writeFile(path.join(profileDir, 'lnwjud.runtime.secret'), 'encrypted-fixture', 'utf8');
+    await writeFile(path.join(profileDir, 'detunnel.yaml'), 'control_plane:\n  tunnel_id: "tunnel_fixture456"\n  api_key: "env:CONTROL_PLANE_API_KEY"\nmcp:\n  commands:\n    - channel: main\n      command: fixture\n', 'utf8');
+    await writeFile(path.join(profileDir, 'detunnel.runtime.secret'), 'encrypted-fixture', 'utf8');
 
     const owner = {
       pid: 9_002,

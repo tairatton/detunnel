@@ -1,6 +1,6 @@
 import { realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
-import type { Workspace, WorkspaceRepository } from '@lnwjud/workspace';
+import type { Workspace, WorkspaceRepository } from '@detunnel/workspace';
 
 export class StrictWorkspaceRepository implements WorkspaceRepository {
   private readonly allowed = new Set<string>();

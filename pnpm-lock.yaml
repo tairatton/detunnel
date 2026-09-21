@@ -11,28 +11,28 @@ importers:
       '@eslint/js':
         specifier: 9.33.0
         version: 9.33.0
-      '@lnwjud/application':
+      '@detunnel/application':
         specifier: workspace:*
         version: link:packages/application
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:packages/audit
-      '@lnwjud/codex':
+      '@detunnel/codex':
         specifier: workspace:*
         version: link:packages/codex
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:packages/domain
-      '@lnwjud/mcp-server':
+      '@detunnel/mcp-server':
         specifier: workspace:*
         version: link:packages/mcp-server
-      '@lnwjud/process':
+      '@detunnel/process':
         specifier: workspace:*
         version: link:packages/process
-      '@lnwjud/storage':
+      '@detunnel/storage':
         specifier: workspace:*
         version: link:packages/storage
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:packages/workspace
       '@types/node':
@@ -53,82 +53,82 @@ importers:
 
   apps/cli:
     dependencies:
-      '@lnwjud/application':
+      '@detunnel/application':
         specifier: workspace:*
         version: link:../../packages/application
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@lnwjud/capabilities':
+      '@detunnel/capabilities':
         specifier: workspace:*
         version: link:../../packages/capabilities
-      '@lnwjud/codex':
+      '@detunnel/codex':
         specifier: workspace:*
         version: link:../../packages/codex
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../../packages/domain
-      '@lnwjud/extensions':
+      '@detunnel/extensions':
         specifier: workspace:*
         version: link:../../packages/extensions
-      '@lnwjud/mcp-server':
+      '@detunnel/mcp-server':
         specifier: workspace:*
         version: link:../../packages/mcp-server
-      '@lnwjud/permissions':
+      '@detunnel/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@lnwjud/storage':
+      '@detunnel/storage':
         specifier: workspace:*
         version: link:../../packages/storage
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:../../packages/workspace
 
   apps/desktop:
     dependencies:
-      '@lnwjud/application':
+      '@detunnel/application':
         specifier: workspace:*
         version: link:../../packages/application
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@lnwjud/capabilities':
+      '@detunnel/capabilities':
         specifier: workspace:*
         version: link:../../packages/capabilities
-      '@lnwjud/codex':
+      '@detunnel/codex':
         specifier: workspace:*
         version: link:../../packages/codex
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../../packages/domain
-      '@lnwjud/extensions':
+      '@detunnel/extensions':
         specifier: workspace:*
         version: link:../../packages/extensions
-      '@lnwjud/ipc-contracts':
+      '@detunnel/ipc-contracts':
         specifier: workspace:*
         version: link:../../packages/ipc-contracts
-      '@lnwjud/mcp-server':
+      '@detunnel/mcp-server':
         specifier: workspace:*
         version: link:../../packages/mcp-server
-      '@lnwjud/permissions':
+      '@detunnel/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
-      '@lnwjud/process':
+      '@detunnel/process':
         specifier: workspace:*
         version: link:../../packages/process
-      '@lnwjud/search':
+      '@detunnel/search':
         specifier: workspace:*
         version: link:../../packages/search
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@lnwjud/storage':
+      '@detunnel/storage':
         specifier: workspace:*
         version: link:../../packages/storage
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:../../packages/workspace
       electron-updater:
@@ -174,37 +174,37 @@ importers:
 
   packages/application:
     dependencies:
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:../audit
-      '@lnwjud/codex':
+      '@detunnel/codex':
         specifier: workspace:*
         version: link:../codex
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/filesystem':
+      '@detunnel/filesystem':
         specifier: workspace:*
         version: link:../filesystem
-      '@lnwjud/permissions':
+      '@detunnel/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@lnwjud/process':
+      '@detunnel/process':
         specifier: workspace:*
         version: link:../process
-      '@lnwjud/project':
+      '@detunnel/project':
         specifier: workspace:*
         version: link:../project
-      '@lnwjud/search':
+      '@detunnel/search':
         specifier: workspace:*
         version: link:../search
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../shared
-      '@lnwjud/storage':
+      '@detunnel/storage':
         specifier: workspace:*
         version: link:../storage
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:../workspace
 
@@ -212,22 +212,22 @@ importers:
 
   packages/capabilities:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/process':
+      '@detunnel/process':
         specifier: workspace:*
         version: link:../process
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/codex:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/process':
+      '@detunnel/process':
         specifier: workspace:*
         version: link:../process
 
@@ -235,7 +235,7 @@ importers:
 
   packages/extensions:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
       '@modelcontextprotocol/client':
@@ -244,10 +244,10 @@ importers:
 
   packages/filesystem:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:../workspace
 
@@ -255,28 +255,28 @@ importers:
 
   packages/mcp-server:
     dependencies:
-      '@lnwjud/application':
+      '@detunnel/application':
         specifier: workspace:*
         version: link:../application
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:../audit
-      '@lnwjud/capabilities':
+      '@detunnel/capabilities':
         specifier: workspace:*
         version: link:../capabilities
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/extensions':
+      '@detunnel/extensions':
         specifier: workspace:*
         version: link:../extensions
-      '@lnwjud/permissions':
+      '@detunnel/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@lnwjud/search':
+      '@detunnel/search':
         specifier: workspace:*
         version: link:../search
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../shared
       '@modelcontextprotocol/server':
@@ -292,28 +292,28 @@ importers:
 
   packages/permissions:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/process:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
 
   packages/project:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
 
   packages/search:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
 
@@ -321,22 +321,22 @@ importers:
 
   packages/storage:
     dependencies:
-      '@lnwjud/audit':
+      '@detunnel/audit':
         specifier: workspace:*
         version: link:../audit
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/workspace':
+      '@detunnel/workspace':
         specifier: workspace:*
         version: link:../workspace
 
   packages/workspace:
     dependencies:
-      '@lnwjud/domain':
+      '@detunnel/domain':
         specifier: workspace:*
         version: link:../domain
-      '@lnwjud/shared':
+      '@detunnel/shared':
         specifier: workspace:*
         version: link:../shared
 

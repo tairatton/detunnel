@@ -1,5 +1,5 @@
 import type { MenuItemConstructorOptions } from 'electron';
-import type { CloseBehavior, UiLocale, UpdateStatus } from '@lnwjud/ipc-contracts';
+import type { CloseBehavior, UiLocale, UpdateStatus } from '@detunnel/ipc-contracts';
 import { nativeMessages } from './native-i18n.js';
 
 export interface TrayMenuActions {

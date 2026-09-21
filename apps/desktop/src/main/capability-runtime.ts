@@ -20,10 +20,10 @@ import {
   WINDOWS_CAPABILITY_BRIDGE_SIZE_BYTES,
   WslCapabilityBackend,
   WslFilesystemCapabilityBackend,
-} from '@lnwjud/capabilities';
-import type { Result } from '@lnwjud/domain';
-import type { DashboardSnapshot } from '@lnwjud/ipc-contracts';
-import { DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS } from '@lnwjud/shared';
+} from '@detunnel/capabilities';
+import type { Result } from '@detunnel/domain';
+import type { DashboardSnapshot } from '@detunnel/ipc-contracts';
+import { DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS } from '@detunnel/shared';
 import { AsyncTtlCache } from './async-ttl-cache.js';
 
 export interface LocalCapabilityRuntime {
@@ -179,9 +179,9 @@ function windowsOcrHelperPath(): string | undefined {
   if (configured !== undefined && configured.trim().length > 0) return path.resolve(configured);
   const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
   const candidates = [
-    path.resolve(process.cwd(), 'native', 'windows-ocr', 'bin', 'lnwjud-windows-ocr.exe'),
-    resourcesPath === undefined ? undefined : path.join(resourcesPath, 'windows-ocr', 'lnwjud-windows-ocr.exe'),
-    path.join(path.dirname(process.execPath), 'windows-ocr', 'lnwjud-windows-ocr.exe'),
+    path.resolve(process.cwd(), 'native', 'windows-ocr', 'bin', 'detunnel-windows-ocr.exe'),
+    resourcesPath === undefined ? undefined : path.join(resourcesPath, 'windows-ocr', 'detunnel-windows-ocr.exe'),
+    path.join(path.dirname(process.execPath), 'windows-ocr', 'detunnel-windows-ocr.exe'),
   ].filter((candidate): candidate is string => candidate !== undefined);
   return candidates.find((candidate) => existsSync(candidate));
 }

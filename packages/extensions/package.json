@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/extensions",
+  "name": "@detunnel/extensions",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     }
   },
   "dependencies": {
-    "@lnwjud/domain": "workspace:*",
+    "@detunnel/domain": "workspace:*",
     "@modelcontextprotocol/client": "2.0.0"
   },
   "scripts": {

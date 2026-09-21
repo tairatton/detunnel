@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { rename, unlink, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { LogLine, TunnelLifecycleCategory, TunnelStatus } from '@lnwjud/ipc-contracts';
+import type { LogLine, TunnelLifecycleCategory, TunnelStatus } from '@detunnel/ipc-contracts';
 
 const execFileAsync = promisify(execFile);
 const MAX_ENTRIES = 200;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
-import type { UiLocale } from '@lnwjud/ipc-contracts';
+import type { UiLocale } from '@detunnel/ipc-contracts';
 import { UiIcon } from '../shell/UiIcon.js';
 
 interface SettingsDrawerProps {

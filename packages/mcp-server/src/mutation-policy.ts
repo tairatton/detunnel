@@ -1,5 +1,5 @@
 import type { McpPermissionLevel } from './tools/tool-types.js';
-import { riskyAgentCommandReason, type DestructiveApprovalKey } from '@lnwjud/shared';
+import { riskyAgentCommandReason, type DestructiveApprovalKey } from '@detunnel/shared';
 
 export type MutationKind = 'read' | 'execute' | 'bounded_write' | 'replace' | 'delete' | 'opaque_mutation';
 

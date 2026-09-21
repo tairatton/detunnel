@@ -2,7 +2,7 @@ export const APP_NAME = 'detunnel';
 export const APP_VERSION = '2.0.0';
 export { isUnrestricted, unrestrictedFromEnv, unrestrictedFromSetting, UNRESTRICTED_SETTING_KEY, type ProcessEnvLike } from './unrestricted.js';
 
-export { resolveDetunnelDataPath, resolveLnwjudDataPath, type DataPathEnvironment } from './data-path.js';
+export { DETUNNEL_LEGACY_DATABASE_FILENAME, resolveDetunnelDataPath, resolveDetunnelLegacyDataPath, type DataPathEnvironment } from './data-path.js';
 
 export {
   ALLOW_AI_DELETE_SETTING_KEY,

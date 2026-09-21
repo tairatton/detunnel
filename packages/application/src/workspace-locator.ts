@@ -1,6 +1,6 @@
 import path from 'node:path';
-import { appError, err, isFullBypassAuthorization, ok, type InvocationAuthorization, type Result } from '@lnwjud/domain';
-import { isWithin, type Workspace, type WorkspaceRepository } from '@lnwjud/workspace';
+import { appError, err, isFullBypassAuthorization, ok, type InvocationAuthorization, type Result } from '@detunnel/domain';
+import { isWithin, type Workspace, type WorkspaceRepository } from '@detunnel/workspace';
 
 export function isAbsoluteFsPath(inputPath: string): boolean {
   return path.win32.isAbsolute(inputPath) || path.posix.isAbsolute(inputPath);

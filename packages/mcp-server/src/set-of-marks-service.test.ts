@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
-import type { CapabilityService, CapabilityToolName } from '@lnwjud/capabilities';
+import { appError, err, ok, type Result } from '@detunnel/domain';
+import type { CapabilityService, CapabilityToolName } from '@detunnel/capabilities';
 import { SetOfMarksObservationStore, SetOfMarksService } from './set-of-marks-service.js';
 
 const image = {

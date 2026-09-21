@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { PermissionProfileName } from '@lnwjud/ipc-contracts';
+import type { PermissionProfileName } from '@detunnel/ipc-contracts';
 
 interface PermissionPanelProps {
   readonly profile: PermissionProfileName;

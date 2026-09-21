@@ -24,7 +24,7 @@ afterEach(async () => {
 
 describe('multi-workspace concurrency acceptance', () => {
   it('runs two real MCP sessions in parallel without mixing workspace or session ownership', async () => {
-    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-multi-session-data-'));
+    const rawDataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-multi-session-data-'));
     temporaryRoots.push(rawDataRoot);
     const dataRoot = await realpath(rawDataRoot);
     const workspaceRootA = await createWorkspaceFixture('a');
@@ -249,7 +249,7 @@ describe('multi-workspace concurrency acceptance', () => {
 });
 
 async function createWorkspaceFixture(label: string): Promise<string> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), `lnwjud-multi-${label}-`));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), `detunnel-multi-${label}-`));
   temporaryRoots.push(rawRoot);
   const root = await realpath(rawRoot);
   const barrierScript = [
@@ -267,7 +267,7 @@ async function createWorkspaceFixture(label: string): Promise<string> {
   await writeFile(path.join(root, 'barrier.js'), barrierScript, 'utf8');
   await writeFile(path.join(root, 'background.js'), backgroundScript, 'utf8');
   await writeFile(path.join(root, 'package.json'), JSON.stringify({
-    name: `lnwjud-multi-${label}`,
+    name: `detunnel-multi-${label}`,
     private: true,
     scripts: {
       build: 'node barrier.js build',

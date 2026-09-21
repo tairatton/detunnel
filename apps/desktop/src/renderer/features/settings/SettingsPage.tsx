@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import type { DashboardSnapshot, DestructiveDeletePolicy, ExternalSetupTarget, PdfProviderInstallResult, PermissionProfileName, TunnelOAuthLoginStatus, TunnelStatus, UiLocale, UserSettings } from '@lnwjud/ipc-contracts';
+import type { DashboardSnapshot, DestructiveDeletePolicy, ExternalSetupTarget, PdfProviderInstallResult, PermissionProfileName, TunnelOAuthLoginStatus, TunnelStatus, UiLocale, UserSettings } from '@detunnel/ipc-contracts';
 import { formatDateTime } from '../../date-time.js';
 import { createTranslator } from '../../i18n/index.js';
 import { tunnelRuntimeCredentialAvailable } from '../../tunnel-auth-readiness.js';
@@ -391,10 +391,10 @@ export function SettingsPage(props: SettingsPageProps): ReactElement {
     setRemoteMcpBusy(true);
     setRemoteMcpMessage(null);
     try {
-      if (action === 'install') await window.lnwjud.installRemoteMcpProvider();
-      if (action === 'start') await window.lnwjud.startRemoteMcp();
-      if (action === 'stop') await window.lnwjud.stopRemoteMcp();
-      if (action === 'regenerate') await window.lnwjud.regenerateRemoteMcpPairingCode();
+      if (action === 'install') await window.detunnel.installRemoteMcpProvider();
+      if (action === 'start') await window.detunnel.startRemoteMcp();
+      if (action === 'stop') await window.detunnel.stopRemoteMcp();
+      if (action === 'regenerate') await window.detunnel.regenerateRemoteMcpPairingCode();
       await props.onRefresh();
       setRemoteMcpMessage(props.locale === 'th' ? 'อัปเดต Remote MCP เรียบร้อยแล้ว' : 'Remote MCP updated.');
     } catch (cause: unknown) {

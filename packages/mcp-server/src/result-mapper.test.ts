@@ -60,4 +60,19 @@ describe('mapResult image payloads', () => {
       },
     });
   });
+
+  it('redacts sensitive fields and token-like values from MCP responses', () => {
+    const response = mapResult({
+      ok: true as const,
+      value: {
+        authorization: 'Bearer super-secret-token',
+        content: 'OPENAI_API_KEY=sk-test-value',
+      },
+    });
+
+    expect(response.content[0]?.text).toContain('[REDACTED]');
+    expect(response.content[0]?.text).not.toContain('super-secret-token');
+    expect(response.content[0]?.text).not.toContain('sk-test-value');
+    expect(response.structuredContent).toMatchObject({ authorization: '[REDACTED]' });
+  });
 });

@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/cli",
+  "name": "@detunnel/cli",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -8,17 +8,17 @@
     "detunnel-stdio": "./dist/bin/mcp-stdio.js"
   },
   "dependencies": {
-    "@lnwjud/application": "workspace:*",
-    "@lnwjud/audit": "workspace:*",
-    "@lnwjud/capabilities": "workspace:*",
-    "@lnwjud/codex": "workspace:*",
-    "@lnwjud/domain": "workspace:*",
-    "@lnwjud/extensions": "workspace:*",
-    "@lnwjud/mcp-server": "workspace:*",
-    "@lnwjud/permissions": "workspace:*",
-    "@lnwjud/shared": "workspace:*",
-    "@lnwjud/storage": "workspace:*",
-    "@lnwjud/workspace": "workspace:*"
+    "@detunnel/application": "workspace:*",
+    "@detunnel/audit": "workspace:*",
+    "@detunnel/capabilities": "workspace:*",
+    "@detunnel/codex": "workspace:*",
+    "@detunnel/domain": "workspace:*",
+    "@detunnel/extensions": "workspace:*",
+    "@detunnel/mcp-server": "workspace:*",
+    "@detunnel/permissions": "workspace:*",
+    "@detunnel/shared": "workspace:*",
+    "@detunnel/storage": "workspace:*",
+    "@detunnel/workspace": "workspace:*"
   },
   "scripts": {
     "test": "vitest run",

@@ -42,8 +42,8 @@ export function windowsCompatibilityProfile(
       supportedReleaseTarget: false,
       disableHardwareAcceleration: false,
       reason: x64
-        ? 'lnwjud requires Windows 10 or Windows 11.'
-        : 'lnwjud Windows packages require 64-bit x64 Windows.',
+        ? 'detunnel requires Windows 10 or Windows 11.'
+        : 'detunnel Windows packages require 64-bit x64 Windows.',
     };
   }
 

@@ -1,4 +1,4 @@
-# lnwjud Release Process
+# detunnel Release Process
 
 This document is the canonical release sequence for maintainers and coding agents.
 It assumes a local source tree and a selected distribution channel; it does not

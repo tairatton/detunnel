@@ -96,7 +96,7 @@ async function installRipgrepOnce(dataPath: string, options: RipgrepInstallerOpt
     await rm(runtimeRoot, { recursive: true, force: true });
     await rename(extractedRoot, runtimeRoot);
     await writeFile(path.join(runtimeRoot, 'BUNDLED_RIPGREP.txt'), [
-      'ripgrep installed by lnwjud',
+      'ripgrep installed by detunnel',
       `version=${packageInfo.version}`,
       `source=${packageInfo.sourceUrl}`,
       `archive_sha256=${packageInfo.archiveSha256}`,

@@ -15,7 +15,7 @@ afterEach(async () => {
 
 describe('McpConfigLoader', () => {
   it('discovers Cursor MCP servers and substitutes workspaceFolder', async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-mcp-cfg-'));
+    const home = await mkdtemp(path.join(os.tmpdir(), 'detunnel-mcp-cfg-'));
     temporaryRoots.push(home);
     await mkdir(path.join(home, '.cursor'), { recursive: true });
     await writeFile(path.join(home, '.cursor', 'mcp.json'), JSON.stringify({
@@ -24,8 +24,8 @@ describe('McpConfigLoader', () => {
           command: 'npx',
           args: ['-y', '@playwright/mcp', '--cwd', '${workspaceFolder}'],
         },
-        lnwjud: {
-          command: 'lnwjud.exe',
+        detunnel: {
+          command: 'detunnel.exe',
           args: ['--mcp-stdio'],
         },
       },
@@ -47,7 +47,7 @@ describe('McpConfigLoader', () => {
         }),
       }),
       expect.objectContaining({
-        name: 'lnwjud',
+        name: 'detunnel',
         enabled: false,
         excluded: true,
       }),

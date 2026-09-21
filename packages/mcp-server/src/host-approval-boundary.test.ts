@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ok } from '@lnwjud/domain';
-import { permissionProfiles, type PermissionProfile } from '@lnwjud/permissions';
-import { DEFAULT_DESTRUCTIVE_AUTO_APPROVAL_POLICY, type DestructiveAutoApprovalPolicy } from '@lnwjud/shared';
+import { ok } from '@detunnel/domain';
+import { permissionProfiles, type PermissionProfile } from '@detunnel/permissions';
+import { DEFAULT_DESTRUCTIVE_AUTO_APPROVAL_POLICY, type DestructiveAutoApprovalPolicy } from '@detunnel/shared';
 import { ToolRegistry, type McpApplicationServices, type WorkspaceScope } from './tool-registry.js';
 
 const actor = { clientId: 'host-approval', clientName: 'host-approval-test' };
@@ -65,8 +65,8 @@ describe('mandatory independent host approval', () => {
   });
 
   it.each([
-    ['scheduler run', 'scheduler', { action: 'run', task_name: 'LnwjudTask', userConfirmed: true }],
-    ['scheduler delete', 'scheduler', { action: 'delete', task_name: 'LnwjudTask', userConfirmed: true }],
+    ['scheduler run', 'scheduler', { action: 'run', task_name: 'DetunnelTask', userConfirmed: true }],
+    ['scheduler delete', 'scheduler', { action: 'delete', task_name: 'DetunnelTask', userConfirmed: true }],
     ['hook removal', 'hook_remove', { name: 'audit', userConfirmed: true }],
     ['self-heal apply', 'self_heal_apply', { workspaceId: 'workspace-a', planId: 'reviewed-plan', dryRun: false, userConfirmed: true }],
   ] as const)('denies destructive administrative operation %s without native host approval', async (_label, tool, input) => {

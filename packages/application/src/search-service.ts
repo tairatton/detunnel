@@ -1,6 +1,6 @@
-import { appError, err, ok, type Result } from '@lnwjud/domain';
-import { RipgrepAdapter, type ContextDiscoveryMode, type SearchFilesRequest as AdapterFilesRequest, type SearchFilesResult, type SearchTextRequest as AdapterTextRequest, type SearchTextResult } from '@lnwjud/search';
-import type { WorkspaceRepository } from '@lnwjud/workspace';
+import { appError, err, ok, type Result } from '@detunnel/domain';
+import { RipgrepAdapter, type ContextDiscoveryMode, type SearchFilesRequest as AdapterFilesRequest, type SearchFilesResult, type SearchTextRequest as AdapterTextRequest, type SearchTextResult } from '@detunnel/search';
+import type { WorkspaceRepository } from '@detunnel/workspace';
 import type { FileActor } from './file-service.js';
 import { resolveWorkspaceForPath } from './workspace-locator.js';
 

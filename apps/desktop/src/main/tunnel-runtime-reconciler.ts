@@ -26,7 +26,7 @@ export interface TunnelRuntimeReconcilerAdapter {
 export interface TunnelRuntimeReconcilerOptions {
   readonly adapter: TunnelRuntimeReconcilerAdapter | TunnelRuntimeAdapter;
   readonly desiredState: () => TunnelRuntimeDesiredState | Promise<TunnelRuntimeDesiredState>;
-  /** Manual Start may replace the dedicated lnwjud alias only after the prior runtime is confirmed stopped. */
+  /** Manual Start may replace the dedicated detunnel alias only after the prior runtime is confirmed stopped. */
   readonly allowStoppedTunnelIdReplacement?: boolean;
   readonly now?: () => Date;
 }

@@ -1,7 +1,7 @@
 ﻿import { appendFileSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { redactDiagnosticText } from '@lnwjud/application';
+import { redactDiagnosticText } from '@detunnel/application';
 
 const MAX_CRASH_LOG_BYTES = 512 * 1024;
 const RETAINED_CRASH_EVENTS = 128;

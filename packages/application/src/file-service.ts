@@ -11,7 +11,7 @@ import {
   ok,
   type InvocationAuthorization,
   type Result,
-} from '@lnwjud/domain';
+} from '@detunnel/domain';
 import {
   AtomicFileWriter,
   MAX_FILE_WRITE_BYTES,
@@ -23,10 +23,10 @@ import {
   nodeErrorCode,
   type FilePatch,
   type LineRange,
-} from '@lnwjud/filesystem';
-import { DefaultPermissionEngine, permissionProfiles, type PermissionEngine, type PermissionProfile } from '@lnwjud/permissions';
-import { isProtectedCriticalPath } from '@lnwjud/shared';
-import { isWithin, WorkspacePathGuard, type ResolvedWorkspacePath, type Workspace, type WorkspaceRepository } from '@lnwjud/workspace';
+} from '@detunnel/filesystem';
+import { DefaultPermissionEngine, permissionProfiles, type PermissionEngine, type PermissionProfile } from '@detunnel/permissions';
+import { isProtectedCriticalPath } from '@detunnel/shared';
+import { isWithin, WorkspacePathGuard, type ResolvedWorkspacePath, type Workspace, type WorkspaceRepository } from '@detunnel/workspace';
 import type { CheckpointServicePort } from './checkpoint-service.js';
 import { resolveSharedWorkspace, resolveWorkspaceForPath } from './workspace-locator.js';
 

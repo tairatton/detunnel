@@ -1,5 +1,5 @@
 {
-  "name": "@lnwjud/application",
+  "name": "@detunnel/application",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -13,17 +13,17 @@
     }
   },
   "dependencies": {
-    "@lnwjud/domain": "workspace:*",
-    "@lnwjud/codex": "workspace:*",
-    "@lnwjud/audit": "workspace:*",
-    "@lnwjud/filesystem": "workspace:*",
-    "@lnwjud/permissions": "workspace:*",
-    "@lnwjud/process": "workspace:*",
-    "@lnwjud/project": "workspace:*",
-    "@lnwjud/search": "workspace:*",
-    "@lnwjud/shared": "workspace:*",
-    "@lnwjud/storage": "workspace:*",
-    "@lnwjud/workspace": "workspace:*"
+    "@detunnel/domain": "workspace:*",
+    "@detunnel/codex": "workspace:*",
+    "@detunnel/audit": "workspace:*",
+    "@detunnel/filesystem": "workspace:*",
+    "@detunnel/permissions": "workspace:*",
+    "@detunnel/process": "workspace:*",
+    "@detunnel/project": "workspace:*",
+    "@detunnel/search": "workspace:*",
+    "@detunnel/shared": "workspace:*",
+    "@detunnel/storage": "workspace:*",
+    "@detunnel/workspace": "workspace:*"
   },
   "scripts": {
     "test": "vitest run",

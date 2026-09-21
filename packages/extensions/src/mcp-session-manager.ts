@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
+import { appError, err, ok, type Result } from '@detunnel/domain';
 import type { ExternalMcpContractDrift, McpResourceSummary, McpServerLaunchConfig, McpToolSummary } from './types.js';
 
 export interface McpClientSession {
@@ -254,7 +254,7 @@ export const defaultMcpClientFactory: McpClientFactory = {
       stderr: 'pipe',
     });
     const client = new Client(
-      { name: 'lnwjud-mcp-bridge', version: '1.0.0' },
+      { name: 'detunnel-mcp-bridge', version: '1.0.0' },
       { versionNegotiation: { mode: { pin: '2026-07-28' } } },
     );
     await client.connect(transport, signal === undefined ? undefined : { signal });

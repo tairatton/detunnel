@@ -1,11 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import type { TunnelAuthStatus } from '@lnwjud/ipc-contracts';
+import type { TunnelAuthStatus } from '@detunnel/ipc-contracts';
 import { protectTunnelSecret, unprotectTunnelSecret } from './tunnel-secret-dpapi.js';
 
-export const LEGACY_TUNNEL_SECRET_FILE = 'lnwjud.runtime.secret';
-export const OAUTH_TUNNEL_SESSION_FILE = 'lnwjud.oauth.session.secret';
+export const LEGACY_TUNNEL_SECRET_FILE = 'detunnel.runtime.secret';
+export const OAUTH_TUNNEL_SESSION_FILE = 'detunnel.oauth.session.secret';
 
 export function defaultTunnelProfileDirectory(environment: NodeJS.ProcessEnv = process.env): string {
   return path.join(environment.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'), 'tunnel-client');
@@ -38,7 +38,7 @@ export interface LegacyApiKeyCredentialProviderOptions {
 }
 
 /**
- * Backward-compatible adapter for the original lnwjud Secure Tunnel credential
+ * Backward-compatible adapter for the original detunnel Secure Tunnel credential
  * contract. The on-disk file name, DPAPI payload, and runtime secret injection
  * remain unchanged so existing installations keep working byte-for-behavior.
  */

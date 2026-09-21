@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { appError, err, ok } from '@lnwjud/domain';
-import { CAPABILITY_TASK_OWNER_METADATA_KEY } from '@lnwjud/capabilities';
+import { appError, err, ok } from '@detunnel/domain';
+import { CAPABILITY_TASK_OWNER_METADATA_KEY } from '@detunnel/capabilities';
 import { TasksProtocol } from './tasks-protocol.js';
 import type { McpApplicationServices } from './tool-registry.js';
 

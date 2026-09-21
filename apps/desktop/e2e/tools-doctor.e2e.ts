@@ -27,7 +27,7 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
     const app = await launchDesktop();
     try {
       await openTools(app.page);
-      const catalogCount = await app.page.evaluate(async () => (await window.lnwjud.getToolCatalog({ locale: 'th' })).items.length);
+      const catalogCount = await app.page.evaluate(async () => (await window.detunnel.getToolCatalog({ locale: 'th' })).items.length);
       await expect(app.page.getByRole('tab', { name: `detunnel (${catalogCount})` })).toBeVisible();
       await expect(app.page.locator('.tool-card')).toHaveCount(catalogCount);
       await expect(app.page.locator('.tool-status-strip')).toContainText(/พร้อม|ต้องดำเนินการ|ready|needs_setup/i);
@@ -53,8 +53,8 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
       await expect(toolCard(app.page, 'lsp_diagnostics')).toHaveClass(/tool-needs_setup/);
       const nodePath = process.execPath;
       await app.page.evaluate(async (configuredNodePath) => {
-        const dashboard = await window.lnwjud.getDashboard();
-        await window.lnwjud.setUserSettings({
+        const dashboard = await window.detunnel.getDashboard();
+        await window.detunnel.setUserSettings({
           settings: { ...dashboard.settings, lspCommands: { typescript: JSON.stringify([configuredNodePath, '--version']) } },
         });
       }, nodePath);
@@ -72,15 +72,15 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
   test('permission deny blocks dangerous tools without invoking their runtime', async () => {
     const app = await launchDesktop();
     try {
-      await app.page.evaluate(async () => { await window.lnwjud.setPermissionProfile({ profile: 'safe' }); });
-      const before = await app.page.evaluate(async () => (await window.lnwjud.getDashboard()).auditEventCount);
+      await app.page.evaluate(async () => { await window.detunnel.setPermissionProfile({ profile: 'safe' }); });
+      const before = await app.page.evaluate(async () => (await window.detunnel.getDashboard()).auditEventCount);
       await openTools(app.page);
       const card = toolCard(app.page, 'delete_file');
       await expect(card).toHaveClass(/tool-blocked/);
       await card.locator('button.tool-card-open').click();
       await expect(app.page.getByRole('dialog')).toContainText('DENY');
       await app.page.getByRole('button', { name: /ปิดรายละเอียดเครื่องมือ|Close tool details/ }).click();
-      const after = await app.page.evaluate(async () => (await window.lnwjud.getDashboard()).auditEventCount);
+      const after = await app.page.evaluate(async () => (await window.detunnel.getDashboard()).auditEventCount);
       expect(after).toBe(before);
     } finally { await closeDesktop(app); }
   });
@@ -90,8 +90,8 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
     const { dataRoot, fixtureRoot } = first;
     try {
       await first.page.evaluate(async () => {
-        const dashboard = await window.lnwjud.getDashboard();
-        await window.lnwjud.setUserSettings({
+        const dashboard = await window.detunnel.getDashboard();
+        await window.detunnel.setUserSettings({
           settings: {
             ...dashboard.settings,
             extensions: {
@@ -118,14 +118,14 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
     try {
       await openTools(app.page);
       const before = await app.page.evaluate(async () => {
-        const snapshot = await window.lnwjud.getToolCatalog({ locale: 'th' });
+        const snapshot = await window.detunnel.getToolCatalog({ locale: 'th' });
         const tool = snapshot.items.find((item) => item.name === 'lsp_diagnostics');
         return { checkedAt: tool?.checkedAt, shortDescription: tool?.shortDescription };
       });
       await app.page.getByRole('button', { name: 'English' }).click();
       await expect(app.page.getByRole('heading', { name: 'Tools' })).toBeVisible();
       const after = await app.page.evaluate(async () => {
-        const snapshot = await window.lnwjud.getToolCatalog({ locale: 'en' });
+        const snapshot = await window.detunnel.getToolCatalog({ locale: 'en' });
         const tool = snapshot.items.find((item) => item.name === 'lsp_diagnostics');
         return { checkedAt: tool?.checkedAt, shortDescription: tool?.shortDescription };
       });
@@ -136,8 +136,8 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
 
   test('startup blocks on required failure but optional dependency failure does not block', async () => {
     test.skip(packagedExecutable !== undefined, 'Packaged builds carry bundled required executables; PATH-only startup dependency failure is a source-build scenario.');
-    const requiredFailBin = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-path-required-fail-'));
-    const optionalFailBin = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-path-optional-fail-'));
+    const requiredFailBin = await mkdtemp(path.join(os.tmpdir(), 'detunnel-path-required-fail-'));
+    const optionalFailBin = await mkdtemp(path.join(os.tmpdir(), 'detunnel-path-optional-fail-'));
     await copyFile(process.execPath, path.join(optionalFailBin, 'rg.exe'));
 
     const requiredFail = await launchDesktop({ pathOverride: requiredFailBin });
@@ -160,7 +160,7 @@ test.describe('Tools catalog and Doctor real Electron acceptance', () => {
 });
 
 async function launchDesktop(options: { readonly dataRoot?: string; readonly fixtureRoot?: string; readonly pathOverride?: string } = {}): Promise<LaunchedDesktop> {
-  const dataRoot = options.dataRoot ?? await mkdtemp(path.join(os.tmpdir(), 'lnwjud-tools-doctor-data-'));
+  const dataRoot = options.dataRoot ?? await mkdtemp(path.join(os.tmpdir(), 'detunnel-tools-doctor-data-'));
   const fixtureRoot = options.fixtureRoot ?? await createFixture();
   const devToolsPort = await findEphemeralPort();
   const mcpPort = await findEphemeralPort();
@@ -212,31 +212,31 @@ async function openTools(page: Page, bypassStartupDoctor = false): Promise<void>
 }
 
 async function dismissFirstRunTip(page: Page, bypassStartupDoctor = false): Promise<void> {
-  const mcpRunning = await page.evaluate(async () => (await window.lnwjud.getDashboard()).mcp.running);
-  if (!mcpRunning) await page.evaluate(async () => { await window.lnwjud.restartMcp(); });
+  const mcpRunning = await page.evaluate(async () => (await window.detunnel.getDashboard()).mcp.running);
+  if (!mcpRunning) await page.evaluate(async () => { await window.detunnel.restartMcp(); });
 
   if (bypassStartupDoctor) {
     await page.evaluate(async () => {
-      const dashboard = await window.lnwjud.getDashboard();
-      window.localStorage.setItem('lnwjud.startup-doctor.passed-version.v1', dashboard.appVersion);
+      const dashboard = await window.detunnel.getDashboard();
+      window.localStorage.setItem('detunnel.startup-doctor.passed-version.v1', dashboard.appVersion);
     });
     await page.reload();
   } else {
     try {
       await expect.poll(async () => page.evaluate(async () => {
-        const dashboard = await window.lnwjud.getDashboard();
-        return window.localStorage.getItem('lnwjud.startup-doctor.passed-version.v1') === dashboard.appVersion;
+        const dashboard = await window.detunnel.getDashboard();
+        return window.localStorage.getItem('detunnel.startup-doctor.passed-version.v1') === dashboard.appVersion;
       }), { timeout: 30_000, intervals: [100, 250, 500] }).toBe(true);
     } catch (cause: unknown) {
       const diagnostics = await page.evaluate(async () => {
-        const report = await window.lnwjud.runDoctor();
+        const report = await window.detunnel.runDoctor();
         const coreIds = new Set(['os', 'database', 'executable_ripgrep', 'mcp-port']);
         const coreChecks = report.checks
           .filter((check) => coreIds.has(check.id))
           .map((check) => ({ id: check.id, required: check.required, status: check.status, message: check.message }));
         let catalog: { ok: true; itemCount: number } | { ok: false; error: string };
         try {
-          const snapshot = await window.lnwjud.getToolCatalog({ locale: (await window.lnwjud.getDashboard()).locale });
+          const snapshot = await window.detunnel.getToolCatalog({ locale: (await window.detunnel.getDashboard()).locale });
           catalog = { ok: true, itemCount: snapshot.items.length };
         } catch (error: unknown) {
           catalog = { ok: false, error: error instanceof Error ? error.message : String(error) };
@@ -261,7 +261,7 @@ function escapeRegExp(value: string): string {
 }
 
 async function createFixture(): Promise<string> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-tools-doctor-workspace-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-tools-doctor-workspace-'));
   await mkdir(path.join(root, 'src'));
   await writeFile(path.join(root, 'src', 'app.ts'), 'export const ready = true;\n', 'utf8');
   await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'tools-doctor-e2e-fixture', scripts: { test: 'node --version' } }), 'utf8');

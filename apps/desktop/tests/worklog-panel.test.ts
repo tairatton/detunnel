@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { InFlightWorkItem, WorkLogEntry } from '@lnwjud/ipc-contracts';
+import type { InFlightWorkItem, WorkLogEntry } from '@detunnel/ipc-contracts';
 import { formatWorkLogCopyText, newestFirstWorkLogRows, WorkLogPanel } from '../src/renderer/features/worklog/WorkLogPanel.js';
 import * as workLogPanelModule from '../src/renderer/features/worklog/WorkLogPanel.js';
 
@@ -135,17 +135,17 @@ describe('WorkLogPanel', () => {
   it('disambiguates duplicate workspace names and suppresses duplicate registrations for the same root', () => {
     const workspaces = [
       { id: 'drive-e', displayName: 'Local Disk E:', rootPath: 'E:\\', realRootPath: 'E:\\', createdAt: '2026-08-01T00:00:00.000Z', kind: 'machine_root' as const },
-      { id: 'workspace-a', displayName: 'lnwjud', rootPath: 'E:\\lnwjud', realRootPath: 'E:\\lnwjud', createdAt: '2026-08-01T00:00:00.000Z' },
-      { id: 'workspace-alias', displayName: 'lnwjud', rootPath: 'E:/lnwjud/', realRootPath: 'E:/lnwjud/', createdAt: '2026-08-01T00:00:00.000Z' },
-      { id: 'workspace-b', displayName: 'lnwjud', rootPath: 'D:\\projects\\lnwjud', realRootPath: 'D:\\projects\\lnwjud', createdAt: '2026-08-01T00:00:00.000Z' },
+      { id: 'workspace-a', displayName: 'detunnel', rootPath: 'E:\\detunnel', realRootPath: 'E:\\detunnel', createdAt: '2026-08-01T00:00:00.000Z' },
+      { id: 'workspace-alias', displayName: 'detunnel', rootPath: 'E:/detunnel/', realRootPath: 'E:/detunnel/', createdAt: '2026-08-01T00:00:00.000Z' },
+      { id: 'workspace-b', displayName: 'detunnel', rootPath: 'D:\\projects\\detunnel', realRootPath: 'D:\\projects\\detunnel', createdAt: '2026-08-01T00:00:00.000Z' },
     ];
     const markup = renderToStaticMarkup(createElement(WorkLogPanel, {
       title: 'Work log', emptyLabel: 'Empty', filterAllLabel: 'All', filterErrorLabel: 'Errors',
       clearSessionLabel: 'Clear session', clearWorkspaceLabel: 'Clear workspace', clearAllLabel: 'Clear all',
       filter: 'all', onFilterChange: () => {}, onClear: async () => {}, entries: [], inFlight: [], workspaces,
     }));
-    expect(markup).toContain('lnwjud — workspace-a — E:\\lnwjud');
-    expect(markup).toContain('lnwjud — workspace-b — D:\\projects\\lnwjud');
+    expect(markup).toContain('detunnel — workspace-a — E:\\detunnel');
+    expect(markup).toContain('detunnel — workspace-b — D:\\projects\\detunnel');
     expect(markup.match(/value="workspace-alias"/g)).toBeNull();
     expect(markup).not.toContain('Local Disk E:');
   });
@@ -166,15 +166,15 @@ describe('WorkLogPanel', () => {
 
   it('treats slash and case variants of a legacy workspace path as the same project', () => {
     const workspaces = [
-      { id: 'lnwjud-project', displayName: 'lnwjud', rootPath: 'E:\\lnwjud', realRootPath: 'E:\\lnwjud', createdAt: '2026-08-01T00:00:00.000Z' },
+      { id: 'detunnel-project', displayName: 'detunnel', rootPath: 'E:\\detunnel', realRootPath: 'E:\\detunnel', createdAt: '2026-08-01T00:00:00.000Z' },
     ];
     const entries: WorkLogEntry[] = [
-      { ...mockEntries[0]!, id: 'slash', workspaceId: 'e:/LNWJUD/' },
-      { ...mockEntries[1]!, id: 'backslash', workspaceId: 'E:\\lnwjud' },
+      { ...mockEntries[0]!, id: 'slash', workspaceId: 'e:/DETUNNEL/' },
+      { ...mockEntries[1]!, id: 'backslash', workspaceId: 'E:\\detunnel' },
       { ...mockEntries[0]!, id: 'other', workspaceId: 'E:\\other' },
     ];
 
-    const rows = newestFirstWorkLogRows(entries, [], 'all', '', { workspaceId: 'lnwjud-project', sessionId: null }, workspaces);
+    const rows = newestFirstWorkLogRows(entries, [], 'all', '', { workspaceId: 'detunnel-project', sessionId: null }, workspaces);
     expect(rows.map((row) => row.id)).toEqual(['slash', 'backslash']);
   });
 
@@ -197,13 +197,13 @@ describe('WorkLogPanel', () => {
       toolName: 'run_goal', targetSummary: `goalKey=activity-log-full-detail-no-truncation workspace=${workspaceId}`,
       targetDetail: { detailRef: `${callId}:completed`, itemCount: 2, preview: [], legacyIncomplete: false },
     };
-    const workspaces = [{ id: workspaceId, displayName: 'lnwjud', rootPath: 'E:\\lnwjud', realRootPath: 'E:\\lnwjud', createdAt: '2026-08-01T00:00:00.000Z' }];
+    const workspaces = [{ id: workspaceId, displayName: 'detunnel', rootPath: 'E:\\detunnel', realRootPath: 'E:\\detunnel', createdAt: '2026-08-01T00:00:00.000Z' }];
     const markup = renderToStaticMarkup(createElement(WorkLogPanel, {
       title: 'Work log', emptyLabel: 'Empty', filterAllLabel: 'All', filterErrorLabel: 'Errors',
       clearSessionLabel: 'Clear session', clearWorkspaceLabel: 'Clear workspace', clearAllLabel: 'Clear all',
       filter: 'all', onFilterChange: () => {}, onClear: async () => {}, entries: [entry], inFlight: [], workspaces,
     }));
-    expect(markup).toContain(`lnwjud — ${workspaceId}`);
+    expect(markup).toContain(`detunnel — ${workspaceId}`);
     expect(markup).toContain(sessionId);
     expect(markup).not.toContain('372e9384…1383');
     expect(markup).not.toContain('session-1…');

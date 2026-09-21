@@ -2,6 +2,7 @@ import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, nativeImage, net,
 import path from 'node:path';
 import os from 'node:os';
 import { access } from 'node:fs/promises';
+import { migrateDetunnelDataPath } from '@detunnel/shared/node';
 import electronUpdater from 'electron-updater';
 import {
   APP_NAME,
@@ -62,10 +63,10 @@ import {
   type UserSettings,
   type UpdateStatus,
   type WorkspaceSummary,
-} from '@lnwjud/ipc-contracts';
-import { readSharedActivitySnapshot, startMcpStdio, type HostMutationApprovalRequest } from '@lnwjud/mcp-server';
-import { DEFAULT_MCP_POLL_WAIT_SECONDS, DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS, resolveLnwjudDataPath } from '@lnwjud/shared';
-import { applyPendingSqliteRestoreSync } from '@lnwjud/storage';
+} from '@detunnel/ipc-contracts';
+import { readSharedActivitySnapshot, startMcpStdio, type HostMutationApprovalRequest } from '@detunnel/mcp-server';
+import { DEFAULT_MCP_POLL_WAIT_SECONDS, DEFAULT_SHELL_SYNCHRONOUS_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS, resolveDetunnelDataPath } from '@detunnel/shared';
+import { applyPendingSqliteRestoreSync } from '@detunnel/storage';
 import { createDesktopRuntime, formatCompleteTargetDetail, formatIncompleteLegacyHistory, writeSerializedLogRows, type DesktopRuntime } from './desktop-services.js';
 import { installPdfProvider } from './pdf-provider-installer.js';
 import { installRipgrep } from './ripgrep-installer.js';
@@ -254,7 +255,7 @@ const defaultDesktopServices: DesktopIpcServices = {
     stdioAllowedRoots: [],
     backups: [],
     recovery: { trashRoot: null, trashItems: [], checkpoints: [] },
-    connectionModes: { httpUrl: null, stdioCommand: 'lnwjud-mcp-stdio.cmd --profile full' },
+    connectionModes: { httpUrl: null, stdioCommand: 'detunnel-mcp-stdio.cmd --profile full' },
     workLog: [],
     inFlight: [],
     tunnel: emptyTunnel,
@@ -1401,7 +1402,7 @@ function setDesktopLocale(locale: UiLocale): void {
 function createDesktopTray(): void {
   const iconPath = getWindowIconPath();
   if (iconPath === undefined) {
-    console.error('lnwjud tray icon was not found');
+    console.error('detunnel tray icon was not found');
     return;
   }
   tray?.destroy();
@@ -1455,9 +1456,9 @@ function bootstrapMcpStdio(): void {
       ?? process.cwd();
     try {
       const workspaceId = await runtime.ensureDefaultWorkspace(workspacePath);
-      process.stderr.write(`lnwjud MCP stdio ready workspace=${workspaceId}\n`);
+      process.stderr.write(`detunnel MCP stdio ready workspace=${workspaceId}\n`);
     } catch (error: unknown) {
-      process.stderr.write(`lnwjud MCP stdio workspace warning: ${error instanceof Error ? error.message : 'unknown'}\n`);
+      process.stderr.write(`detunnel MCP stdio workspace warning: ${error instanceof Error ? error.message : 'unknown'}\n`);
     }
     startMcpStdio({
       services: runtime.mcpServices,
@@ -1472,11 +1473,11 @@ function bootstrapMcpStdio(): void {
       toolAvailabilitySubscribe: (listener) => runtime.toolAvailabilityService.subscribe(listener),
       onError: (error): void => {
         if (/EPIPE|ECONNRESET|broken pipe/i.test(error.message)) {
-          process.stderr.write(`lnwjud MCP stdio: peer closed (${error.message})\n`);
+          process.stderr.write(`detunnel MCP stdio: peer closed (${error.message})\n`);
           void desktopRuntime?.close().finally(() => process.exit(0));
           return;
         }
-        process.stderr.write(`lnwjud MCP stdio error: ${error.message}\n`);
+        process.stderr.write(`detunnel MCP stdio error: ${error.message}\n`);
       },
     });
     process.stdin.on('end', () => {
@@ -1491,7 +1492,7 @@ function bootstrapMcpStdio(): void {
       }
     });
   }).catch((error: unknown) => {
-    process.stderr.write('lnwjud MCP stdio startup failed: ' + (error instanceof Error ? error.message : 'unknown error') + '\n');
+    process.stderr.write('detunnel MCP stdio startup failed: ' + (error instanceof Error ? error.message : 'unknown error') + '\n');
     app.quit();
   });
   app.on('window-all-closed', () => {
@@ -1545,7 +1546,7 @@ function initAutoUpdater(runtime: DesktopRuntime): void {
         try {
           if ((await runtime.services.getTunnelStatus()).state === 'running') return true;
           try {
-            await access(path.join(process.env.APPDATA ?? app.getPath('appData'), 'tunnel-client', 'lnwjud.tunnel.lock'));
+            await access(path.join(process.env.APPDATA ?? app.getPath('appData'), 'tunnel-client', 'detunnel.tunnel.lock'));
             return true;
           } catch (error: unknown) {
             return typeof error === 'object' && error !== null && (error as NodeJS.ErrnoException).code === 'ENOENT' ? false : 'unverifiable';
@@ -1742,7 +1743,7 @@ function bootstrapDesktop(): void {
   if (windowsCompatibility.disableHardwareAcceleration) app.disableHardwareAcceleration();
   const dataPath = configureDataPath();
   void app.whenReady().then(async () => {
-    app.setAppUserModelId('com.lnwjud.desktop');
+    app.setAppUserModelId('com.detunnel.desktop');
     console.log(
       `[WindowsCompatibility] ${windowsCompatibility.generation} build=${windowsCompatibility.build ?? 'unknown'} arch=${process.arch} gpu=${windowsCompatibility.disableHardwareAcceleration ? 'software' : 'hardware'}; ${windowsCompatibility.reason}`,
     );
@@ -1783,7 +1784,7 @@ function bootstrapLogViewerOnly(): void {
   const dataPath = configureDataPath();
   if (windowsCompatibility.disableHardwareAcceleration) app.disableHardwareAcceleration();
   void app.whenReady().then(async () => {
-    app.setAppUserModelId('com.lnwjud.desktop');
+    app.setAppUserModelId('com.detunnel.desktop');
     prependBundledRuntimeToolsToPath();
     const runtime = createNativeDesktopRuntime(dataPath);
     desktopRuntime = runtime;
@@ -1909,10 +1910,11 @@ function configureCrashRecovery(dataPath: string): void {
 
 function configureDataPath(): string {
   app.setName(APP_NAME);
-  const dataPath = resolveLnwjudDataPath(process.env, app.getPath('appData'));
+  const dataPath = resolveDetunnelDataPath(process.env, app.getPath('appData'));
+  migrateDetunnelDataPath(dataPath, process.env, app.getPath('appData'));
   app.setPath('userData', dataPath);
   configureCrashRecovery(dataPath);
-  const restore = applyPendingSqliteRestoreSync(path.join(dataPath, 'lnwjud.sqlite'), path.join(dataPath, 'backups'));
+  const restore = applyPendingSqliteRestoreSync(path.join(dataPath, 'detunnel.sqlite'), path.join(dataPath, 'backups'));
   if (restore.error !== undefined) console.error(`Scheduled database restore failed: ${restore.error}`);
   if (restore.applied) console.log(`Database restore applied from ${restore.backupId ?? 'scheduled backup'}`);
   return dataPath;

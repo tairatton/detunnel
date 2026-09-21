@@ -76,6 +76,8 @@ docker compose -f docker/compose.yml up -d --build
 
 ค่าหลักได้แก่ `DETUNNEL_HOST`, `DETUNNEL_PORT`, `DETUNNEL_WORKSPACE`, `DETUNNEL_DATA_PATH`, `DETUNNEL_PROFILE`, `DETUNNEL_FULL_BYPASS`, `DETUNNEL_UNRESTRICTED` และ `DETUNNEL_DISABLE_BROWSER_AUTOMATION` (ตั้งเป็น `1` เพื่อปิด Browser/CDP และ desktop UI automation โดยยังใช้ MCP/file editing ได้)
 
+สำหรับการเชื่อมต่อจาก ChatGPT Web ให้ตั้ง `DETUNNEL_MCP_TOOL_PROFILE=plugin-safe` เพื่อเปิดเฉพาะ workspace/file editing และ project verification tools ที่จำเป็นต่อการแก้โปรแกรม โดยซ่อน shell, browser/device automation, clipboard, audio, screen recording, network fetch และ arbitrary MCP bridge จาก MCP transport นั้น ส่วน Desktop/local workflow เดิมยังใช้ `DETUNNEL_PROFILE` แยกตามเดิมได้
+
 ค่าเริ่มต้นของ Docker จำกัดการฟังไว้ที่ localhost และปิด unrestricted/full bypass
 
 ### Session resilience /
@@ -86,7 +88,7 @@ Local MCP ใช้ loopback endpoint ที่เลือกตามสภา
 
 ```powershell
 $tc = if ($env:DETUNNEL_TUNNEL_CLIENT_PATH) { $env:DETUNNEL_TUNNEL_CLIENT_PATH } else { 'resources\tunnel-client\tunnel-client.exe' }
-& $tc doctor --profile lnwjud --profile-dir $profile --explain
+& $tc doctor --profile detunnel --profile-dir $profile --explain
 ```
 
 ## Security and operational model

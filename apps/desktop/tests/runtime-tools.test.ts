@@ -4,14 +4,14 @@ import { bundledRuntimeToolDirectories, prependBundledRuntimeToolsToPath, prepen
 
 describe('bundled Windows runtime tools', () => {
   it('resolves the packaged ripgrep directory under Electron resources', () => {
-    expect(bundledRuntimeToolDirectories('C:\\Program Files\\lnwjud\\resources')).toEqual([
-      path.join('C:\\Program Files\\lnwjud\\resources', 'runtime-tools', 'ripgrep'),
+    expect(bundledRuntimeToolDirectories('C:\\Program Files\\detunnel\\resources')).toEqual([
+      path.join('C:\\Program Files\\detunnel\\resources', 'runtime-tools', 'ripgrep'),
     ]);
   });
 
   it('prepends an existing bundled tool directory without dropping the system PATH', () => {
     const environment: NodeJS.ProcessEnv = { Path: ['C:\\Windows\\System32', 'C:\\Tools'].join(path.delimiter) };
-    const resources = 'C:\\Program Files\\lnwjud\\resources';
+    const resources = 'C:\\Program Files\\detunnel\\resources';
     const bundled = path.join(resources, 'runtime-tools', 'ripgrep');
 
     expect(prependBundledRuntimeToolsToPath(environment, resources, (candidate) => candidate === bundled)).toEqual([bundled]);
@@ -25,7 +25,7 @@ describe('bundled Windows runtime tools', () => {
   });
 
   it('resolves and prepends the per-user repair directory', () => {
-    const dataPath = 'C:\\Users\\Test\\AppData\\Local\\lnwjud';
+    const dataPath = 'C:\\Users\\Test\\AppData\\Local\\detunnel';
     const userDirectory = path.join(dataPath, 'runtime-tools', 'ripgrep');
     const environment: NodeJS.ProcessEnv = { Path: 'C:\\Windows\\System32' };
 

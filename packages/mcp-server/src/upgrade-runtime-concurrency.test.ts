@@ -2,7 +2,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { FileActor } from '@lnwjud/application';
+import type { FileActor } from '@detunnel/application';
 import { UpgradeRuntimeService } from './upgrade-runtime.js';
 import { UpgradeRuntimeStateStore } from './upgrade-runtime-state-store.js';
 
@@ -11,7 +11,7 @@ const actorB: FileActor = { clientId: 'client', clientName: 'test', sessionId: '
 
 describe('upgrade runtime multi-session persistence', () => {
   it('merges concurrent checkpoints for the same session while isolating another session', async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-concurrency-'));
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-concurrency-'));
     const runtimeStatePath = path.join(directory, 'upgrade-runtime.json');
     const first = new UpgradeRuntimeService({ runtimeStatePath }, actorA);
     const second = new UpgradeRuntimeService({ runtimeStatePath }, actorA);
@@ -33,7 +33,7 @@ describe('upgrade runtime multi-session persistence', () => {
   });
 
   it('merges global plugin mutations from independent sessions through locked shared state', async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-runtime-concurrency-'));
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'detunnel-runtime-concurrency-'));
     const runtimeStatePath = path.join(directory, 'upgrade-runtime.json');
     const first = new UpgradeRuntimeService({ runtimeStatePath }, actorA);
     const second = new UpgradeRuntimeService({ runtimeStatePath }, actorB);

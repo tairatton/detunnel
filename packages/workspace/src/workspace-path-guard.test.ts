@@ -2,14 +2,14 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { Result } from '@lnwjud/domain';
+import type { Result } from '@detunnel/domain';
 import type { Workspace, ResolvedWorkspacePath } from './workspace-types.js';
 import { WorkspacePathGuard } from './workspace-path-guard.js';
 
 const temporaryRoots: string[] = [];
 
 async function createWorkspace(): Promise<Workspace> {
-  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-workspace-'));
+  const rawRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-workspace-'));
   temporaryRoots.push(rawRoot);
   const rootPath = await realpath(rawRoot);
   await mkdir(path.join(rootPath, 'src'));
@@ -121,7 +121,7 @@ describe('WorkspacePathGuard', () => {
 
   it('allows only explicit absolute outside paths under per-invocation Full Bypass', async () => {
     const workspace = await createWorkspace();
-    const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-outside-'));
+    const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-outside-'));
     temporaryRoots.push(outsideRoot);
     const outsideFile = path.join(outsideRoot, 'proof.txt');
     const outsideNewFile = path.join(outsideRoot, 'new.txt');

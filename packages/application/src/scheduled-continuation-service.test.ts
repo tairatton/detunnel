@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ScheduledContinuationWorkerLivenessPort } from '@lnwjud/domain';
+import type { ScheduledContinuationWorkerLivenessPort } from '@detunnel/domain';
 import type { FileActor } from './file-service.js';
 import { GoalContinuationService, type RunGoalResult } from './goal-continuation-service.js';
 import { ScheduledContinuationService, type PrepareScheduledContinuationRequest } from './scheduled-continuation-service.js';
@@ -34,7 +34,7 @@ async function fixture(
   isoNow = '2026-08-27T10:00:00.000Z',
   workerLiveness?: ScheduledContinuationWorkerLivenessPort,
 ): Promise<ScheduledContinuationFixture> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-scheduled-application-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-scheduled-application-'));
   temporaryRoots.push(root);
   const database = new SqliteDatabase(path.join(root, 'state.sqlite'));
   const workspaces = new SqliteWorkspaceRepository(database);

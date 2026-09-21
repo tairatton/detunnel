@@ -1,7 +1,7 @@
 import { realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { appError, err, ok, type Result, type WorkspaceId } from '@lnwjud/domain';
+import { appError, err, ok, type Result, type WorkspaceId } from '@detunnel/domain';
 import type { Workspace } from './workspace-types.js';
 
 export interface WorkspaceRepository {

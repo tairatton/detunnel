@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
-import { workspaceScopeMatches } from '@lnwjud/ipc-contracts';
+import { workspaceScopeMatches } from '@detunnel/ipc-contracts';
 import type {
   DashboardSnapshot,
   DestructiveDeletePolicy,
@@ -19,7 +19,7 @@ import type {
   TunnelStatus,
   TunnelOAuthLoginStatus,
   WorkspaceSummary,
-} from '@lnwjud/ipc-contracts';
+} from '@detunnel/ipc-contracts';
 import { AppShell, type Screen } from './features/shell/AppShell.js';
 import { ControlCenterPage } from './features/home/ControlCenterPage.js';
 import { ProjectsPage } from './features/projects/ProjectsPage.js';
@@ -106,10 +106,10 @@ export function App(): ReactElement {
 
   useEffect(() => {
     let disposed = false;
-    void window.lnwjud.getUpdateStatus().then((status) => {
+    void window.detunnel.getUpdateStatus().then((status) => {
       if (!disposed) setUpdateStatus(status);
     }).catch(() => undefined);
-    const unsubscribe = window.lnwjud.onUpdateStatus((status) => {
+    const unsubscribe = window.detunnel.onUpdateStatus((status) => {
       if (!disposed) setUpdateStatus(status);
     });
     return (): void => {
@@ -120,7 +120,7 @@ export function App(): ReactElement {
 
   useEffect(() => {
     let disposed = false;
-    void window.lnwjud.getLogSnapshot().then((snapshot) => {
+    void window.detunnel.getLogSnapshot().then((snapshot) => {
       if (disposed) return;
       setLogLines((previous) => {
         const merged = applyLogSnapshot(previous, logIds.current, snapshot.lines);
@@ -130,7 +130,7 @@ export function App(): ReactElement {
       setTunnelLogPath(snapshot.tunnelLogPath);
       setTunnelLogExists(snapshot.tunnelLogExists);
     }).catch(() => undefined);
-    const unsubscribe = window.lnwjud.onLogEvent((line) => {
+    const unsubscribe = window.detunnel.onLogEvent((line) => {
       appendLogLine(line);
       if (line.source === 'tunnel') setTunnelLogExists(true);
     });
@@ -142,7 +142,7 @@ export function App(): ReactElement {
 
   async function clearLogSource(source: LogSource, scope: LogScopeSelection): Promise<void> {
     try {
-      await window.lnwjud.clearLogBuffer({
+      await window.detunnel.clearLogBuffer({
         source,
         ...(scope.workspaceId === null ? {} : { workspaceId: scope.workspaceId }),
         ...(scope.sessionId === null ? {} : { sessionId: scope.sessionId }),
@@ -155,7 +155,7 @@ export function App(): ReactElement {
 
   async function clearAllLogs(): Promise<void> {
     try {
-      await Promise.all((['tunnel', 'mcp', 'process'] as const).map((source) => window.lnwjud.clearLogBuffer({ source })));
+      await Promise.all((['tunnel', 'mcp', 'process'] as const).map((source) => window.detunnel.clearLogBuffer({ source })));
       logIds.current = new Set();
       setLogLines([]);
     } catch (cause: unknown) {
@@ -165,7 +165,7 @@ export function App(): ReactElement {
 
   async function exportLogSource(source: LogSource, scope: LogScopeSelection, query: string, lines: readonly LiveLogExportReference[]): Promise<void> {
     try {
-      await window.lnwjud.exportLogs({
+      await window.detunnel.exportLogs({
         source,
         filePath: '',
         ...(scope.workspaceId === null ? {} : { workspaceId: scope.workspaceId }),
@@ -180,7 +180,7 @@ export function App(): ReactElement {
 
   async function popOutLogViewer(): Promise<void> {
     try {
-      await window.lnwjud.openLogViewer();
+      await window.detunnel.openLogViewer();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.logViewerOpen')));
     }
@@ -191,7 +191,7 @@ export function App(): ReactElement {
     incidentBusyRef.current = true;
     setIncidentBusy(true);
     try {
-      const result = await window.lnwjud.captureIncident();
+      const result = await window.detunnel.captureIncident();
       if (result.exported && !result.cancelled) {
         setIncidentClassification(result.classification);
         setIncidentCapturedAt(result.capturedAt);
@@ -213,8 +213,8 @@ export function App(): ReactElement {
     refreshBusyRef.current = true;
     try {
       const [dashboardResult, workspacesResult] = await Promise.allSettled([
-        window.lnwjud.getDashboard(),
-        window.lnwjud.listWorkspaces(),
+        window.detunnel.getDashboard(),
+        window.detunnel.listWorkspaces(),
       ]);
       const failures: string[] = [];
       if (generation !== refreshGeneration.current) return;
@@ -291,9 +291,9 @@ export function App(): ReactElement {
     // already-configured persistent runtimes before the first Doctor probe.
     // This avoids sending a clean installation to Doctor merely because the
     // background startup sequence was still in flight.
-    void window.lnwjud.autoStart().catch(() => undefined).then(() => Promise.all([
-      window.lnwjud.runDoctor(),
-      window.lnwjud.getToolCatalog({ locale }),
+    void window.detunnel.autoStart().catch(() => undefined).then(() => Promise.all([
+      window.detunnel.runDoctor(),
+      window.detunnel.getToolCatalog({ locale }),
     ])).then(([report, catalog]) => {
       setDoctor(report);
       setToolCatalog(catalog);
@@ -358,12 +358,12 @@ export function App(): ReactElement {
     setError(null);
     let activeQuickConnectStep: 2 | 3 | 4 = 2;
     try {
-      let remote = await window.lnwjud.getRemoteMcpStatus();
-      if (!remote.installed) remote = await window.lnwjud.installRemoteMcpProvider();
+      let remote = await window.detunnel.getRemoteMcpStatus();
+      if (!remote.installed) remote = await window.detunnel.installRemoteMcpProvider();
       setQuickConnectPassedThrough(2);
       activeQuickConnectStep = 3;
       setQuickConnectStep(3);
-      if (remote.state !== 'running') remote = await window.lnwjud.startRemoteMcp();
+      if (remote.state !== 'running') remote = await window.detunnel.startRemoteMcp();
       setQuickConnectPassedThrough(3);
       activeQuickConnectStep = 4;
       setQuickConnectStep(4);
@@ -387,14 +387,14 @@ export function App(): ReactElement {
     setReconnectBusy(true);
     setError(null);
     try {
-      const previous = await window.lnwjud.getRemoteMcpStatus();
-      await window.lnwjud.stopRemoteMcp();
-      await window.lnwjud.regenerateRemoteMcpPairingCode();
-      let replacement = await window.lnwjud.startRemoteMcp();
+      const previous = await window.detunnel.getRemoteMcpStatus();
+      await window.detunnel.stopRemoteMcp();
+      await window.detunnel.regenerateRemoteMcpPairingCode();
+      let replacement = await window.detunnel.startRemoteMcp();
       if (previous.publicMcpUrl !== null && replacement.publicMcpUrl === previous.publicMcpUrl) {
-        await window.lnwjud.stopRemoteMcp();
-        await window.lnwjud.regenerateRemoteMcpPairingCode();
-        replacement = await window.lnwjud.startRemoteMcp();
+        await window.detunnel.stopRemoteMcp();
+        await window.detunnel.regenerateRemoteMcpPairingCode();
+        replacement = await window.detunnel.startRemoteMcp();
       }
       if (replacement.publicMcpUrl === null) throw new Error(locale === 'th' ? 'Remote MCP เริ่มใหม่แล้วแต่ไม่ได้รับ Public MCP URL' : 'Remote MCP restarted without a Public MCP URL');
       if (previous.publicMcpUrl !== null && replacement.publicMcpUrl === previous.publicMcpUrl) {
@@ -428,17 +428,17 @@ export function App(): ReactElement {
   }
 
   async function openExternalSetupPage(target: ExternalSetupTarget): Promise<void> {
-    await window.lnwjud.openExternalSetupPage({ target });
+    await window.detunnel.openExternalSetupPage({ target });
   }
 
   async function handleUpdateAction(): Promise<void> {
     try {
       if (updateStatus?.canInstall === true) {
-        const result = await window.lnwjud.installUpdate();
+        const result = await window.detunnel.installUpdate();
         setUpdateStatus(result.status);
         return;
       }
-      setUpdateStatus(await window.lnwjud.checkForUpdates());
+      setUpdateStatus(await window.detunnel.checkForUpdates());
     } catch (cause: unknown) {
       setError(errorMessage(cause, locale === 'th' ? 'ไม่สามารถตรวจอัปเดตได้' : 'Unable to check for updates'));
     }
@@ -449,7 +449,7 @@ export function App(): ReactElement {
     workspaceMutationBusy.current = true;
     setError(null);
     try {
-      await window.lnwjud.addWorkspace({ rootPath, makePrimary });
+      await window.detunnel.addWorkspace({ rootPath, makePrimary });
       await refresh();
       await runDoctor();
       setQuickConnectFailedStep(null);
@@ -468,10 +468,10 @@ export function App(): ReactElement {
     setError(null);
     try {
       const previousActiveIds = dashboard?.activeWorkspaces.map((workspace) => workspace.id) ?? [];
-      const workspace = await window.lnwjud.addWorkspace({ rootPath, makePrimary: true });
-      await window.lnwjud.selectWorkspace({ workspaceId: workspace.id });
+      const workspace = await window.detunnel.addWorkspace({ rootPath, makePrimary: true });
+      await window.detunnel.selectWorkspace({ workspaceId: workspace.id });
       for (const activeId of previousActiveIds) {
-        if (activeId !== workspace.id) await window.lnwjud.setWorkspaceActive({ workspaceId: activeId, active: false });
+        if (activeId !== workspace.id) await window.detunnel.setWorkspaceActive({ workspaceId: activeId, active: false });
       }
       await refresh();
       await runDoctor();
@@ -487,7 +487,7 @@ export function App(): ReactElement {
 
   async function chooseWorkspaceFolder(): Promise<string | null> {
     try {
-      const result = await window.lnwjud.chooseWorkspaceFolder();
+      const result = await window.detunnel.chooseWorkspaceFolder();
       return result.rootPath;
     } catch (cause: unknown) {
       setError(errorMessage(cause, locale === 'th' ? 'เปิดหน้าต่างเลือกโฟลเดอร์ไม่สำเร็จ กรุณาลองใหม่' : 'Could not open the folder picker. Please try again.'));
@@ -498,7 +498,7 @@ export function App(): ReactElement {
   async function selectWorkspace(workspaceId: string): Promise<void> {
     try {
       setMcpBusy(true);
-      await window.lnwjud.selectWorkspace({ workspaceId });
+      await window.detunnel.selectWorkspace({ workspaceId });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.workspaceSelect')));
@@ -513,10 +513,10 @@ export function App(): ReactElement {
     setError(null);
     setMcpBusy(true);
     try {
-      await window.lnwjud.setWorkspaceActive({ workspaceId, active: true });
-      await window.lnwjud.selectWorkspace({ workspaceId });
+      await window.detunnel.setWorkspaceActive({ workspaceId, active: true });
+      await window.detunnel.selectWorkspace({ workspaceId });
       for (const workspace of dashboard?.activeWorkspaces ?? []) {
-        if (workspace.id !== workspaceId) await window.lnwjud.setWorkspaceActive({ workspaceId: workspace.id, active: false });
+        if (workspace.id !== workspaceId) await window.detunnel.setWorkspaceActive({ workspaceId: workspace.id, active: false });
       }
       await refresh();
     } catch (cause: unknown) {
@@ -531,7 +531,7 @@ export function App(): ReactElement {
   async function setWorkspaceActive(workspaceId: string, active: boolean): Promise<void> {
     setError(null);
     try {
-      await window.lnwjud.setWorkspaceActive({ workspaceId, active });
+      await window.detunnel.setWorkspaceActive({ workspaceId, active });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, propsText(locale, 'ไม่สามารถเปลี่ยน Active Project ได้', 'Could not change Active Project')));
@@ -542,7 +542,7 @@ export function App(): ReactElement {
   async function setWorkspaceArchived(workspaceId: string, archived: boolean): Promise<void> {
     setError(null);
     try {
-      await window.lnwjud.setWorkspaceArchived({ workspaceId, archived });
+      await window.detunnel.setWorkspaceArchived({ workspaceId, archived });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.workspaceArchive')));
@@ -553,7 +553,7 @@ export function App(): ReactElement {
   async function deleteWorkspace(workspaceId: string): Promise<void> {
     setError(null);
     try {
-      await window.lnwjud.deleteWorkspace({ workspaceId, userConfirmed: true });
+      await window.detunnel.deleteWorkspace({ workspaceId, userConfirmed: true });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.workspaceDelete')));
@@ -563,7 +563,7 @@ export function App(): ReactElement {
 
   async function setPermissionProfile(profile: PermissionProfileName): Promise<void> {
     try {
-      await window.lnwjud.setPermissionProfile({ profile });
+      await window.detunnel.setPermissionProfile({ profile });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.permissionProfileChange')));
@@ -572,7 +572,7 @@ export function App(): ReactElement {
 
   async function setUnrestrictedMode(enabled: boolean): Promise<boolean> {
     try {
-      const result = await window.lnwjud.setUnrestrictedMode({ enabled });
+      const result = await window.detunnel.setUnrestrictedMode({ enabled });
       await refresh();
       return result.restartRequired;
     } catch (cause: unknown) {
@@ -583,7 +583,7 @@ export function App(): ReactElement {
 
   async function setDestructiveDeletePolicy(policy: DestructiveDeletePolicy): Promise<void> {
     try {
-      await window.lnwjud.setAiDeletePolicy({ policy });
+      await window.detunnel.setAiDeletePolicy({ policy });
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, propsText(locale, 'ไม่สามารถเปลี่ยนนโยบายการลบได้', 'Could not change destructive-action policy')));
@@ -592,7 +592,7 @@ export function App(): ReactElement {
 
   async function setStdioPolicy(profile: PermissionProfileName, strictRoots: boolean, allowedRoots: readonly string[]): Promise<boolean> {
     try {
-      const result = await window.lnwjud.setStdioPolicy({ profile, strictRoots, allowedRoots });
+      const result = await window.detunnel.setStdioPolicy({ profile, strictRoots, allowedRoots });
       await refresh();
       return result.restartRequired;
     } catch (cause: unknown) {
@@ -606,7 +606,7 @@ export function App(): ReactElement {
     runtimeMutationBusy.current = true;
     try {
       setMcpBusy(true);
-      await window.lnwjud.stopMcp();
+      await window.detunnel.stopMcp();
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.mcpStop')));
@@ -622,7 +622,7 @@ export function App(): ReactElement {
     setError(null);
     try {
       setMcpBusy(true);
-      const status = await window.lnwjud.restartMcp();
+      const status = await window.detunnel.restartMcp();
       if (!status.running) throw new Error(status.lastStartError ?? 'MCP did not start');
       await refresh();
     } catch (cause: unknown) {
@@ -635,7 +635,7 @@ export function App(): ReactElement {
 
   async function clearWorkLog(scope: LogScopeSelection): Promise<void> {
     try {
-      await window.lnwjud.clearWorkLog({
+      await window.detunnel.clearWorkLog({
         ...(scope.workspaceId === null ? {} : { workspaceId: scope.workspaceId }),
         ...(scope.sessionId === null ? {} : { sessionId: scope.sessionId }),
       });
@@ -647,7 +647,7 @@ export function App(): ReactElement {
 
   async function exportWorkLog(rowIds: readonly string[]): Promise<void> {
     try {
-      await window.lnwjud.exportWorkLog({ rowIds });
+      await window.detunnel.exportWorkLog({ rowIds });
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.logExport')));
     }
@@ -656,7 +656,7 @@ export function App(): ReactElement {
   async function startTunnelWithStatus(): Promise<TunnelStatus> {
     setTunnelBusy(true);
     try {
-      const status = await window.lnwjud.startTunnel();
+      const status = await window.detunnel.startTunnel();
       await refresh();
       return status;
     } finally {
@@ -675,7 +675,7 @@ export function App(): ReactElement {
   async function stopTunnel(): Promise<void> {
     try {
       setTunnelBusy(true);
-      await window.lnwjud.stopTunnel();
+      await window.detunnel.stopTunnel();
       await refresh();
     } catch (cause: unknown) {
       setError(errorMessage(cause, t('error.tunnelStop')));
@@ -685,63 +685,63 @@ export function App(): ReactElement {
   }
 
   async function beginTunnelOAuthLogin(): Promise<TunnelOAuthLoginStatus> {
-    return window.lnwjud.beginTunnelOAuthLogin();
+    return window.detunnel.beginTunnelOAuthLogin();
   }
 
-  const getTunnelOAuthLoginStatus = useCallback((): Promise<TunnelOAuthLoginStatus> => window.lnwjud.getTunnelOAuthLoginStatus(), []);
+  const getTunnelOAuthLoginStatus = useCallback((): Promise<TunnelOAuthLoginStatus> => window.detunnel.getTunnelOAuthLoginStatus(), []);
 
   async function cancelTunnelOAuthLogin(): Promise<TunnelOAuthLoginStatus> {
-    return window.lnwjud.cancelTunnelOAuthLogin();
+    return window.detunnel.cancelTunnelOAuthLogin();
   }
 
   async function switchTunnelAuthToLegacy(): Promise<TunnelStatus> {
-    const status = await window.lnwjud.switchTunnelAuthToLegacy();
+    const status = await window.detunnel.switchTunnelAuthToLegacy();
     await refresh();
     return status;
   }
 
   async function logoutTunnelOAuth(): Promise<TunnelStatus> {
-    const status = await window.lnwjud.logoutTunnelOAuth();
+    const status = await window.detunnel.logoutTunnelOAuth();
     await refresh();
     return status;
   }
 
   async function createBackup(): Promise<void> {
-    await window.lnwjud.createBackup();
+    await window.detunnel.createBackup();
     await refresh();
   }
 
   async function scheduleRestoreBackup(backupId: string): Promise<boolean> {
-    const result = await window.lnwjud.scheduleRestoreBackup({ backupId });
+    const result = await window.detunnel.scheduleRestoreBackup({ backupId });
     await refresh();
     return result.restartRequired;
   }
 
   async function restoreRecoveryItem(workspaceId: string, recoveryId: string): Promise<void> {
-    await window.lnwjud.restoreRecoveryItem({ workspaceId, recoveryId });
+    await window.detunnel.restoreRecoveryItem({ workspaceId, recoveryId });
     await refresh();
   }
 
   async function restoreCheckpoint(workspaceId: string, checkpointId: string): Promise<void> {
-    await window.lnwjud.restoreCheckpoint({ workspaceId, checkpointId });
+    await window.detunnel.restoreCheckpoint({ workspaceId, checkpointId });
     await refresh();
   }
 
   async function saveTunnelApiKey(apiKey: string): Promise<void> {
-    await window.lnwjud.saveTunnelApiKey({ apiKey });
+    await window.detunnel.saveTunnelApiKey({ apiKey });
     await refresh();
   }
 
   async function setTunnelClientPath(clientPath: string): Promise<void> {
-    await window.lnwjud.setTunnelClientPath({ clientPath });
+    await window.detunnel.setTunnelClientPath({ clientPath });
     await refresh();
   }
 
   async function changeLocale(next: UiLocale): Promise<void> {
-    await window.lnwjud.setLocale({ locale: next });
+    await window.detunnel.setLocale({ locale: next });
     setLocale(next);
-    const catalogPromise = screen === 'tools' || screen === 'doctor' ? window.lnwjud.getToolCatalog({ locale: next }) : null;
-    const doctorPromise = screen === 'doctor' ? window.lnwjud.runDoctor() : null;
+    const catalogPromise = screen === 'tools' || screen === 'doctor' ? window.detunnel.getToolCatalog({ locale: next }) : null;
+    const doctorPromise = screen === 'doctor' ? window.detunnel.runDoctor() : null;
     await refresh();
     if (catalogPromise !== null) setToolCatalog(await catalogPromise);
     if (doctorPromise !== null) setDoctor(await doctorPromise);
@@ -749,7 +749,7 @@ export function App(): ReactElement {
 
   async function setUserSettings(settings: UserSettings): Promise<boolean> {
     try {
-      const result = await window.lnwjud.setUserSettings({ settings });
+      const result = await window.detunnel.setUserSettings({ settings });
       await refresh();
       return result.restartRequired;
     } catch (cause: unknown) {
@@ -759,14 +759,14 @@ export function App(): ReactElement {
   }
 
   async function chooseTunnelClientPath(): Promise<string | null> {
-    const result = await window.lnwjud.chooseTunnelClientPath();
+    const result = await window.detunnel.chooseTunnelClientPath();
     return result.clientPath;
   }
 
   async function installPdfProvider(): Promise<PdfProviderInstallResult> {
     setError(null);
     try {
-      const result = await window.lnwjud.installPdfProvider();
+      const result = await window.detunnel.installPdfProvider();
       await refresh();
       await loadToolCatalog(['local_pdf_provider']);
       return result;
@@ -778,7 +778,7 @@ export function App(): ReactElement {
   }
 
   async function configureTunnelProfile(tunnelId: string): Promise<string> {
-    const result = await window.lnwjud.configureTunnelProfile({ tunnelId });
+    const result = await window.detunnel.configureTunnelProfile({ tunnelId });
     await refresh();
     return result.profilePath;
   }
@@ -787,9 +787,9 @@ export function App(): ReactElement {
     setToolCatalogLoading(true);
     try {
       if (forceRequirementIds === undefined) {
-        setToolCatalog(await window.lnwjud.getToolCatalog({ locale }));
+        setToolCatalog(await window.detunnel.getToolCatalog({ locale }));
       } else {
-        const result = await window.lnwjud.recheckToolCatalog({ locale, requirementIds: forceRequirementIds });
+        const result = await window.detunnel.recheckToolCatalog({ locale, requirementIds: forceRequirementIds });
         setToolCatalog(result.catalog);
         setDoctor(result.doctor);
       }
@@ -811,7 +811,7 @@ export function App(): ReactElement {
   async function setToolAvailability(name: string, enabled: boolean): Promise<void> {
     setError(null);
     try {
-      const result = await window.lnwjud.setToolAvailability({ locale, name, enabled });
+      const result = await window.detunnel.setToolAvailability({ locale, name, enabled });
       mergeToolCatalogItem(result.item);
       setToolHostSyncNotice(result.hostSyncMessage);
     } catch (cause: unknown) {
@@ -824,7 +824,7 @@ export function App(): ReactElement {
   async function resetToolAvailability(name: string): Promise<void> {
     setError(null);
     try {
-      const result = await window.lnwjud.resetToolAvailability({ locale, name });
+      const result = await window.detunnel.resetToolAvailability({ locale, name });
       mergeToolCatalogItem(result.item);
       setToolHostSyncNotice(result.hostSyncMessage);
     } catch (cause: unknown) {
@@ -836,12 +836,12 @@ export function App(): ReactElement {
 
   async function handleToolRemediation(action: ResolvedRemediation['actions'][number]): Promise<void> {
     if (action.kind === 'recheck') { await loadToolCatalog(action.requirementIds); return; }
-    if (action.kind === 'open_official_url' || action.kind === 'open_system_settings') { await window.lnwjud.openToolSetupTarget({ target: action.target }); return; }
-    if (action.kind === 'copy_command') { await window.lnwjud.copyToolCommand({ commandId: action.commandId }); return; }
+    if (action.kind === 'open_official_url' || action.kind === 'open_system_settings') { await window.detunnel.openToolSetupTarget({ target: action.target }); return; }
+    if (action.kind === 'copy_command') { await window.detunnel.copyToolCommand({ commandId: action.commandId }); return; }
     if (action.kind === 'launch_managed_browser') {
       setError(null);
       try {
-        const status = await window.lnwjud.launchManagedBrowser();
+        const status = await window.detunnel.launchManagedBrowser();
         if (!status.ready) throw new Error(propsText(locale, 'Managed Browser เปิดแล้วแต่ CDP ยังไม่พร้อม', 'Managed Browser started but CDP is not ready'));
         await loadToolCatalog(['browser_cdp']);
       } catch (cause: unknown) {
@@ -858,7 +858,7 @@ export function App(): ReactElement {
       if (restartRequired) {
         try {
           setMcpBusy(true);
-          await window.lnwjud.restartMcp();
+          await window.detunnel.restartMcp();
           await refresh();
         } catch (cause: unknown) {
           setError(errorMessage(cause, t('error.mcpRestart')));
@@ -882,8 +882,8 @@ export function App(): ReactElement {
   async function runDoctor(): Promise<boolean> {
     try {
       const [report, catalog] = await Promise.all([
-        window.lnwjud.runDoctor(),
-        window.lnwjud.getToolCatalog({ locale }),
+        window.detunnel.runDoctor(),
+        window.detunnel.getToolCatalog({ locale }),
       ]);
       setDoctor(report);
       setToolCatalog(catalog);
@@ -907,7 +907,7 @@ export function App(): ReactElement {
     setAutoStartBusy(true);
     setError(null);
     try {
-      await window.lnwjud.autoStart();
+      await window.detunnel.autoStart();
       await refresh();
       if (await runDoctor()) setScreen('home');
     } catch (cause: unknown) {

@@ -1,4 +1,4 @@
-import type { UpdateStatus } from '@lnwjud/ipc-contracts';
+import type { UpdateStatus } from '@detunnel/ipc-contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { nativeMessages } from '../src/main/native-i18n.js';
 import {

@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { realpath } from 'node:fs/promises';
 import { DatabaseSync } from 'node:sqlite';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
-import type { FileActor } from '@lnwjud/application';
+import { appError, err, ok, type Result } from '@detunnel/domain';
+import type { FileActor } from '@detunnel/application';
 import type { McpApplicationServices } from './tools/tool-types.js';
 
 /**

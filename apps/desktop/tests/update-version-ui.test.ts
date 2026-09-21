@@ -14,8 +14,8 @@ describe('titlebar update notification', () => {
     expect(shell).toContain('onClick={props.onUpdateAction}');
     expect(shell).toContain("status.phase === 'ready'");
     expect(shell).toContain("status.phase === 'downloading'");
-    expect(app).toContain('window.lnwjud.onUpdateStatus');
-    expect(app).toContain('window.lnwjud.installUpdate()');
+    expect(app).toContain('window.detunnel.onUpdateStatus');
+    expect(app).toContain('window.detunnel.installUpdate()');
     expect(main).toContain('confirmTunnelStopForUpdate');
     expect(main).toContain('runtime.services.stopTunnel()');
     expect(main).toContain('updaterTunnelStopConfirm');

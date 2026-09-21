@@ -1,5 +1,5 @@
 import { useId, useState, type ReactElement } from 'react';
-import type { ActivityTargetDetail, ActivityTargetReference } from '@lnwjud/ipc-contracts';
+import type { ActivityTargetDetail, ActivityTargetReference } from '@detunnel/ipc-contracts';
 
 interface ExpandableTargetDetailProps {
   readonly reference: ActivityTargetReference;

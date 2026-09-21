@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 async function incompatibleSecurityModuleRoot(): Promise<string> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-issue-17-modules-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-issue-17-modules-'));
   temporaryRoots.push(root);
   const moduleDirectory = path.join(root, 'Microsoft.PowerShell.Security');
   await mkdir(moduleDirectory, { recursive: true });
@@ -35,7 +35,7 @@ CmdletsToExport = @('ConvertTo-SecureString', 'ConvertFrom-SecureString')
 
 describe.runIf(process.platform === 'win32')('Tunnel Runtime API key DPAPI', () => {
   it('saves a protected key when the parent exposes a Core-only Security module', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-issue-17-data-'));
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-issue-17-data-'));
     temporaryRoots.push(dataPath);
     vi.stubEnv('APPDATA', path.join(dataPath, 'appdata'));
     vi.stubEnv('PSModulePath', await incompatibleSecurityModuleRoot());
@@ -45,7 +45,7 @@ describe.runIf(process.platform === 'win32')('Tunnel Runtime API key DPAPI', () 
       getDataPath: (): string => dataPath,
       isExternalTunnelRunning: async (): Promise<boolean> => false,
     });
-    const plaintext = `lnwjud-issue-17-${Date.now()}`;
+    const plaintext = `detunnel-issue-17-${Date.now()}`;
 
     await expect(controller.saveApiKey(plaintext)).resolves.toBeUndefined();
     const ciphertext = await readFile(controller.secretPath(), 'utf8');
@@ -56,7 +56,7 @@ describe.runIf(process.platform === 'win32')('Tunnel Runtime API key DPAPI', () 
 
 describe('Tunnel DPAPI PowerShell child construction', () => {
   it('redacts protected secret material from invalid encrypted-string errors', () => {
-    const secret = 'lnwjud-secret:v3:windows-dpapi:QUJDREVGRw==';
+    const secret = 'detunnel-secret:v3:windows-dpapi:QUJDREVGRw==';
     const sanitized = sanitizeTunnelSecretPowerShellError(
       `ConvertTo-SecureString : The parameter value "${secret}" is not a valid encrypted string.`,
     );

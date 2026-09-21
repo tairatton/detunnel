@@ -22,7 +22,7 @@ describe('crash recovery diagnostics', () => {
   });
 
   it('writes local NDJSON crash records', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-crash-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-crash-'));
     temporaryRoots.push(root);
     const recorder = new CrashDiagnosticsRecorder(root, '4.6.1');
     recorder.record({ type: 'renderer-gone', processType: 'renderer', reason: 'crashed', exitCode: 1 });

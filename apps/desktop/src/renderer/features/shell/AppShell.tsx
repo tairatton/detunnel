@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react';
-import type { UiLocale, UpdateStatus } from '@lnwjud/ipc-contracts';
+import type { UiLocale, UpdateStatus } from '@detunnel/ipc-contracts';
 import { createTranslator } from '../../i18n/index.js';
 import { UiIcon } from './UiIcon.js';
 

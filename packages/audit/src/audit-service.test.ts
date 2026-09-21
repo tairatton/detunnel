@@ -105,6 +105,17 @@ describe('AuditService', () => {
     });
   });
 
+  it('redacts result messages before persisting MCP activity', async () => {
+    const repository = new MemoryAuditRepository();
+    await new AuditService(repository).recordMcpTool({
+      actorId: 'client-1', actorName: 'test', toolName: 'read_file', callId: 'call-secret', phase: 'completed',
+      resultCode: 'INTERNAL_ERROR', resultMessage: 'Authorization: Bearer secret-token-123', durationMs: 1,
+    });
+
+    expect(repository.events[0]?.metadata).toMatchObject({ errorMessage: 'Authorization: Bearer [REDACTED]' });
+    expect(JSON.stringify(repository.events[0])).not.toContain('secret-token-123');
+  });
+
   it('retains sanitized completed-result diagnostics for lazy log expansion', async () => {
     const repository = new MemoryAuditRepository();
     const workspaceId = '372e9384-9628-43be-b766-661cdb591383';

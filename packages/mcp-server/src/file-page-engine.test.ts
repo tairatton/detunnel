@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ok } from '@lnwjud/domain';
+import { ok } from '@detunnel/domain';
 import type { McpApplicationServices } from './tools/tool-types.js';
 import { FilePageEngine, type FilePageRequest } from './file-page-engine.js';
 

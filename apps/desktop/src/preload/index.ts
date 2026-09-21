@@ -32,7 +32,7 @@ import {
   type ExportWorkLogRequest,
   type IncidentExportResult,
   type InFlightWorkItem,
-  type LnwjudApi,
+  type DetunnelApi,
   type LogLine,
   type OpenExternalSetupPageRequest,
   type LogSnapshot,
@@ -69,7 +69,7 @@ import {
   type UserSettings,
   type WorkLogEntry,
   type WorkspaceSummary,
-} from '@lnwjud/ipc-contracts';
+} from '@detunnel/ipc-contracts';
 import { parseLogCorrelation } from './log-parser.js';
 
 function invoke(channel: string, payload?: unknown): Promise<unknown> {
@@ -642,7 +642,7 @@ function toolCatalogItem(value: unknown): ToolCatalogItem {
   const userPreference = value.userPreference;
   const systemEligible = value.systemEligible;
   const effectiveExposed = value.effectiveExposed;
-  if (origin !== 'lnwjud' && origin !== 'external_mcp') throw new Error('Invalid IPC response');
+  if (origin !== 'detunnel' && origin !== 'external_mcp') throw new Error('Invalid IPC response');
   if (!['workspace','files','search_context','process','browser_desktop','system','office_media','automation','agent_goals','extensions'].includes(String(category))) throw new Error('Invalid IPC response');
   if (!['READ','WRITE','EXECUTE','DANGEROUS','UNKNOWN'].includes(String(declaredPermission))) throw new Error('Invalid IPC response');
   if (!['ALLOW','ASK','DENY','UNKNOWN'].includes(String(profileDecision))) throw new Error('Invalid IPC response');
@@ -1194,7 +1194,7 @@ function onLogEvent(callback: (line: LogLine) => void): () => void {
   };
 }
 
-const api: LnwjudApi = {
+const api: DetunnelApi = {
   listWorkspaces: () => invoke(ipcChannels.listWorkspaces).then(workspaceList),
   addWorkspace,
   chooseWorkspaceFolder,
@@ -1270,4 +1270,4 @@ const api: LnwjudApi = {
   onUpdateStatus,
 };
 
-contextBridge.exposeInMainWorld('lnwjud', api);
+contextBridge.exposeInMainWorld('detunnel', api);

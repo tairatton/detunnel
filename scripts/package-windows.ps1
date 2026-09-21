@@ -5,9 +5,9 @@ $desktopDirectory = Join-Path $repositoryRoot 'apps\desktop'
 $installerDirectory = Join-Path $desktopDirectory 'dist\installers'
 $rootPackage = Get-Content -LiteralPath (Join-Path $repositoryRoot 'package.json') -Raw | ConvertFrom-Json
 $expectedArtifacts = @(
-    "lnwjud-Setup-$($rootPackage.version).exe",
-    "lnwjud-Setup-$($rootPackage.version).exe.blockmap",
-    "lnwjud-Portable-$($rootPackage.version).exe",
+    "detunnel-Setup-$($rootPackage.version).exe",
+    "detunnel-Setup-$($rootPackage.version).exe.blockmap",
+    "detunnel-Portable-$($rootPackage.version).exe",
     'latest.yml',
     'portable.yml',
     'SHA256SUMS.txt',
@@ -15,7 +15,7 @@ $expectedArtifacts = @(
 )
 Push-Location $repositoryRoot
 try {
-    & corepack pnpm@10.15.0 --filter @lnwjud/desktop package:windows
+    & corepack pnpm@10.15.0 --filter @detunnel/desktop package:windows
     if ($LASTEXITCODE -ne 0) {
         throw "Windows packaging failed with exit code $LASTEXITCODE"
     }

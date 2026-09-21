@@ -11,9 +11,9 @@ import {
   ok,
   type InvocationAuthorization,
   type Result,
-} from '@lnwjud/domain';
-import type { FileActor } from '@lnwjud/application';
-import { capabilityDescriptors, EventLogCapabilityBackend, type CapabilityDescriptor } from '@lnwjud/capabilities';
+} from '@detunnel/domain';
+import type { FileActor } from '@detunnel/application';
+import { capabilityDescriptors, EventLogCapabilityBackend, type CapabilityDescriptor } from '@detunnel/capabilities';
 import type { McpApplicationServices } from './tools/tool-types.js';
 import { ContextEngine } from './context-engine.js';
 import type { ActivityTelemetrySnapshot, ActivityTracker, ToolTelemetrySnapshot } from './activity-tracker.js';
@@ -1331,7 +1331,7 @@ export class UpgradeRuntimeService {
     if (workspaceId === undefined) return err(appError('INVALID_INPUT', `${name} requires workspaceId`));
     const file = this.services.file;
     if (file === undefined) return ok(truthfulUnavailable(name, 'needs_setup', ['workspace file service']));
-    const profilePath = '.lnwjud/project-profile.json';
+    const profilePath = '.detunnel/project-profile.json';
     if (name === 'project_profile_get') {
       const loaded = await file.readFile(this.actor, workspaceId, { path: profilePath }, authorization);
       if (!loaded.ok) {
@@ -1509,7 +1509,7 @@ export class UpgradeRuntimeService {
         available: true,
         ready: false,
         executed: false,
-        requirements: ['Start the lnwjud managed browser before using browser context tools.'],
+        requirements: ['Start the detunnel managed browser before using browser context tools.'],
         runtimeStatus: status.value,
       });
     }

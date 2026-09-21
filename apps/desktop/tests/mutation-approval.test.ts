@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { HostMutationApprovalRequest } from '@lnwjud/mcp-server';
+import type { HostMutationApprovalRequest } from '@detunnel/mcp-server';
 import { isMutationApprovalRequestValid, isMutationApprovalResponse, mutationApprovalDialogOptions } from '../src/main/mutation-approval.js';
 
 const request: HostMutationApprovalRequest = {

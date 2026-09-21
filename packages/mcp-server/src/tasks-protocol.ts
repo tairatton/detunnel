@@ -1,7 +1,7 @@
 import { ProtocolError, ProtocolErrorCode, RELATED_TASK_META_KEY, type McpServer } from '@modelcontextprotocol/server';
-import type { AppError, Result } from '@lnwjud/domain';
-import type { FileActor } from '@lnwjud/application';
-import { DEFAULT_MCP_POLL_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS } from '@lnwjud/shared';
+import type { AppError, Result } from '@detunnel/domain';
+import type { FileActor } from '@detunnel/application';
+import { DEFAULT_MCP_POLL_WAIT_SECONDS, MAX_CONFIGURABLE_WAIT_SECONDS, MIN_CONFIGURABLE_WAIT_SECONDS } from '@detunnel/shared';
 import { z } from 'zod';
 import type { McpApplicationServices } from './tool-registry.js';
 import { withCapabilityOwnerMetadata } from './request-scope.js';
@@ -11,7 +11,7 @@ import { withCapabilityOwnerMetadata } from './request-scope.js';
  * utility (spec 2025-11-25, experimental). Tasks are still created through
  * the `shell` tool with execution=background; this surface only serves
  * tasks/get, tasks/result, tasks/list, and tasks/cancel so spec-aware
- * clients can poll and retrieve results without knowing lnwjud's tool names.
+ * clients can poll and retrieve results without knowing detunnel's tool names.
  */
 
 export interface ProtocolTask {
@@ -46,7 +46,7 @@ const DEFAULT_PAGE_SIZE = 50;
 const DEFAULT_MAX_RESULT_WAIT_MS = DEFAULT_MCP_POLL_WAIT_SECONDS * 1_000;
 const DEFAULT_POLL_INTERVAL_MS = DEFAULT_MCP_POLL_WAIT_SECONDS * 1_000;
 const DEFAULT_POLL_TICK_MS = 200;
-const CURSOR_PREFIX = 'lnwjud-tasks:';
+const CURSOR_PREFIX = 'detunnel-tasks:';
 const TERMINAL_STATUSES: ReadonlySet<ProtocolTask['status']> = new Set(['completed', 'failed', 'cancelled']);
 
 /** Local task states come from shell-backend / durable-shell-task-store. */

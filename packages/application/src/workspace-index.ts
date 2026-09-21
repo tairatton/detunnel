@@ -3,9 +3,9 @@ import { watch, type FSWatcher } from 'node:fs';
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { appError, err, ok, type Result } from '@lnwjud/domain';
-import { classifyContextPath, type ContextDiscoveryMode } from '@lnwjud/search';
-import type { Workspace, WorkspaceRepository } from '@lnwjud/workspace';
+import { appError, err, ok, type Result } from '@detunnel/domain';
+import { classifyContextPath, type ContextDiscoveryMode } from '@detunnel/search';
+import type { Workspace, WorkspaceRepository } from '@detunnel/workspace';
 import { WorkspaceIndexQueue, type WorkspaceIndexQueueOptions, type WorkspaceIndexQueueStatus } from './workspace-index-queue.js';
 
 export interface WorkspaceIndexEntry {
@@ -41,7 +41,7 @@ export interface WorkspaceIndexStore {
 }
 
 export class JsonWorkspaceIndexStore implements WorkspaceIndexStore {
-  public constructor(private readonly directory: string = path.join(os.tmpdir(), 'lnwjud', 'index')) {}
+  public constructor(private readonly directory: string = path.join(os.tmpdir(), 'detunnel', 'index')) {}
 
   public async load(workspaceId: string): Promise<WorkspaceIndexSnapshot | null> {
     try {

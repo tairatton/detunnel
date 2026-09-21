@@ -11,7 +11,7 @@ describe('desktop performance contract', () => {
 
   it('does not wake the full dashboard from the standalone live-log viewer', () => {
     const source = readFileSync(new URL('../src/renderer/features/live/StandaloneLogViewer.tsx', import.meta.url), 'utf8');
-    expect(source).not.toContain('window.lnwjud.getDashboard()');
+    expect(source).not.toContain('window.detunnel.getDashboard()');
     expect(source).not.toContain('window.setInterval');
   });
 

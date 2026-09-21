@@ -10,8 +10,8 @@ import {
   ok,
   type InvocationAuthorization,
   type Result,
-} from '@lnwjud/domain';
-import type { FileActor } from '@lnwjud/application';
+} from '@detunnel/domain';
+import type { FileActor } from '@detunnel/application';
 import { withReplacementRecoveryDetails } from './replacement-recovery.js';
 import type { McpApplicationServices } from './tools/tool-types.js';
 

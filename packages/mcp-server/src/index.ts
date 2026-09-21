@@ -18,3 +18,4 @@ export * from './upgrade-catalog.js';
 export * from './tools/tool-types.js';
 
 export * from './request-scope.js';
+export * from './tool-exposure-profile.js';

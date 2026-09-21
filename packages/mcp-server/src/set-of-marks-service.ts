@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { appError, err, isApplicationAuthorized, ok, type InvocationAuthorization, type Result } from '@lnwjud/domain';
-import type { CapabilityService } from '@lnwjud/capabilities';
+import { appError, err, isApplicationAuthorized, ok, type InvocationAuthorization, type Result } from '@detunnel/domain';
+import type { CapabilityService } from '@detunnel/capabilities';
 
 interface Bounds {
   readonly x: number;

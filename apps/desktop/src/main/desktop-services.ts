@@ -23,20 +23,21 @@ import {
   ToolAvailabilityService,
   type FileActor,
   type DoctorProbeResult,
-} from '@lnwjud/application';
-import { AuditService, decodeActivityTargetReference, type ActivityAuditEvent, type ActivityTargetDetail, type AuditEventRepository, type AuditEventSummaryProjection } from '@lnwjud/audit';
-import { CodexDiscovery, formatCodexDiscoveryError } from '@lnwjud/codex';
-import type { Result } from '@lnwjud/domain';
+} from '@detunnel/application';
+import { AuditService, decodeActivityTargetReference, type ActivityAuditEvent, type ActivityTargetDetail, type AuditEventRepository, type AuditEventSummaryProjection } from '@detunnel/audit';
+import { CodexDiscovery, formatCodexDiscoveryError } from '@detunnel/codex';
+import type { Result } from '@detunnel/domain';
 import {
   EXTENSIONS_SETTINGS_KEY,
   createLocalExtensionsService,
   parseExtensionsSettings,
   type ExtensionsService,
   type ExtensionsSettings,
-} from '@lnwjud/extensions';
+} from '@detunnel/extensions';
 import {
   ActivityTracker,
-  LNWJUD_MCP_IDENTITY_PATH,
+  DETUNNEL_MCP_IDENTITY_PATH,
+  parseMcpToolExposureProfile,
   RuntimeGoalManagedTaskStateReader,
   createFileActivitySink,
   mcpActivityLogPath,
@@ -45,10 +46,10 @@ import {
   type McpApplicationServices,
   type McpHttpServerOptions,
   type WorkspaceScope,
-} from '@lnwjud/mcp-server';
-import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@lnwjud/permissions';
-import type { ManagedProcess } from '@lnwjud/process';
-import { PathExecutableResolver } from '@lnwjud/search';
+} from '@detunnel/mcp-server';
+import { permissionProfiles, type PermissionProfile, type PermissionProfileName } from '@detunnel/permissions';
+import type { ManagedProcess } from '@detunnel/process';
+import { PathExecutableResolver } from '@detunnel/search';
 import {
   ALLOW_AI_DELETE_SETTING_KEY,
   DESTRUCTIVE_AUTO_APPROVAL_SETTING_KEY,
@@ -87,11 +88,11 @@ import {
   serializeStringRecordSetting,
   loadCheckpointEncryptionKey,
   type DestructiveAutoApprovalPolicy,
-} from '@lnwjud/shared';
-import { AesGcmCheckpointCipher, SqliteAgentSwarmRepository, SqliteAuditRepository, SqliteBackupService, SqliteCheckpointRepository, SqliteDatabase, SqliteSettingsRepository, SqliteWorkspaceRepository, type BackupReason, type BackupSummary } from '@lnwjud/storage';
-import { SqliteGoalRepository } from '@lnwjud/storage';
-import type { Workspace } from '@lnwjud/workspace';
-import { isDriveRoot, SecretPolicy, WorkspacePathGuard, WorkspaceService } from '@lnwjud/workspace';
+} from '@detunnel/shared';
+import { AesGcmCheckpointCipher, SqliteAgentSwarmRepository, SqliteAuditRepository, SqliteBackupService, SqliteCheckpointRepository, SqliteDatabase, SqliteSettingsRepository, SqliteWorkspaceRepository, type BackupReason, type BackupSummary } from '@detunnel/storage';
+import { SqliteGoalRepository } from '@detunnel/storage';
+import type { Workspace } from '@detunnel/workspace';
+import { isDriveRoot, SecretPolicy, WorkspacePathGuard, WorkspaceService } from '@detunnel/workspace';
 import {
   type AddWorkspaceRequest,
   type AutoStartResult,
@@ -146,7 +147,7 @@ import {
   type UiLocale,
   type WorkLogEntry,
   type WorkspaceSummary,
-} from '@lnwjud/ipc-contracts';
+} from '@detunnel/ipc-contracts';
 import type { DesktopIpcServices } from './main.js';
 import { buildCapabilitySummary, createLocalCapabilityRuntime } from './capability-runtime.js';
 import { AsyncTtlCache } from './async-ttl-cache.js';
@@ -228,8 +229,8 @@ export function toolAvailabilityHostSyncDisposition(
   return {
     chatgptActionRefreshMayBeRequired: true,
     hostSyncMessage: locale === 'th'
-      ? 'lnwjud อัปเดตรายการ MCP แบบ live แล้ว แต่ ChatGPT App ที่อนุมัติ action snapshot ไว้อาจยังใช้รายการเดิม การกด F5 ในเบราว์เซอร์ไม่รับประกันว่าจะรีเฟรช snapshot นี้ ให้ใช้ Action Refresh / Scan Tools ใน ChatGPT; ถ้า deployment ไม่มีคำสั่งดังกล่าว ให้ recreate + republish app ตาม workflow ของผู้ดูแล'
-      : 'lnwjud updated the live MCP tool list, but an approved ChatGPT App action snapshot may still use the previous list. Browser F5 is not guaranteed to refresh that snapshot. Use ChatGPT Action Refresh / Scan Tools; if that workflow is unavailable for this deployment, recreate + republish the app through the administrator workflow.',
+      ? 'detunnel อัปเดตรายการ MCP แบบ live แล้ว แต่ ChatGPT App ที่อนุมัติ action snapshot ไว้อาจยังใช้รายการเดิม การกด F5 ในเบราว์เซอร์ไม่รับประกันว่าจะรีเฟรช snapshot นี้ ให้ใช้ Action Refresh / Scan Tools ใน ChatGPT; ถ้า deployment ไม่มีคำสั่งดังกล่าว ให้ recreate + republish app ตาม workflow ของผู้ดูแล'
+      : 'detunnel updated the live MCP tool list, but an approved ChatGPT App action snapshot may still use the previous list. Browser F5 is not guaranteed to refresh that snapshot. Use ChatGPT Action Refresh / Scan Tools; if that workflow is unavailable for this deployment, recreate + republish the app through the administrator workflow.',
   };
 }
 
@@ -258,7 +259,7 @@ export async function autoStartPersistentTunnel(
 }
 
 export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOptions = {}): DesktopRuntime {
-  const databaseFilename = path.join(dataPath, 'lnwjud.sqlite');
+  const databaseFilename = path.join(dataPath, 'detunnel.sqlite');
   const backupDirectory = path.join(dataPath, 'backups');
   const database = new SqliteDatabase(databaseFilename, { backupDirectory });
   const workspaceRepository = new SqliteWorkspaceRepository(database);
@@ -439,6 +440,7 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
     },
   );
   const mcpPort = readMcpPort(process.env.DETUNNEL_MCP_PORT ?? settingsRepository.get(USER_SETTING_KEYS.mcpHttpPort) ?? undefined);
+  const mcpToolExposureProfile = parseMcpToolExposureProfile(process.env.DETUNNEL_MCP_TOOL_PROFILE);
   const mcpLifecycle = new DesktopMcpLifecycle({
     createServerOptions: (): McpHttpServerOptions => ({
       port: mcpPort,
@@ -446,7 +448,10 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
       actor: mcpActor,
       activityTracker,
       profileProvider: activePermissionProfile,
-      authorizationModeProvider: (): 'standard' | 'full_bypass' => desktopFullBypassEnabled() ? 'full_bypass' : 'standard',
+      toolExposureProfile: mcpToolExposureProfile,
+      authorizationModeProvider: (): 'standard' | 'full_bypass' => mcpToolExposureProfile === 'plugin-safe'
+        ? 'standard'
+        : desktopFullBypassEnabled() ? 'full_bypass' : 'standard',
       allowAiDeleteProvider,
       destructivePolicyProvider,
       activeWorkspaceScopeProvider: async (): Promise<WorkspaceScope | null> => {
@@ -829,12 +834,12 @@ export function createDesktopRuntime(dataPath: string, options: DesktopRuntimeOp
     enabled: boolean | null,
   ): Promise<SetToolAvailabilityResult> => {
     const beforeCatalog = await toolCatalogService.getSnapshot(request.locale);
-    const beforeItem = beforeCatalog.items.find((item) => item.origin === 'lnwjud' && item.name === request.name);
+    const beforeItem = beforeCatalog.items.find((item) => item.origin === 'detunnel' && item.name === request.name);
     if (beforeItem === undefined) throw new Error(`Unknown first-party tool: ${request.name}`);
     if (enabled === null) toolAvailabilityService.resetTool(request.name);
     else toolAvailabilityService.setToolEnabled(request.name, enabled);
     const catalog = await toolCatalogService.getSnapshot(request.locale);
-    const item = catalog.items.find((candidate) => candidate.origin === 'lnwjud' && candidate.name === request.name);
+    const item = catalog.items.find((candidate) => candidate.origin === 'detunnel' && candidate.name === request.name);
     if (item === undefined) throw new Error(`Tool Catalog item disappeared after availability update: ${request.name}`);
     const exposureChanged = beforeItem.effectiveExposed !== item.effectiveExposed;
     const remoteMcp = exposureChanged ? await remoteMcpController.status() : null;
@@ -1512,9 +1517,9 @@ function buildConnectionModes(input: {
   readonly allowedRoots: readonly string[];
   readonly fullBypassAll: boolean;
 }): ConnectionModes {
-  const launcher = path.win32.basename(process.execPath).toLowerCase() === 'lnwjud.exe'
-    ? path.join(path.dirname(process.execPath), 'lnwjud-mcp-stdio.cmd')
-    : 'lnwjud-mcp-stdio.cmd';
+  const launcher = path.win32.basename(process.execPath).toLowerCase() === 'detunnel.exe'
+    ? path.join(path.dirname(process.execPath), 'detunnel-mcp-stdio.cmd')
+    : 'detunnel-mcp-stdio.cmd';
   const args = [quoteCommandArgument(launcher)];
   if (input.workspaceRoot !== undefined) args.push('--workspace', quoteCommandArgument(input.workspaceRoot));
   args.push('--profile', input.profile);
@@ -1844,7 +1849,7 @@ export function buildPersistentTunnelDoctorChecks(input: {
   const check = (id: string, status: DoctorCheck['status'], message: string, isRequired = required): DoctorCheck => toStructuredDoctorCheck(id, isRequired, status, message);
   return [
     check('persistent_tunnel_identity', identityPresent ? 'pass' : required ? 'fail' : 'warn', identityPresent ? 'Saved tunnel identity is configured' : 'TUNNEL_ID_MISMATCH: persistent tunnel identity is not configured'),
-    check('runtime_alias_state', nativeRuntime ? 'pass' : persistent === null ? 'warn' : 'warn', nativeRuntime ? 'Native runtime alias lnwjud is active' : 'TUNNEL_RUNTIME_DOWN: native runtime alias is not active', false),
+    check('runtime_alias_state', nativeRuntime ? 'pass' : persistent === null ? 'warn' : 'warn', nativeRuntime ? 'Native runtime alias detunnel is active' : 'TUNNEL_RUNTIME_DOWN: native runtime alias is not active', false),
     check('runtime_process_running', runtimeRunning ? 'pass' : required ? 'fail' : 'warn', runtimeRunning ? 'Tunnel runtime is running' : 'TUNNEL_RUNTIME_DOWN: tunnel runtime is not running'),
     check('tunnel_health', health === true ? 'pass' : health === false ? 'fail' : 'warn', health === true ? 'Tunnel health is OK' : health === false ? 'TUNNEL_RUNTIME_DOWN: tunnel health probe failed' : 'Tunnel health is not currently observable'),
     check('tunnel_ready', ready === true ? 'pass' : ready === false ? 'fail' : 'warn', ready === true ? 'Tunnel readiness is OK' : ready === false ? 'TUNNEL_RUNTIME_DOWN: tunnel is not ready' : 'Tunnel readiness is not currently observable'),
@@ -1913,21 +1918,21 @@ export type McpIdentityProbe = (endpoint: URL) => Promise<boolean>;
 export async function checkConfiguredMcpPort(
   status: McpConnectionStatus,
   configuredPort: number,
-  identityProbe: McpIdentityProbe = probeLnwjudMcpIdentity,
+  identityProbe: McpIdentityProbe = probeDetunnelMcpIdentity,
 ): Promise<DoctorProbeResult> {
   if (status.running && status.url !== null) {
     try {
       const endpoint = new URL(status.url);
       const livePort = Number(endpoint.port);
       if (!(await identityProbe(endpoint))) {
-        return { status: 'fail', message: `Desktop MCP endpoint failed the lnwjud identity check at ${endpoint.origin}` };
+        return { status: 'fail', message: `Desktop MCP endpoint failed the detunnel identity check at ${endpoint.origin}` };
       }
       if (configuredPort === 0 || livePort === configuredPort) {
-        return { status: 'pass', message: `lnwjud Desktop MCP identity verified at ${endpoint.origin}${endpoint.pathname}` };
+        return { status: 'pass', message: `detunnel Desktop MCP identity verified at ${endpoint.origin}${endpoint.pathname}` };
       }
       return {
         status: 'warn',
-        message: `lnwjud Desktop MCP identity verified at fallback port ${livePort}; configured port ${configuredPort} was unavailable`,
+        message: `detunnel Desktop MCP identity verified at fallback port ${livePort}; configured port ${configuredPort} was unavailable`,
       };
     } catch {
       return { status: 'fail', message: `Desktop MCP reported an invalid endpoint: ${status.url}` };
@@ -1951,17 +1956,17 @@ export async function checkConfiguredMcpPort(
   } catch (error: unknown) {
     const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : 'unknown';
     const endpoint = new URL(`http://127.0.0.1:${configuredPort}/mcp`);
-    const isLnwjud = await identityProbe(endpoint);
-    return isLnwjud
-      ? { status: 'fail', message: `Configured MCP port ${configuredPort} is owned by an lnwjud listener that this Desktop instance is not managing (${code})` }
-      : { status: 'fail', message: `Configured MCP port ${configuredPort} is occupied by a listener that is not an lnwjud Desktop MCP (${code})` };
+    const isDetunnel = await identityProbe(endpoint);
+    return isDetunnel
+      ? { status: 'fail', message: `Configured MCP port ${configuredPort} is owned by a detunnel listener that this Desktop instance is not managing (${code})` }
+      : { status: 'fail', message: `Configured MCP port ${configuredPort} is occupied by a listener that is not a detunnel Desktop MCP (${code})` };
   } finally {
     if (listening) await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 }
 
-async function probeLnwjudMcpIdentity(endpoint: URL): Promise<boolean> {
-  const identityUrl = new URL(LNWJUD_MCP_IDENTITY_PATH, endpoint.origin);
+async function probeDetunnelMcpIdentity(endpoint: URL): Promise<boolean> {
+  const identityUrl = new URL(DETUNNEL_MCP_IDENTITY_PATH, endpoint.origin);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 750);
   try {
@@ -1970,10 +1975,10 @@ async function probeLnwjudMcpIdentity(endpoint: URL): Promise<boolean> {
       cache: 'no-store',
       signal: controller.signal,
     });
-    if (!response.ok || response.headers.get('x-lnwjud-service') !== 'desktop-mcp') return false;
+    if (!response.ok || response.headers.get('x-detunnel-service') !== 'desktop-mcp') return false;
     const body: unknown = await response.json();
     return typeof body === 'object' && body !== null
-      && 'product' in body && body.product === 'lnwjud'
+      && 'product' in body && body.product === 'detunnel'
       && 'service' in body && body.service === 'desktop-mcp'
       && 'protocol' in body && body.protocol === 1;
   } catch {

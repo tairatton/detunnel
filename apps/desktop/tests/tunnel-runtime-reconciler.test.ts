@@ -37,7 +37,7 @@ function runtime(overrides: Partial<NativeTunnelRuntimeStatus> = {}): NativeTunn
 
 function adapter(status: NativeTunnelRuntimeStatus, connect = runtime()): TunnelRuntimeReconcilerAdapter {
   return {
-    runtimeAlias: (): string => 'lnwjud',
+    runtimeAlias: (): string => 'detunnel',
     capabilities: vi.fn(async () => capabilities),
     status: vi.fn(async () => status),
     connect: vi.fn(async () => connect),

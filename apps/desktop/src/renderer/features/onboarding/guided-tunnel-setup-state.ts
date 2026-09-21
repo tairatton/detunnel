@@ -1,11 +1,11 @@
-import type { TunnelStatus } from '@lnwjud/ipc-contracts';
+import type { TunnelStatus } from '@detunnel/ipc-contracts';
 import { tunnelRuntimeCredentialAvailable } from '../../tunnel-auth-readiness.js';
 
 export type GuidedTunnelSetupState = 'not_started' | 'in_progress' | 'dismissed' | 'completed';
 export type GuidedTunnelLaunchDecision = 'none' | 'show_tip' | 'resume_settings';
 export type GuidedTunnelStep = 'create_tunnel' | 'save_key' | 'configure' | 'start' | 'connect_chatgpt';
 
-export const GUIDED_TUNNEL_SETUP_STORAGE_KEY = 'lnwjud.guided-tunnel-setup.v1';
+export const GUIDED_TUNNEL_SETUP_STORAGE_KEY = 'detunnel.guided-tunnel-setup.v1';
 
 const guidedTunnelSetupStates = new Set<GuidedTunnelSetupState>([
   'not_started',

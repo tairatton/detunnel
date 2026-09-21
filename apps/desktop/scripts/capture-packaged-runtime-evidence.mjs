@@ -10,10 +10,10 @@ const desktopRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const outputPath = path.join(desktopRoot, 'build', 'packaged-runtime-evidence.json');
 
 const packagedRuntimeFiles = Object.freeze([
-  { name: 'lnwjud.exe', relativePath: 'lnwjud.exe' },
-  { name: 'lnwjud-mcp-stdio.cjs', relativePath: 'lnwjud-mcp-stdio.cjs' },
-  { name: 'lnwjud-mcp-stdio.cmd', relativePath: 'lnwjud-mcp-stdio.cmd' },
-  { name: 'lnwjud-node.exe', relativePath: 'lnwjud-node.exe' },
+  { name: 'detunnel.exe', relativePath: 'detunnel.exe' },
+  { name: 'detunnel-mcp-stdio.cjs', relativePath: 'detunnel-mcp-stdio.cjs' },
+  { name: 'detunnel-mcp-stdio.cmd', relativePath: 'detunnel-mcp-stdio.cmd' },
+  { name: 'detunnel-node.exe', relativePath: 'detunnel-node.exe' },
   { name: 'windows-capability-bridge.ps1', relativePath: 'resources/windows-capability-bridge.ps1' },
   { name: 'windows-capability-bridge.sha256', relativePath: 'resources/windows-capability-bridge.sha256' },
   { name: 'windows-capability-bridge.integrity.json', relativePath: 'resources/windows-capability-bridge.integrity.json' },

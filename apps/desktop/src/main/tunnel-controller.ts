@@ -6,8 +6,8 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { request as httpRequest } from 'node:http';
-import type { TunnelAuthStatus, TunnelPersistentStatus, TunnelRunState, TunnelStatus } from '@lnwjud/ipc-contracts';
-import { probeProcessStart, type ProcessProbeResult } from '@lnwjud/mcp-server';
+import type { TunnelAuthStatus, TunnelPersistentStatus, TunnelRunState, TunnelStatus } from '@detunnel/ipc-contracts';
+import { probeProcessStart, type ProcessProbeResult } from '@detunnel/mcp-server';
 import { defaultTunnelProfileDirectory, LegacyApiKeyCredentialProvider, type TunnelAuthProvider } from './tunnel-auth.js';
 import { formatTunnelExitMessage, tunnelExitHintFromLog } from './tunnel-exit.js';
 import { acquireTunnelLock, readTunnelLock, type TunnelLockAcquisition, type TunnelLockOwner } from './tunnel-lock.js';
@@ -19,8 +19,8 @@ import { maskTunnelId, TUNNEL_RUNTIME_ALIAS, type TunnelRuntimeSnapshot } from '
 
 const execFileAsync = promisify(execFile);
 
-const PROFILE_NAME = 'lnwjud';
-const SECRET_FILE = 'lnwjud.runtime.secret';
+const PROFILE_NAME = 'detunnel';
+const SECRET_FILE = 'detunnel.runtime.secret';
 const CLIENT_PATH_SETTING = 'tunnel_client_path';
 const MCP_CONNECTION_MAX_TTL = '168h0m0s';
 const EXTERNAL_PROBE_TTL_MS = 4_000;
@@ -122,7 +122,7 @@ export class TunnelController {
   }
 
   public logPath(): string {
-    return path.join(this.profileDirectory(), 'lnwjud-tunnel.log');
+    return path.join(this.profileDirectory(), 'detunnel-tunnel.log');
   }
 
   public resolveClientPath(): string | null {
@@ -262,7 +262,7 @@ export class TunnelController {
       this.child = null;
       if (this.state === 'running') this.state = 'stopped';
     } else if (this.tunnelLock === null) {
-      // No desktop-owned child: reflect a tunnel started externally (e.g. start-lnwjud-tunnel.ps1).
+      // No desktop-owned child: reflect a tunnel started externally (e.g. start-detunnel-tunnel.ps1).
       const externalProbe = await this.probeExternalRunning();
       if (externalProbe === 'live') {
         this.state = 'running';
@@ -350,7 +350,7 @@ export class TunnelController {
     if (!force && now - this.externalProbeAt < EXTERNAL_PROBE_TTL_MS) return this.lastExternalProbe;
     this.externalProbeAt = now;
     try {
-      const result = await (this.options.isExternalTunnelRunning?.() ?? isLnwjudTunnelProcessRunning());
+      const result = await (this.options.isExternalTunnelRunning?.() ?? isDetunnelTunnelProcessRunning());
       this.lastExternalProbe = result || await this.configuredHealthIsLive() ? 'live' : 'gone';
     } catch {
       this.lastExternalProbe = await this.configuredHealthIsLive() ? 'live' : 'unverifiable';
@@ -455,7 +455,7 @@ export class TunnelController {
       const auth = await this.authStatus();
       throwIfStartCancelled(signal);
       if (!auth.runtimeCredentialAvailable) throw new Error(auth.message ?? 'Save a Runtime API key first');
-      if (!existsSync(this.profilePath())) throw new Error('Missing tunnel profile lnwjud.yaml');
+      if (!existsSync(this.profilePath())) throw new Error('Missing tunnel profile detunnel.yaml');
 
       const credential = await this.authProvider.getRuntimeCredential();
       throwIfStartCancelled(signal);
@@ -645,7 +645,7 @@ export class TunnelController {
     if (this.child !== null && this.child.exitCode === null && Number.isInteger(this.child.pid) && (this.child.pid ?? 0) > 0) pids.add(this.child.pid as number);
     if (this.tunnelLock !== null) pids.add(this.tunnelLock.owner.pid);
     try {
-      const external = await (this.options.verifiedExternalTunnelPids?.() ?? findLnwjudTunnelProcessPids());
+      const external = await (this.options.verifiedExternalTunnelPids?.() ?? findDetunnelTunnelProcessPids());
       for (const pid of external) if (Number.isInteger(pid) && pid > 0 && pid <= 2_147_483_647) pids.add(pid);
     } catch (error: unknown) {
       if (pids.size === 0) return { pids: [], unavailableReason: error instanceof Error ? `external_tunnel_pid_probe_failed:${error.message}` : 'external_tunnel_pid_probe_failed' };
@@ -871,7 +871,7 @@ export class TunnelController {
     const adapter = this.createRuntimeAdapter(clientPath, '');
     if (storedTunnelId === null && adapter.runtimeAlias() !== TUNNEL_RUNTIME_ALIAS) {
       if (recordedOwner !== null) {
-        return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('its dedicated lnwjud alias is unavailable');
+        return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('its dedicated detunnel alias is unavailable');
       }
       return false;
     }
@@ -898,12 +898,12 @@ export class TunnelController {
     }
     if (!nativeStatus.exists) {
       if (recordedOwner !== null) {
-        return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('the recorded owner reports that the lnwjud alias is absent');
+        return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('the recorded owner reports that the detunnel alias is absent');
       }
       return false;
     }
     if (storedTunnelId !== null && nativeStatus.tunnelId !== null && nativeStatus.tunnelId !== storedTunnelId) {
-      throw new Error('Persistent tunnel alias lnwjud belongs to a different Tunnel ID; refusing to stop it automatically');
+      throw new Error('Persistent tunnel alias detunnel belongs to a different Tunnel ID; refusing to stop it automatically');
     }
     if (nativeStatus.running) {
       const stopped = await adapter.stop();
@@ -912,7 +912,7 @@ export class TunnelController {
       }
     }
     if (recordedOwner !== null) {
-      return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('the recorded owner reports that the lnwjud alias is stopped');
+      return this.clearRecordedRuntimeOwnerOnlyWhenExternalGone('the recorded owner reports that the detunnel alias is stopped');
     }
     this.options.setRuntimeOwnerPath?.('');
     this.invalidateExternalProbeCache();
@@ -1149,7 +1149,7 @@ export class TunnelController {
   private async requireMcpServerUrl(): Promise<string> {
     const value = await this.options.getMcpServerUrl?.();
     if (value === null || value === undefined || value.trim().length === 0) {
-      throw new Error('Desktop MCP is unavailable; start lnwjud and try again');
+      throw new Error('Desktop MCP is unavailable; start detunnel and try again');
     }
     return normalizeLoopbackMcpUrl(value);
   }
@@ -1189,7 +1189,7 @@ export function tunnelClientEnv(apiKey: string, profileDirectory: string): NodeJ
   env.CONTROL_PLANE_API_KEY = apiKey.trim();
   env.MCP_CONNECTION_MAX_TTL = MCP_CONNECTION_MAX_TTL;
   // Secure Tunnel forwards to the already-running Desktop HTTP MCP. Do not pass
-  // headless lnwjud authorization/scope settings to the transport-only child.
+  // headless detunnel authorization/scope settings to the transport-only child.
   delete env.DETUNNEL_DATA_PATH;
   delete env.DETUNNEL_UNRESTRICTED;
   env.TUNNEL_CLIENT_PROFILE = PROFILE_NAME;
@@ -1225,17 +1225,17 @@ function extractExecDetail(error: unknown): string {
   return typeof record.message === 'string' ? record.message : '';
 }
 
-async function isLnwjudTunnelProcessRunning(): Promise<boolean> {
-  return (await findLnwjudTunnelProcessPids()).length > 0;
+async function isDetunnelTunnelProcessRunning(): Promise<boolean> {
+  return (await findDetunnelTunnelProcessPids()).length > 0;
 }
 
-async function findLnwjudTunnelProcessPids(): Promise<readonly number[]> {
+async function findDetunnelTunnelProcessPids(): Promise<readonly number[]> {
   const result = await Promise.race([
     execFileAsync('powershell.exe', [
       '-NoProfile',
       '-NonInteractive',
       '-Command',
-      "@(Get-CimInstance Win32_Process -Filter \"Name = 'tunnel-client.exe'\" -ErrorAction Stop | Where-Object { $_.CommandLine -match '(?i)(--profile\\s+lnwjud|lnwjud\\.yaml)' } | Select-Object -ExpandProperty ProcessId) -join ','",
+      "@(Get-CimInstance Win32_Process -Filter \"Name = 'tunnel-client.exe'\" -ErrorAction Stop | Where-Object { $_.CommandLine -match '(?i)(--profile\\s+detunnel|detunnel\\.yaml)' } | Select-Object -ExpandProperty ProcessId) -join ','",
     ], { windowsHide: true, encoding: 'utf8', timeout: 3_000 }),
     new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('tunnel process probe timed out')), 3_500);

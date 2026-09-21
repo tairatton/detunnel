@@ -20,17 +20,19 @@ import { ModernTasksProtocol } from './modern-tasks-protocol.js';
 import { maybeHandleModernTasksWireRequest, maybeTransformModernTasksWireResponse } from './modern-tasks-wire.js';
 import { RunBudgetGuard } from './run-budget.js';
 import { createOriginPolicy, type OriginPolicy } from './origin-policy.js';
-import { APP_NAME, APP_VERSION } from '@lnwjud/shared';
+import { APP_NAME, APP_VERSION } from '@detunnel/shared';
+import type { McpToolExposureProfile } from './tool-exposure-profile.js';
 
 export const MAX_MCP_HTTP_BODY_BYTES = 1_048_576;
 export const DETUNNEL_MCP_IDENTITY_PATH = '/_detunnel/identity';
-export const LNWJUD_MCP_IDENTITY_PATH = '/_lnwjud/identity';
 
 export interface McpHttpServerOptions extends McpServerOptions {
   readonly host?: string;
   readonly port: number;
   readonly maxBodyBytes?: number;
   readonly originPolicy?: OriginPolicy;
+  /** Transport-scoped tool exposure. Omitted keeps the existing catalog. */
+  readonly toolExposureProfile?: McpToolExposureProfile;
 }
 
 export interface McpHttpServerAddress {
@@ -55,7 +57,7 @@ interface LegacySession {
 }
 
 function writeDiagnostic(error: Error): void {
-  process.stderr.write(`lnwjud MCP HTTP error: ${error.message}\n`);
+  process.stderr.write(`detunnel MCP HTTP error: ${error.message}\n`);
 }
 
 function isValidPort(port: number): boolean {
@@ -298,7 +300,7 @@ async function handleRequest(
   maxBodyBytes: number,
 ): Promise<void> {
   const requestedPath = new URL(request.url ?? '/', 'http://127.0.0.1').pathname;
-  if (requestedPath !== '/mcp' && requestedPath !== LNWJUD_MCP_IDENTITY_PATH && requestedPath !== DETUNNEL_MCP_IDENTITY_PATH) {
+  if (requestedPath !== '/mcp' && requestedPath !== DETUNNEL_MCP_IDENTITY_PATH) {
     sendStatus(response, 404, 'Not found');
     return;
   }
@@ -317,14 +319,13 @@ async function handleRequest(
     return;
   }
 
-  if (requestedPath === LNWJUD_MCP_IDENTITY_PATH || requestedPath === DETUNNEL_MCP_IDENTITY_PATH) {
+  if (requestedPath === DETUNNEL_MCP_IDENTITY_PATH) {
     if (fetchRequest.method !== 'GET') {
       sendStatus(response, 405, 'Method not allowed');
       return;
     }
-    const legacyIdentity = requestedPath === LNWJUD_MCP_IDENTITY_PATH;
     await writeFetchResponse(response, Response.json({
-      product: legacyIdentity ? 'lnwjud' : APP_NAME,
+      product: APP_NAME,
       service: 'desktop-mcp',
       protocol: 1,
       version: APP_VERSION,
@@ -332,7 +333,7 @@ async function handleRequest(
       headers: {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'no-store',
-        ...(legacyIdentity ? { 'x-lnwjud-service': 'desktop-mcp' } : { 'x-detunnel-service': 'desktop-mcp' }),
+        'x-detunnel-service': 'desktop-mcp',
       },
     }));
     return;

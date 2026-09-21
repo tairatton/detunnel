@@ -10,9 +10,9 @@ import type {
   ToolReadinessReason,
   ToolReadinessStatus,
   UiLocale,
-} from '@lnwjud/ipc-contracts';
-import { ToolRegistry, isAdvertisedDeliveryState, upgradeCatalogEntry } from '@lnwjud/mcp-server';
-import { DEFAULT_TOOL_AVAILABILITY_SNAPSHOT, isBrowserAutomationToolName, parseBooleanSetting, resolveEffectiveToolAvailability, type ToolAvailabilitySnapshot } from '@lnwjud/shared';
+} from '@detunnel/ipc-contracts';
+import { ToolRegistry, isAdvertisedDeliveryState, upgradeCatalogEntry } from '@detunnel/mcp-server';
+import { DEFAULT_TOOL_AVAILABILITY_SNAPSHOT, isBrowserAutomationToolName, parseBooleanSetting, resolveEffectiveToolAvailability, type ToolAvailabilitySnapshot } from '@detunnel/shared';
 import { catalogDefinitions } from './catalog-definitions.js';
 import { resolveCatalogCopy } from './catalog-copy.js';
 import { RequirementRegistry, type RequirementSnapshot } from './requirement-registry.js';
@@ -142,7 +142,7 @@ export class ToolCatalogService {
       const stale = definition.requirementIds.some((id) => this.#requirements.stale(id));
       return {
         name: definition.name,
-        origin: 'lnwjud',
+        origin: 'detunnel',
         category: definition.category,
         title: resolveCatalogCopy(locale, definition.titleKey),
         shortDescription: resolveCatalogCopy(locale, definition.shortDescriptionKey),

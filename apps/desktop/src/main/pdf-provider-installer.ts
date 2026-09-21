@@ -93,7 +93,7 @@ async function installPdfProviderOnce(dataPath: string, options: PdfProviderInst
 
     await rm(versionRoot, { recursive: true, force: true });
     await rename(extractedRoot, versionRoot);
-    await writeFile(path.join(versionRoot, '.lnwjud-provider.json'), `${JSON.stringify({
+    await writeFile(path.join(versionRoot, '.detunnel-provider.json'), `${JSON.stringify({
       provider: 'pdftotext',
       version: packageInfo.version,
       sourceUrl: packageInfo.sourceUrl,
@@ -116,7 +116,7 @@ async function isRegularFile(filePath: string): Promise<boolean> {
 }
 
 export async function readPdfProviderInstallEvidence(providerPath: string): Promise<Readonly<Record<string, unknown>> | null> {
-  const evidencePath = path.join(path.dirname(path.dirname(path.dirname(providerPath))), '.lnwjud-provider.json');
+  const evidencePath = path.join(path.dirname(path.dirname(path.dirname(providerPath))), '.detunnel-provider.json');
   try {
     return JSON.parse(await readFile(evidencePath, 'utf8')) as Readonly<Record<string, unknown>>;
   } catch {

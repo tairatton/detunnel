@@ -2,9 +2,9 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { link, mkdir, open, readFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { probeProcessStart, type ProcessProbeResult } from '@lnwjud/mcp-server';
+import { probeProcessStart, type ProcessProbeResult } from '@detunnel/mcp-server';
 
-const LOCK_FILE = 'lnwjud.tunnel.lock';
+const LOCK_FILE = 'detunnel.tunnel.lock';
 const LOCK_VERSION = 1;
 const MUTEX_WAIT_MS = 5_000;
 const ISO_UTC_MILLISECONDS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -231,7 +231,7 @@ async function withTunnelLockCriticalSection<T>(profileDirectory: string, action
     '$held=$false',
     'try {',
     `  try { $held=$mutex.WaitOne(${MUTEX_WAIT_MS}) } catch [Threading.AbandonedMutexException] { $held=$true }`,
-    "  if(-not $held){ throw 'Timed out waiting for the lnwjud tunnel lock critical section' }",
+    "  if(-not $held){ throw 'Timed out waiting for the detunnel tunnel lock critical section' }",
     "  [Console]::Out.WriteLine('READY')",
     '  [Console]::Out.Flush()',
     '  [void][Console]::In.ReadToEnd()',
@@ -287,7 +287,7 @@ async function withTunnelLockCriticalSection<T>(profileDirectory: string, action
 function tunnelLockMutexName(profileDirectory: string): string {
   const normalized = path.resolve(profileDirectory).replace(/[\\/]+$/, '').toLowerCase();
   const identity = createHash('sha256').update(normalized, 'utf8').digest('hex').slice(0, 24);
-  return `Local\\lnwjud-tunnel-lock-${identity}`;
+  return `Local\\detunnel-tunnel-lock-${identity}`;
 }
 
 function waitForMutexReady(holder: ReturnType<typeof spawn>, stderr: () => string): Promise<void> {
@@ -295,7 +295,7 @@ function waitForMutexReady(holder: ReturnType<typeof spawn>, stderr: () => strin
     if (holder.stdout === null) { reject(new Error('Tunnel lock mutex helper stdout is unavailable')); return; }
     const stdoutStream = holder.stdout;
     let stdout = '';
-    const timer = setTimeout(() => finish(new Error('Timed out waiting for the lnwjud tunnel lock critical section')), MUTEX_WAIT_MS + 2_000);
+    const timer = setTimeout(() => finish(new Error('Timed out waiting for the detunnel tunnel lock critical section')), MUTEX_WAIT_MS + 2_000);
     const onData = (chunk: string): void => {
       stdout += chunk;
       if (/(?:^|\r?\n)READY(?:\r?\n|$)/.test(stdout)) finish();

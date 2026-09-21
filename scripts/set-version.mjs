@@ -19,7 +19,7 @@ async function syncAllVersions() {
   const rootPkgPath = path.join(rootDir, 'package.json');
   const rootPkg = JSON.parse(await readFile(rootPkgPath, 'utf8'));
   const version = targetVersion || rootPkg.version;
-  const name = rootPkg.name || 'lnwjud';
+  const name = rootPkg.name || 'detunnel';
 
   console.log(`Synchronizing single source of truth for name "${name}" and version "${version}"...`);
 
@@ -111,16 +111,16 @@ async function syncAllVersions() {
       .replace(/## Current (?:version|source \/ release candidate|release): v[0-9.]+/g, `## Current version: v${version}`)
       .replace(/The v[0-9.]+ release target and runtime contract/g, 'The v' + version + ' release target and runtime contract')
       .replace(/current source\/release candidate is `v[0-9.]+`/g, 'current version is `v' + version + '`')
-      .replace(/The Windows installer for the current version is `lnwjud-Setup-[0-9.]+\.exe`/g, 'The Windows installer for the current version is `lnwjud-Setup-' + version + '.exe`')
-      .replace(/Current Windows 10\/11 x64 artifacts are `lnwjud-Setup-[0-9.]+\.exe` \(recommended installer\) and `lnwjud-Portable-[0-9.]+\.exe`/g, 'Current Windows 10/11 x64 artifacts are `lnwjud-Setup-' + version + '.exe` (recommended installer) and `lnwjud-Portable-' + version + '.exe`')
-      .replace(/If you prefer not to install the app, run `lnwjud-Portable-[0-9.]+\.exe` directly\./g, 'If you prefer not to install the app, run `lnwjud-Portable-' + version + '.exe` directly.')
-      .replace(/1\. แบบแนะนำ: ดาวน์โหลด `lnwjud-Setup-[0-9.]+\.exe` แล้วติดตั้งตามปกติ/g, '1. แบบแนะนำ: ดาวน์โหลด `lnwjud-Setup-' + version + '.exe` แล้วติดตั้งตามปกติ')
-      .replace(/2\. ถ้าไม่ต้องการติดตั้ง: ดาวน์โหลด `lnwjud-Portable-[0-9.]+\.exe` แล้วเปิดได้ทันที/g, '2. ถ้าไม่ต้องการติดตั้ง: ดาวน์โหลด `lnwjud-Portable-' + version + '.exe` แล้วเปิดได้ทันที')
-      .replace(/ถ้าใช้ `lnwjud-Setup-[0-9.]+\.exe` หรือ `lnwjud-Portable-[0-9.]+\.exe` บน Windows x64/g, 'ถ้าใช้ `lnwjud-Setup-' + version + '.exe` หรือ `lnwjud-Portable-' + version + '.exe` บน Windows x64')
-      .replace(/single-file \*\*`lnwjud-Portable-[0-9.]+\.exe`\*\*/g, 'single-file **`lnwjud-Portable-' + version + '.exe`**')
-      .replace(/validated local test installer `lnwjud-Setup-[0-9.]+\.exe`/g, 'validated local test installer `lnwjud-Setup-' + version + '.exe`')
-      .replace(/apps\/desktop\/dist\/installers\/lnwjud-Setup-[0-9.]+\.exe/g, 'apps/desktop/dist/installers/lnwjud-Setup-' + version + '.exe')
-      .replace(/apps\/desktop\/dist\/installers\/lnwjud-Portable-[0-9.]+\.exe/g, 'apps/desktop/dist/installers/lnwjud-Portable-' + version + '.exe')
+      .replace(/The Windows installer for the current version is `detunnel-Setup-[0-9.]+\.exe`/g, 'The Windows installer for the current version is `detunnel-Setup-' + version + '.exe`')
+      .replace(/Current Windows 10\/11 x64 artifacts are `detunnel-Setup-[0-9.]+\.exe` \(recommended installer\) and `detunnel-Portable-[0-9.]+\.exe`/g, 'Current Windows 10/11 x64 artifacts are `detunnel-Setup-' + version + '.exe` (recommended installer) and `detunnel-Portable-' + version + '.exe`')
+      .replace(/If you prefer not to install the app, run `detunnel-Portable-[0-9.]+\.exe` directly\./g, 'If you prefer not to install the app, run `detunnel-Portable-' + version + '.exe` directly.')
+      .replace(/1\. แบบแนะนำ: ดาวน์โหลด `detunnel-Setup-[0-9.]+\.exe` แล้วติดตั้งตามปกติ/g, '1. แบบแนะนำ: ดาวน์โหลด `detunnel-Setup-' + version + '.exe` แล้วติดตั้งตามปกติ')
+      .replace(/2\. ถ้าไม่ต้องการติดตั้ง: ดาวน์โหลด `detunnel-Portable-[0-9.]+\.exe` แล้วเปิดได้ทันที/g, '2. ถ้าไม่ต้องการติดตั้ง: ดาวน์โหลด `detunnel-Portable-' + version + '.exe` แล้วเปิดได้ทันที')
+      .replace(/ถ้าใช้ `detunnel-Setup-[0-9.]+\.exe` หรือ `detunnel-Portable-[0-9.]+\.exe` บน Windows x64/g, 'ถ้าใช้ `detunnel-Setup-' + version + '.exe` หรือ `detunnel-Portable-' + version + '.exe` บน Windows x64')
+      .replace(/single-file \*\*`detunnel-Portable-[0-9.]+\.exe`\*\*/g, 'single-file **`detunnel-Portable-' + version + '.exe`**')
+      .replace(/validated local test installer `detunnel-Setup-[0-9.]+\.exe`/g, 'validated local test installer `detunnel-Setup-' + version + '.exe`')
+      .replace(/apps\/desktop\/dist\/installers\/detunnel-Setup-[0-9.]+\.exe/g, 'apps/desktop/dist/installers/detunnel-Setup-' + version + '.exe')
+      .replace(/apps\/desktop\/dist\/installers\/detunnel-Portable-[0-9.]+\.exe/g, 'apps/desktop/dist/installers/detunnel-Portable-' + version + '.exe')
       .replace(/current v[0-9.]+ `ToolRegistry`/g, 'current v' + version + ' `ToolRegistry`')
       .replace(/## v[0-9.]+ release status/g, `## v${version} release status`)
       .replace(/Release `v[0-9.]+`/g, `Release \`v${version}\``);
@@ -133,15 +133,15 @@ async function syncAllVersions() {
   // 9. Update current-version Markdown references without rewriting release history.
   const markdownTargets = [
     ['docs/USAGE_TH.md', (content) => content
-      .replace(/lnwjud v[0-9.]+/g, `lnwjud v${version}`)
-      .replace(/lnwjud-Setup-[0-9.]+\.exe/g, `lnwjud-Setup-${version}.exe`)
-      .replace(/lnwjud-Portable-[0-9.]+\.exe/g, `lnwjud-Portable-${version}.exe`)],
+      .replace(/detunnel v[0-9.]+/g, `detunnel v${version}`)
+      .replace(/detunnel-Setup-[0-9.]+\.exe/g, `detunnel-Setup-${version}.exe`)
+      .replace(/detunnel-Portable-[0-9.]+\.exe/g, `detunnel-Portable-${version}.exe`)],
     ['docs/development/PACKAGING_WINDOWS.md', (content) => content
       .replace(/For v[0-9.]+:/g, `For v${version}:`)
       .replace(/current v[0-9.]+ packaging contract/g, `current v${version} packaging contract`)
-      .replace(/lnwjud-Setup-[0-9.]+\.exe/g, `lnwjud-Setup-${version}.exe`)
-      .replace(/lnwjud-Portable-[0-9.]+\.exe/g, `lnwjud-Portable-${version}.exe`)],
-    ['docs/LNWJUD_CAPABILITIES.md', (content) => content.replace(/lnwjud v[0-9.]+/g, `lnwjud v${version}`).replace(/ความสามารถหลักใน v[0-9.]+ คือ:/g, `ความสามารถหลักใน v${version} คือ:`)],
+      .replace(/detunnel-Setup-[0-9.]+\.exe/g, `detunnel-Setup-${version}.exe`)
+      .replace(/detunnel-Portable-[0-9.]+\.exe/g, `detunnel-Portable-${version}.exe`)],
+    ['docs/DETUNNEL_CAPABILITIES.md', (content) => content.replace(/detunnel v[0-9.]+/g, `detunnel v${version}`).replace(/ความสามารถหลักใน v[0-9.]+ คือ:/g, `ความสามารถหลักใน v${version} คือ:`)],
     ['docs/architecture/MULTI_WORKSPACE_CONCURRENCY.md', (content) => content.replace(/current v[0-9.]+ runtime contract/g, `current v${version} runtime contract`)],
     ['docs/architecture/TOOL_CONTRACT.md', (content) => content.replace(/snapshot synchronized for `v[0-9.]+`/g, `snapshot synchronized for ` + '`v' + version + '`')],
     ['docs/architecture/UPGRADE_ARCHITECTURE.md', (content) => content.replace(/checkpoint synchronized for `v[0-9.]+`/g, `checkpoint synchronized for ` + '`v' + version + '`')],

@@ -13,7 +13,7 @@ afterEach(async () => {
 
 describe('ripgrep installer', () => {
   it('downloads a pinned archive, verifies it, installs rg.exe, and reuses it', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-ripgrep-'));
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-ripgrep-'));
     roots.push(dataPath);
     const archive = Buffer.from('test ripgrep archive');
     const packageInfo = testPackage(archive);
@@ -45,7 +45,7 @@ describe('ripgrep installer', () => {
   });
 
   it('refuses a tampered archive before extraction', async () => {
-    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-ripgrep-'));
+    const dataPath = await mkdtemp(path.join(os.tmpdir(), 'detunnel-ripgrep-'));
     roots.push(dataPath);
     const packageInfo = { ...testPackage(Buffer.from('expected')), archiveSha256: '0'.repeat(64) };
 

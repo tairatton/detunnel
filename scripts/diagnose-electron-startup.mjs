@@ -17,7 +17,7 @@ const outputLimit = 1024 * 1024;
 await access(electronExecutable);
 await access(mainEntry);
 
-const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-electron-startup-'));
+const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-electron-startup-'));
 const child = spawn(electronExecutable, ['--enable-logging=stderr', '--v=1', mainEntry], {
   cwd: desktopRoot,
   shell: false,

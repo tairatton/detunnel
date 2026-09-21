@@ -11,7 +11,7 @@
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <AssemblyName>lnwjud-windows-ocr</AssemblyName>
-    <RootNamespace>Lnwjud.WindowsOcr</RootNamespace>
+    <AssemblyName>detunnel-windows-ocr</AssemblyName>
+    <RootNamespace>Detunnel.WindowsOcr</RootNamespace>
   </PropertyGroup>
 </Project>

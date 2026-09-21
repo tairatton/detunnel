@@ -84,7 +84,7 @@ describe('agent policy settings', () => {
   });
 
   it('recognizes protected critical files without blocking templates', () => {
-    for (const critical of ['.env', '.env.production', '.lnwjud-recovery/item', 'package.json', 'pnpm-lock.yaml', 'secrets.json', 'server.key', 'prod.sqlite']) {
+    for (const critical of ['.env', '.env.production', '.detunnel-recovery/item', 'package.json', 'pnpm-lock.yaml', 'secrets.json', 'server.key', 'prod.sqlite']) {
       expect(isProtectedCriticalPath(critical), critical).toBe(true);
     }
     for (const safe of ['.env.example', '.env.sample', 'src/app.ts', 'notes.txt']) {

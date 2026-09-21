@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { describe, expect, it } from 'vitest';
-import type { McpHttpServerHandle, McpHttpServerOptions } from '@lnwjud/mcp-server';
+import type { McpHttpServerHandle, McpHttpServerOptions } from '@detunnel/mcp-server';
 import { checkConfiguredMcpPort } from '../src/main/desktop-services.js';
 import { DesktopMcpLifecycle, type McpHttpServerStarter } from '../src/main/mcp-lifecycle.js';
 
@@ -17,7 +17,7 @@ function createOptions(): McpHttpServerOptions {
   return {
     port: 0,
     services: {},
-    actor: { clientId: 'desktop-global', clientName: 'lnwjud desktop' },
+    actor: { clientId: 'desktop-global', clientName: 'detunnel desktop' },
   };
 }
 
@@ -166,7 +166,7 @@ describe('DesktopMcpLifecycle', () => {
     expect(probed).toEqual(['http://127.0.0.1:43123']);
   });
 
-  it('Doctor still fails a fallback listener when its lnwjud identity cannot be verified', async () => {
+  it('Doctor still fails a fallback listener when its detunnel identity cannot be verified', async () => {
     const result = await checkConfiguredMcpPort(
       { running: true, url: 'http://127.0.0.1:43123/mcp', lastStartError: null, workspaceId: null },
       18765,
@@ -176,7 +176,7 @@ describe('DesktopMcpLifecycle', () => {
     expect(result.message).toContain('identity');
   });
 
-  it('Doctor rejects a reported running listener when the lnwjud identity probe does not match', async () => {
+  it('Doctor rejects a reported running listener when the detunnel identity probe does not match', async () => {
     const result = await checkConfiguredMcpPort(
       { running: true, url: 'http://127.0.0.1:18765/mcp', lastStartError: null, workspaceId: null },
       18765,
@@ -201,7 +201,7 @@ describe('DesktopMcpLifecycle', () => {
       if (address === null || typeof address === 'string') throw new Error('Expected TCP address');
       const result = await checkConfiguredMcpPort({ running: false, url: null, lastStartError: null, workspaceId: null }, address.port);
       expect(result.status).toBe('fail');
-      expect(result.message).toContain('not an lnwjud Desktop MCP');
+      expect(result.message).toContain('not a detunnel Desktop MCP');
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }

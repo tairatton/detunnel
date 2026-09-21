@@ -20,7 +20,7 @@ afterEach(async () => {
 
 describe('Desktop Tool Catalog runtime', () => {
   it('returns the real first-party catalog promptly after Desktop MCP startup', async () => {
-    const raw = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-tool-catalog-runtime-'));
+    const raw = await mkdtemp(path.join(os.tmpdir(), 'detunnel-tool-catalog-runtime-'));
     temporaryRoots.push(raw);
     const root = await realpath(raw);
     const dataRoot = path.join(root, 'data');
@@ -37,7 +37,7 @@ describe('Desktop Tool Catalog runtime', () => {
         new Promise<never>((_resolve, reject) => setTimeout(() => reject(new Error('Tool Catalog runtime read timed out')), 5_000)),
       ]);
 
-      expect(catalog.items.filter((item) => item.origin === 'lnwjud')).toHaveLength(Object.keys(catalogDefinitions).length);
+      expect(catalog.items.filter((item) => item.origin === 'detunnel')).toHaveLength(Object.keys(catalogDefinitions).length);
       expect(catalog.remediations.length).toBeGreaterThan(0);
       expect(() => structuredClone(catalog)).not.toThrow();
       expect(catalog.items.find((item) => item.name === 'run_goal')?.inputSchema).toMatchObject({ type: 'object' });

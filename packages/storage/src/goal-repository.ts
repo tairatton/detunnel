@@ -41,7 +41,7 @@ import {
   type ScheduledContinuationStatus,
   type CancelScheduledContinuationRecordRequest,
   type CancelScheduledContinuationRecordResult,
-} from '@lnwjud/domain';
+} from '@detunnel/domain';
 import type { SqliteDatabase } from './database.js';
 
 const MAX_TRACKED_TASKS = 50;
@@ -467,7 +467,7 @@ export class SqliteGoalRepository implements GoalRepository, ScheduledContinuati
       const revision = current.revision + 1;
       const evidence = [
         ...request.evidence,
-        { kind: 'note' as const, value: `lnwjud:reconciliation:${request.reason}` },
+        { kind: 'note' as const, value: `detunnel:reconciliation:${request.reason}` },
       ];
       const changed = this.database.connection.prepare(`
         UPDATE goals

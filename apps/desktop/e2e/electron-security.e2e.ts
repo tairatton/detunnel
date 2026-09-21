@@ -13,7 +13,7 @@ const electronExecutable = path.join(electronDistPath, 'electron.exe');
 
 test('renderer cannot access Node globals', async () => {
   const devToolsPort = await findEphemeralPort();
-  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-security-data-'));
+  const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'detunnel-security-data-'));
   const electronProcess = spawn(electronExecutable, [`--remote-debugging-port=${devToolsPort}`, `--user-data-dir=${dataRoot}`, mainEntry], {
     cwd: desktopRoot,
     shell: false,
@@ -38,7 +38,7 @@ test('renderer cannot access Node globals', async () => {
     await expect.poll(async () => page.evaluate(() => ({
       process: typeof Reflect.get(window, 'process'),
       require: typeof Reflect.get(window, 'require'),
-      api: typeof window.lnwjud?.listWorkspaces,
+      api: typeof window.detunnel?.listWorkspaces,
     }))).toEqual({ process: 'undefined', require: 'undefined', api: 'function' });
     await browser.close();
   } finally {

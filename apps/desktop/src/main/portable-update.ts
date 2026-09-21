@@ -3,7 +3,7 @@ import { access, mkdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-export const PORTABLE_UPDATE_FEED_URL = 'https://github.com/engasnm111/lnwjud/releases/latest/download/';
+export const PORTABLE_UPDATE_FEED_URL = 'https://github.com/engasnm111/detunnel/releases/latest/download/';
 export const PORTABLE_UPDATE_CHANNEL = 'portable';
 
 export type WindowsDistribution = 'installer' | 'portable';
@@ -86,7 +86,7 @@ export async function preparePortableReplacement(
   const powershellPath = path.join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
   await access(powershellPath);
 
-  const tempDirectory = options.tempDirectory ?? path.join(os.tmpdir(), 'lnwjud-portable-update');
+  const tempDirectory = options.tempDirectory ?? path.join(os.tmpdir(), 'detunnel-portable-update');
   await mkdir(tempDirectory, { recursive: true });
   const processId = options.processId ?? process.pid;
   const scriptPath = path.join(tempDirectory, `replace-${processId}-${Date.now()}.ps1`);
@@ -126,7 +126,7 @@ export function portableReplacementScript(): string {
   [Parameter(Mandatory = $true)][string]$Target
 )
 $ErrorActionPreference = 'Stop'
-$backup = "$Target.lnwjud-update-backup"
+$backup = "$Target.detunnel-update-backup"
 try {
   $deadline = [DateTime]::UtcNow.AddMinutes(2)
   while ([DateTime]::UtcNow -lt $deadline) {
@@ -134,7 +134,7 @@ try {
     Start-Sleep -Milliseconds 250
   }
   if ($null -ne (Get-Process -Id $CurrentPid -ErrorAction SilentlyContinue)) {
-    throw 'Timed out waiting for lnwjud portable process to exit.'
+    throw 'Timed out waiting for detunnel portable process to exit.'
   }
   if (-not (Test-Path -LiteralPath $Source -PathType Leaf)) { throw 'Downloaded portable update is missing.' }
   if (-not (Test-Path -LiteralPath $Target -PathType Leaf)) { throw 'Current portable executable is missing.' }

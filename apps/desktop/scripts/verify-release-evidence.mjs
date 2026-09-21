@@ -13,7 +13,7 @@ const provenance = JSON.parse(await readFile(path.join(installerDirectory, 'PROV
 const sumsText = await readFile(path.join(installerDirectory, 'SHA256SUMS.txt'), 'utf8');
 const sums = parseSums(sumsText);
 
-if (provenance?.schemaVersion !== 1 || provenance.product !== 'lnwjud') throw new Error('PROVENANCE.json schema/product is invalid');
+if (provenance?.schemaVersion !== 1 || provenance.product !== 'detunnel') throw new Error('PROVENANCE.json schema/product is invalid');
 if (provenance.version !== packageJson.version) throw new Error(`Provenance version mismatch: ${String(provenance.version)} != ${String(packageJson.version)}`);
 if (provenance.source?.kind !== 'local-build') throw new Error('Provenance source kind is invalid');
 
@@ -51,10 +51,10 @@ const provenanceHash = await sha256File(path.join(installerDirectory, 'PROVENANC
 if (sums.get('PROVENANCE.json') !== provenanceHash) throw new Error('PROVENANCE.json SHA-256 mismatch');
 
 const requiredRuntime = new Set([
-  'lnwjud.exe',
-  'lnwjud-mcp-stdio.cjs',
-  'lnwjud-mcp-stdio.cmd',
-  'lnwjud-node.exe',
+  'detunnel.exe',
+  'detunnel-mcp-stdio.cjs',
+  'detunnel-mcp-stdio.cmd',
+  'detunnel-node.exe',
   'resources/windows-capability-bridge.ps1',
   'resources/windows-capability-bridge.sha256',
   'resources/windows-capability-bridge.integrity.json',
@@ -82,7 +82,7 @@ for (const runtime of provenance.runtime) {
 }
 if (requiredRuntime.size > 0) throw new Error(`Runtime provenance is incomplete: ${[...requiredRuntime].join(', ')}`);
 
-process.stdout.write(`Release evidence verified for lnwjud ${provenance.version}\n`);
+process.stdout.write(`Release evidence verified for detunnel ${provenance.version}\n`);
 
 function isCapabilityBridgeIdentity(value) {
   return value !== null

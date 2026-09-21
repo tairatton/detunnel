@@ -6,7 +6,7 @@ import type {
   PdfProviderInstallResult,
   UiLocale,
   UserSettings,
-} from '@lnwjud/ipc-contracts';
+} from '@detunnel/ipc-contracts';
 import { MessageIcon } from '../shell/UiIcon.js';
 import { SettingSwitch } from './SettingSwitch.js';
 

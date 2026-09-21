@@ -2,8 +2,8 @@ import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { AuditService, redactActivityTargetDetail } from '@lnwjud/audit';
-import { SqliteAuditRepository, SqliteDatabase } from '@lnwjud/storage';
+import { AuditService, redactActivityTargetDetail } from '@detunnel/audit';
+import { SqliteAuditRepository, SqliteDatabase } from '@detunnel/storage';
 import * as desktopServices from '../src/main/desktop-services.js';
 
 const temporaryRoots: string[] = [];
@@ -156,7 +156,7 @@ describe('complete log detail resolution and export', () => {
   });
 
   it('streams complete rows to the exported txt file without renderer-formatted content', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-log-export-file-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-log-export-file-'));
     temporaryRoots.push(root);
     const writeRows = (desktopServices as unknown as { writeSerializedLogRows?: WriteSerializedLogRows }).writeSerializedLogRows;
     expect(typeof writeRows).toBe('function');
@@ -166,11 +166,11 @@ describe('complete log detail resolution and export', () => {
   });
 
   it('writes to the selected txt path while streaming instead of exposing a tmp-suffixed export', async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-log-export-visible-path-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-log-export-visible-path-'));
     temporaryRoots.push(root);
     const writeRows = (desktopServices as unknown as { writeSerializedLogRows?: (filePath: string, rows: AsyncIterable<string>) => Promise<void> }).writeSerializedLogRows;
     expect(typeof writeRows).toBe('function');
-    const filePath = path.join(root, 'lnwjud-process-logs.txt');
+    const filePath = path.join(root, 'detunnel-process-logs.txt');
     let releaseSecondRow!: () => void;
     const waitForSecondRow = new Promise<void>((resolve) => { releaseSecondRow = resolve; });
     let firstRowYielded!: () => void;
@@ -183,7 +183,7 @@ describe('complete log detail resolution and export', () => {
     }
     const writing = writeRows!(filePath, rows());
     await firstRowWritten;
-    expect(await readdir(root)).toEqual(['lnwjud-process-logs.txt']);
+    expect(await readdir(root)).toEqual(['detunnel-process-logs.txt']);
     releaseSecondRow();
     await writing;
     expect(await readFile(filePath, 'utf8')).toBe('first\r\nsecond\r\n');
@@ -212,7 +212,7 @@ describe('complete log detail resolution and export', () => {
         consumedRows += 1;
       }
     }
-    const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-log-export-backpressure-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-log-export-backpressure-'));
     temporaryRoots.push(root);
     await writeRows!(path.join(root, 'streamed.txt'), observeConsumption());
     expect(detailResolutions).toBe(2);
@@ -244,7 +244,7 @@ async function createAuditFixture(callId: string, items: readonly string[], comp
   readonly repository: SqliteAuditRepository;
   readonly audit: AuditService;
 }> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'lnwjud-log-detail-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'detunnel-log-detail-'));
   temporaryRoots.push(root);
   const database = new SqliteDatabase(path.join(root, 'state.db'));
   openDatabases.push(database);

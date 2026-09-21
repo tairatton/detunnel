@@ -25,7 +25,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public static class LnwjudNative
+public static class DetunnelNative
 {
     public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
@@ -121,7 +121,7 @@ try { Add-Type -TypeDefinition $nativeSource -ErrorAction Stop | Out-Null } catc
 
 function Resolve-Window {
   param([object]$Parameters)
-  $windows = @([LnwjudNative]::Windows())
+  $windows = @([DetunnelNative]::Windows())
   $windowIndex = Get-Field $Parameters 'window_index'
   if ($windowIndex -is [int] -or $windowIndex -is [long]) {
     $index = [int]$windowIndex
@@ -144,10 +144,10 @@ function Resolve-Window {
 function Invoke-WindowAction {
   param([string]$Operation, [object]$Parameters)
   switch ($Operation) {
-    'list' { return [ordered]@{ windows = @([LnwjudNative]::Windows()) } }
+    'list' { return [ordered]@{ windows = @([DetunnelNative]::Windows()) } }
     'get_active' {
-      $hwnd = [LnwjudNative]::GetForegroundWindow()
-      $window = [LnwjudNative]::Windows() | Where-Object { [int64]$_.hwnd -eq $hwnd.ToInt64() } | Select-Object -First 1
+      $hwnd = [DetunnelNative]::GetForegroundWindow()
+      $window = [DetunnelNative]::Windows() | Where-Object { [int64]$_.hwnd -eq $hwnd.ToInt64() } | Select-Object -First 1
       return [ordered]@{ window = $window }
     }
     'get_bounds' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; return $window.bounds }
@@ -162,25 +162,25 @@ function Invoke-WindowAction {
       $window = Resolve-Window $Parameters
       if ($null -eq $window) { throw 'Window not found' }
       $hwnd = [IntPtr]([int64]$window.hwnd)
-      if ([bool]$window.minimized) { [void][LnwjudNative]::ShowWindow($hwnd, 9); Start-Sleep -Milliseconds 40 }
-      $requested = [LnwjudNative]::SetForegroundWindow($hwnd)
+      if ([bool]$window.minimized) { [void][DetunnelNative]::ShowWindow($hwnd, 9); Start-Sleep -Milliseconds 40 }
+      $requested = [DetunnelNative]::SetForegroundWindow($hwnd)
       Start-Sleep -Milliseconds 40
-      $activated = ([LnwjudNative]::GetForegroundWindow().ToInt64() -eq $hwnd.ToInt64())
+      $activated = ([DetunnelNative]::GetForegroundWindow().ToInt64() -eq $hwnd.ToInt64())
       if (-not $activated -and $requested) {
         Start-Sleep -Milliseconds 40
-        [void][LnwjudNative]::SetForegroundWindow($hwnd)
-        $activated = ([LnwjudNative]::GetForegroundWindow().ToInt64() -eq $hwnd.ToInt64())
+        [void][DetunnelNative]::SetForegroundWindow($hwnd)
+        $activated = ([DetunnelNative]::GetForegroundWindow().ToInt64() -eq $hwnd.ToInt64())
       }
       $reason = if ($activated) { $null } else { 'Windows did not grant foreground activation' }
       return [ordered]@{ activated = $activated; requested = [bool]$requested; window = $window; reason = $reason }
     }
-    'close' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::PostMessage([IntPtr]([int64]$window.hwnd), 0x0010, [IntPtr]::Zero, [IntPtr]::Zero); return [ordered]@{ closed = $true; hwnd = $window.hwnd } }
-    'minimize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 6); return [ordered]@{ minimized = $true; hwnd = $window.hwnd } }
-    'maximize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 3); return [ordered]@{ maximized = $true; hwnd = $window.hwnd } }
-    'restore' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 9); return [ordered]@{ restored = $true; hwnd = $window.hwnd } }
-    'move' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y'), [int]$window.bounds.width, [int]$window.bounds.height, $true); return [ordered]@{ moved = $true; hwnd = $window.hwnd } }
-    'resize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int]$window.bounds.x, [int]$window.bounds.y, [int](Get-Field $Parameters 'width'), [int](Get-Field $Parameters 'height'), $true); return [ordered]@{ resized = $true; hwnd = $window.hwnd } }
-    'set_window_frame' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][LnwjudNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y'), [int](Get-Field $Parameters 'width'), [int](Get-Field $Parameters 'height'), $true); return [ordered]@{ framed = $true; hwnd = $window.hwnd } }
+    'close' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::PostMessage([IntPtr]([int64]$window.hwnd), 0x0010, [IntPtr]::Zero, [IntPtr]::Zero); return [ordered]@{ closed = $true; hwnd = $window.hwnd } }
+    'minimize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 6); return [ordered]@{ minimized = $true; hwnd = $window.hwnd } }
+    'maximize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 3); return [ordered]@{ maximized = $true; hwnd = $window.hwnd } }
+    'restore' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::ShowWindow([IntPtr]([int64]$window.hwnd), 9); return [ordered]@{ restored = $true; hwnd = $window.hwnd } }
+    'move' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y'), [int]$window.bounds.width, [int]$window.bounds.height, $true); return [ordered]@{ moved = $true; hwnd = $window.hwnd } }
+    'resize' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int]$window.bounds.x, [int]$window.bounds.y, [int](Get-Field $Parameters 'width'), [int](Get-Field $Parameters 'height'), $true); return [ordered]@{ resized = $true; hwnd = $window.hwnd } }
+    'set_window_frame' { $window = Resolve-Window $Parameters; if ($null -eq $window) { throw 'Window not found' }; [void][DetunnelNative]::MoveWindow([IntPtr]([int64]$window.hwnd), [int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y'), [int](Get-Field $Parameters 'width'), [int](Get-Field $Parameters 'height'), $true); return [ordered]@{ framed = $true; hwnd = $window.hwnd } }
     default { throw "Unsupported window operation: $Operation" }
   }
 }
@@ -220,9 +220,9 @@ function Invoke-UiPointerClick {
   if ($null -eq $bounds -or $bounds.width -le 0 -or $bounds.height -le 0) { throw 'UI element does not have clickable bounds' }
   $x = [int][Math]::Round($bounds.x + ($bounds.width / 2.0))
   $y = [int][Math]::Round($bounds.y + ($bounds.height / 2.0))
-  if (-not [LnwjudNative]::SetCursorPos($x, $y)) { throw 'Pointer could not be moved to the UI element' }
-  [LnwjudNative]::MouseButton(0x2)
-  [LnwjudNative]::MouseButton(0x4)
+  if (-not [DetunnelNative]::SetCursorPos($x, $y)) { throw 'Pointer could not be moved to the UI element' }
+  [DetunnelNative]::MouseButton(0x2)
+  [DetunnelNative]::MouseButton(0x4)
   return [ordered]@{ x = $x; y = $y }
 }
 
@@ -289,7 +289,7 @@ function Find-UiElement {
 function Invoke-AccessibilityAction {
   param([string]$Action, [object]$Parameters)
   if ($Action -eq 'status') { return [ordered]@{ available = (Load-UiAutomation); backend = 'Microsoft UI Automation' } }
-  if ($Action -eq 'list_windows') { return [ordered]@{ windows = @([LnwjudNative]::Windows()) } }
+  if ($Action -eq 'list_windows') { return [ordered]@{ windows = @([DetunnelNative]::Windows()) } }
   if ($Action -eq 'launch_app') {
     $executable = Get-Field $Parameters 'executable'
     if ($executable -isnot [string] -or $executable.Length -eq 0) { throw 'Executable is required' }
@@ -383,27 +383,27 @@ function Get-VirtualKey {
 function Invoke-KeyPress {
   param([object]$Key)
   $code = Get-VirtualKey $Key
-  [LnwjudNative]::Key($code, $false); [LnwjudNative]::Key($code, $true)
+  [DetunnelNative]::Key($code, $false); [DetunnelNative]::Key($code, $true)
 }
 
 function Invoke-InputAction {
   param([string]$Operation, [object]$Parameters)
   switch ($Operation) {
-    'type_text' { foreach ($character in [string](Get-Field $Parameters 'text')) { [LnwjudNative]::Unicode([uint16][char]$character, $false); [LnwjudNative]::Unicode([uint16][char]$character, $true) }; return [ordered]@{ typed = $true } }
-    'paste_text' { foreach ($character in [string](Get-Field $Parameters 'text')) { [LnwjudNative]::Unicode([uint16][char]$character, $false); [LnwjudNative]::Unicode([uint16][char]$character, $true) }; return [ordered]@{ pasted = $true } }
+    'type_text' { foreach ($character in [string](Get-Field $Parameters 'text')) { [DetunnelNative]::Unicode([uint16][char]$character, $false); [DetunnelNative]::Unicode([uint16][char]$character, $true) }; return [ordered]@{ typed = $true } }
+    'paste_text' { foreach ($character in [string](Get-Field $Parameters 'text')) { [DetunnelNative]::Unicode([uint16][char]$character, $false); [DetunnelNative]::Unicode([uint16][char]$character, $true) }; return [ordered]@{ pasted = $true } }
     'press_key' { Invoke-KeyPress (Get-Field $Parameters 'key'); return [ordered]@{ pressed = $true } }
-    'hotkey' { $keys = @(Get-Field $Parameters 'modifiers'); foreach ($key in $keys) { [LnwjudNative]::Key((Get-VirtualKey $key), $false) }; Invoke-KeyPress (Get-Field $Parameters 'key'); foreach ($key in ($keys | Select-Object -Reverse)) { [LnwjudNative]::Key((Get-VirtualKey $key), $true) }; return [ordered]@{ pressed = $true } }
-    'key_down' { [LnwjudNative]::Key((Get-VirtualKey (Get-Field $Parameters 'key')), $false); return [ordered]@{ down = $true } }
-    'key_up' { [LnwjudNative]::Key((Get-VirtualKey (Get-Field $Parameters 'key')), $true); return [ordered]@{ up = $true } }
-    'mouse_move' { [void][LnwjudNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); return [ordered]@{ moved = $true } }
-    'click' { [void][LnwjudNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); [LnwjudNative]::MouseButton(0x2); [LnwjudNative]::MouseButton(0x4); return [ordered]@{ clicked = $true } }
-    'double_click' { [void][LnwjudNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); 1..2 | ForEach-Object { [LnwjudNative]::MouseButton(0x2); [LnwjudNative]::MouseButton(0x4); if ($_ -eq 1) { Start-Sleep -Milliseconds 40 } }; return [ordered]@{ clicked = $true; count = 2 } }
-    'right_click' { [void][LnwjudNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); [LnwjudNative]::MouseButton(0x8); [LnwjudNative]::MouseButton(0x10); return [ordered]@{ clicked = $true; button = 'right' } }
-    'button_down' { [LnwjudNative]::MouseButton(0x2); return [ordered]@{ down = $true } }
-    'button_up' { [LnwjudNative]::MouseButton(0x4); return [ordered]@{ up = $true } }
-    'scroll' { [LnwjudNative]::MouseWheel([int](Get-Field $Parameters 'delta_y'), $false); return [ordered]@{ scrolled = $true } }
-    'drag' { $from = Get-Field $Parameters 'from'; $to = Get-Field $Parameters 'to'; [void][LnwjudNative]::SetCursorPos([int](Get-Field $from 'x'), [int](Get-Field $from 'y')); [LnwjudNative]::MouseButton(0x2); [void][LnwjudNative]::SetCursorPos([int](Get-Field $to 'x'), [int](Get-Field $to 'y')); [LnwjudNative]::MouseButton(0x4); return [ordered]@{ dragged = $true } }
-    'release_all' { foreach ($key in @(0x10, 0x11, 0x12, 0x5B)) { [LnwjudNative]::Key([uint16]$key, $true) }; [LnwjudNative]::MouseButton(0x4); [LnwjudNative]::MouseButton(0x10); return [ordered]@{ released = $true } }
+    'hotkey' { $keys = @(Get-Field $Parameters 'modifiers'); foreach ($key in $keys) { [DetunnelNative]::Key((Get-VirtualKey $key), $false) }; Invoke-KeyPress (Get-Field $Parameters 'key'); foreach ($key in ($keys | Select-Object -Reverse)) { [DetunnelNative]::Key((Get-VirtualKey $key), $true) }; return [ordered]@{ pressed = $true } }
+    'key_down' { [DetunnelNative]::Key((Get-VirtualKey (Get-Field $Parameters 'key')), $false); return [ordered]@{ down = $true } }
+    'key_up' { [DetunnelNative]::Key((Get-VirtualKey (Get-Field $Parameters 'key')), $true); return [ordered]@{ up = $true } }
+    'mouse_move' { [void][DetunnelNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); return [ordered]@{ moved = $true } }
+    'click' { [void][DetunnelNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); [DetunnelNative]::MouseButton(0x2); [DetunnelNative]::MouseButton(0x4); return [ordered]@{ clicked = $true } }
+    'double_click' { [void][DetunnelNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); 1..2 | ForEach-Object { [DetunnelNative]::MouseButton(0x2); [DetunnelNative]::MouseButton(0x4); if ($_ -eq 1) { Start-Sleep -Milliseconds 40 } }; return [ordered]@{ clicked = $true; count = 2 } }
+    'right_click' { [void][DetunnelNative]::SetCursorPos([int](Get-Field $Parameters 'x'), [int](Get-Field $Parameters 'y')); [DetunnelNative]::MouseButton(0x8); [DetunnelNative]::MouseButton(0x10); return [ordered]@{ clicked = $true; button = 'right' } }
+    'button_down' { [DetunnelNative]::MouseButton(0x2); return [ordered]@{ down = $true } }
+    'button_up' { [DetunnelNative]::MouseButton(0x4); return [ordered]@{ up = $true } }
+    'scroll' { [DetunnelNative]::MouseWheel([int](Get-Field $Parameters 'delta_y'), $false); return [ordered]@{ scrolled = $true } }
+    'drag' { $from = Get-Field $Parameters 'from'; $to = Get-Field $Parameters 'to'; [void][DetunnelNative]::SetCursorPos([int](Get-Field $from 'x'), [int](Get-Field $from 'y')); [DetunnelNative]::MouseButton(0x2); [void][DetunnelNative]::SetCursorPos([int](Get-Field $to 'x'), [int](Get-Field $to 'y')); [DetunnelNative]::MouseButton(0x4); return [ordered]@{ dragged = $true } }
+    'release_all' { foreach ($key in @(0x10, 0x11, 0x12, 0x5B)) { [DetunnelNative]::Key([uint16]$key, $true) }; [DetunnelNative]::MouseButton(0x4); [DetunnelNative]::MouseButton(0x10); return [ordered]@{ released = $true } }
     'sequence' { $steps = @(Get-Field $Parameters 'steps'); if ($steps.Count -lt 1 -or $steps.Count -gt 100) { throw 'Input sequence requires 1 to 100 steps' }; $results = foreach ($step in $steps) { $stepParams = Get-Field $step 'parameters'; if ($null -eq $stepParams) { $stepParams = $step }; Invoke-InputAction ([string](Get-Field $step 'operation')) $stepParams }; return [ordered]@{ steps = @($results) } }
     default { throw "Unsupported input operation: $Operation" }
   }
@@ -460,7 +460,7 @@ function Invoke-VisionAction {
   } elseif ($Action -eq 'capture_window') {
     $windowIndex = Get-Field $Parameters 'window_index'
     if ($windowIndex -is [int] -or $windowIndex -is [long]) {
-      $windows = @([LnwjudNative]::Windows())
+      $windows = @([DetunnelNative]::Windows())
       if ([int]$windowIndex -lt 0 -or [int]$windowIndex -ge $windows.Count) { throw 'Window index is out of range' }
       $window = $windows[[int]$windowIndex]
     } else {
@@ -588,7 +588,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-public static class LnwjudAudio
+public static class DetunnelAudio
 {
     [DllImport("winmm.dll", CharSet = CharSet.Unicode)]
     private static extern int mciSendString(string command, StringBuilder buffer, int bufferSize, IntPtr callback);
@@ -621,12 +621,12 @@ function Invoke-AudioAction {
       if (-not (Test-Path $parent -PathType Container)) { throw 'Output directory does not exist' }
       $duration = Get-Field $Parameters 'duration_seconds'; if ($null -eq $duration) { $duration = 10 }
       if ([int]$duration -lt 1 -or [int]$duration -gt 600) { throw 'duration_seconds must be from 1 to 600' }
-      [LnwjudAudio]::Mci('open new type waveaudio alias lnwjudrec')
-      [LnwjudAudio]::Mci('record lnwjudrec')
+      [DetunnelAudio]::Mci('open new type waveaudio alias detunnelrec')
+      [DetunnelAudio]::Mci('record detunnelrec')
       Start-Sleep -Seconds ([int]$duration)
-      [LnwjudAudio]::Mci('stop lnwjudrec')
-      [LnwjudAudio]::Mci(('save lnwjudrec "' + $path + '"'))
-      [LnwjudAudio]::Mci('close lnwjudrec')
+      [DetunnelAudio]::Mci('stop detunnelrec')
+      [DetunnelAudio]::Mci(('save detunnelrec "' + $path + '"'))
+      [DetunnelAudio]::Mci('close detunnelrec')
       return [ordered]@{ recorded = $true; output_path = $path; duration_seconds = [int]$duration }
     }
     'play' {
@@ -637,14 +637,14 @@ function Invoke-AudioAction {
       $mciType = 'mpegvideo'
       if ($extension -eq '.wav') { $mciType = 'waveaudio' }
       elseif ($extension -eq '.mid' -or $extension -eq '.midi') { $mciType = 'sequencer' }
-      [LnwjudAudio]::Mci(('open "' + $path + '" type ' + $mciType + ' alias lnwjudplay'))
-      [LnwjudAudio]::Mci('play lnwjudplay wait')
-      [LnwjudAudio]::Mci('close lnwjudplay')
+      [DetunnelAudio]::Mci(('open "' + $path + '" type ' + $mciType + ' alias detunnelplay'))
+      [DetunnelAudio]::Mci('play detunnelplay wait')
+      [DetunnelAudio]::Mci('close detunnelplay')
       return [ordered]@{ played = $true; file_path = $path }
     }
     'stop' {
-      foreach ($command in @('stop lnwjudrec', 'stop lnwjudplay', 'close lnwjudrec', 'close lnwjudplay')) {
-        try { [LnwjudAudio]::Mci($command) } catch { }
+      foreach ($command in @('stop detunnelrec', 'stop detunnelplay', 'close detunnelrec', 'close detunnelplay')) {
+        try { [DetunnelAudio]::Mci($command) } catch { }
       }
       return [ordered]@{ stopped = $true }
     }
@@ -654,7 +654,7 @@ function Invoke-AudioAction {
 
 function Invoke-ScreenRecordAction {
   param([string]$Action, [object]$Parameters)
-  $statePath = Join-Path $env:TEMP 'lnwjud-screen-record-state.json'
+  $statePath = Join-Path $env:TEMP 'detunnel-screen-record-state.json'
   switch ($Action) {
     'start' {
       $ffmpeg = (Get-Command ffmpeg -ErrorAction SilentlyContinue).Source

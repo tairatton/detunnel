@@ -25,7 +25,7 @@
 
 ```powershell
 corepack pnpm@10.15.0 typecheck
-corepack pnpm@10.15.0 --filter @lnwjud/mcp-server test
+corepack pnpm@10.15.0 --filter @detunnel/mcp-server test
 corepack pnpm@10.15.0 docs:tools:check
 ```
 

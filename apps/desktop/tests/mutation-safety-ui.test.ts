@@ -1,12 +1,12 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { APP_VERSION, type DashboardSnapshot } from '@lnwjud/ipc-contracts';
+import { APP_VERSION, type DashboardSnapshot } from '@detunnel/ipc-contracts';
 import { AppShell } from '../src/renderer/features/shell/AppShell.js';
 import { SettingsPage } from '../src/renderer/features/settings/SettingsPage.js';
 
 const noop = async (): Promise<void> => undefined;
-const recoveryTrashPath = 'C:\\Users\\Tester\\AppData\\Roaming\\lnwjud\\recovery-trash';
+const recoveryTrashPath = 'C:\\Users\\Tester\\AppData\\Roaming\\detunnel\\recovery-trash';
 const dashboard: DashboardSnapshot = {
   selectedWorkspace: { id: 'workspace-a', displayName: 'Project A', rootPath: 'E:\\project-a', realRootPath: 'E:\\project-a', createdAt: new Date(0).toISOString() },
   activeWorkspaces: [{ id: 'workspace-a', displayName: 'Project A', rootPath: 'E:\\project-a', realRootPath: 'E:\\project-a', createdAt: new Date(0).toISOString() }],
@@ -32,7 +32,7 @@ const dashboard: DashboardSnapshot = {
   stdioAllowedRoots: [],
   backups: [],
   recovery: { trashRoot: recoveryTrashPath, trashItems: [], checkpoints: [] },
-  connectionModes: { httpUrl: null, stdioCommand: 'lnwjud --mcp-stdio' },
+  connectionModes: { httpUrl: null, stdioCommand: 'detunnel --mcp-stdio' },
   workLog: [],
   inFlight: [],
   tunnel: { state: 'stopped', source: 'desktop', hasApiKey: false, clientPath: null, profileExists: false, message: null, logPath: null, persistent: null },
